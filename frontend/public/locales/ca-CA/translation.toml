@@ -4203,6 +4203,11 @@ desc = "Fusiona diverses pàgines d'un document PDF en una sola pàgina"
 tags = "disposició,organitza,combina"
 title = "Disposició Multi-Pàgina"
 
+[home.pdfCommentAgent]
+desc = "Ask AI to annotate a PDF with sticky-note comments based on your prompt"
+tags = "AI,agent,comment,annotate,sticky note,review,feedback,notes"
+title = "Add AI comments"
+
 [home.pdfOrganiser]
 desc = "Elimina/reorganitza pàgines en qualsevol ordre"
 tags = "organitza,reorganitza,reordena"
@@ -5278,6 +5283,24 @@ selectMonthly = "Selecciona mensual"
 selectYearly = "Selecciona anual"
 title = "Tria el període de facturació"
 totalForSeats = "Total ({{count}} seients)"
+
+[pdfCommentAgent]
+submit = "Generate comments"
+
+[pdfCommentAgent.error]
+emptyPrompt = "Please describe what the AI should comment on"
+failed = "Failed to generate comments"
+tooLong = "Prompt is too long (maximum {{max}} characters)"
+
+[pdfCommentAgent.prompt]
+label = "What should the AI comment on?"
+placeholder = "e.g. Flag any ambiguous dates and suggest clarifications"
+
+[pdfCommentAgent.results]
+title = "Commented PDF"
+
+[pdfCommentAgent.settings]
+title = "Comment instructions"
 
 [pdfOrganiser]
 header = "Organitzador de Pàgines PDF"

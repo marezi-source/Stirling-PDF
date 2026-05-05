@@ -4203,6 +4203,11 @@ desc = "PDF 문서의 여러 페이지를 하나의 페이지로 병합"
 tags = "레이아웃,배치,결합"
 title = "다중 페이지 레이아웃"
 
+[home.pdfCommentAgent]
+desc = "Ask AI to annotate a PDF with sticky-note comments based on your prompt"
+tags = "AI,agent,comment,annotate,sticky note,review,feedback,notes"
+title = "Add AI comments"
+
 [home.pdfOrganiser]
 desc = "원하는 순서로 페이지 제거/재배치"
 tags = "정리,재배치,순서변경"
@@ -5278,6 +5283,24 @@ selectMonthly = "월간 선택"
 selectYearly = "연간 선택"
 title = "청구 주기 선택"
 totalForSeats = "합계({{count}} 좌석)"
+
+[pdfCommentAgent]
+submit = "Generate comments"
+
+[pdfCommentAgent.error]
+emptyPrompt = "Please describe what the AI should comment on"
+failed = "Failed to generate comments"
+tooLong = "Prompt is too long (maximum {{max}} characters)"
+
+[pdfCommentAgent.prompt]
+label = "What should the AI comment on?"
+placeholder = "e.g. Flag any ambiguous dates and suggest clarifications"
+
+[pdfCommentAgent.results]
+title = "Commented PDF"
+
+[pdfCommentAgent.settings]
+title = "Comment instructions"
 
 [pdfOrganiser]
 header = "PDF 페이지 정리"

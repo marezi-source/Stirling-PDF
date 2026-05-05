@@ -4203,6 +4203,11 @@ desc = "Ghép nhiều trang của tài liệu PDF thành một trang duy nhất"
 tags = "bố cục,sắp xếp,kết hợp"
 title = "Bố cục nhiều trang"
 
+[home.pdfCommentAgent]
+desc = "Ask AI to annotate a PDF with sticky-note comments based on your prompt"
+tags = "AI,agent,comment,annotate,sticky note,review,feedback,notes"
+title = "Add AI comments"
+
 [home.pdfOrganiser]
 desc = "Xóa/Sắp xếp lại trang theo bất kỳ thứ tự nào"
 tags = "tổ chức,sắp xếp lại,đổi thứ tự"
@@ -5278,6 +5283,24 @@ selectMonthly = "Chọn theo tháng"
 selectYearly = "Chọn theo năm"
 title = "Chọn chu kỳ thanh toán"
 totalForSeats = "Tổng ({{count}} ghế)"
+
+[pdfCommentAgent]
+submit = "Generate comments"
+
+[pdfCommentAgent.error]
+emptyPrompt = "Please describe what the AI should comment on"
+failed = "Failed to generate comments"
+tooLong = "Prompt is too long (maximum {{max}} characters)"
+
+[pdfCommentAgent.prompt]
+label = "What should the AI comment on?"
+placeholder = "e.g. Flag any ambiguous dates and suggest clarifications"
+
+[pdfCommentAgent.results]
+title = "Commented PDF"
+
+[pdfCommentAgent.settings]
+title = "Comment instructions"
 
 [pdfOrganiser]
 header = "Sắp xếp trang PDF"

@@ -4203,6 +4203,11 @@ desc = "Îmbină mai multe pagini ale unui document PDF într-o singură pagină
 tags = "aspect,aranjează,combină"
 title = "Aspect Multi-Pagină"
 
+[home.pdfCommentAgent]
+desc = "Ask AI to annotate a PDF with sticky-note comments based on your prompt"
+tags = "AI,agent,comment,annotate,sticky note,review,feedback,notes"
+title = "Add AI comments"
+
 [home.pdfOrganiser]
 desc = "Elimină/rearanjează pagini în orice ordine"
 tags = "organizează,rearanjează,reordonează"
@@ -5278,6 +5283,24 @@ selectMonthly = "Selectează lunar"
 selectYearly = "Selectează anual"
 title = "Alege perioada de facturare"
 totalForSeats = "Total ({{count}} locuri)"
+
+[pdfCommentAgent]
+submit = "Generate comments"
+
+[pdfCommentAgent.error]
+emptyPrompt = "Please describe what the AI should comment on"
+failed = "Failed to generate comments"
+tooLong = "Prompt is too long (maximum {{max}} characters)"
+
+[pdfCommentAgent.prompt]
+label = "What should the AI comment on?"
+placeholder = "e.g. Flag any ambiguous dates and suggest clarifications"
+
+[pdfCommentAgent.results]
+title = "Commented PDF"
+
+[pdfCommentAgent.settings]
+title = "Comment instructions"
 
 [pdfOrganiser]
 header = "Organizator de pagini PDF"

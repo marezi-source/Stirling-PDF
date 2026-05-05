@@ -4203,6 +4203,11 @@ desc = "PDF दस्तावेज के कई पृष्ठों को 
 tags = "लेआउट,व्यवस्थित करें,मिलाएँ"
 title = "मल्टी-पेज लेआउट"
 
+[home.pdfCommentAgent]
+desc = "Ask AI to annotate a PDF with sticky-note comments based on your prompt"
+tags = "AI,agent,comment,annotate,sticky note,review,feedback,notes"
+title = "Add AI comments"
+
 [home.pdfOrganiser]
 desc = "किसी भी क्रम में पृष्ठ निकालें/पुनर्व्यवस्थित करें"
 tags = "संगठित करें,पुनर्व्यवस्थित करें,क्रम बदलें"
@@ -5278,6 +5283,24 @@ selectMonthly = "मासिक चुनें"
 selectYearly = "वार्षिक चुनें"
 title = "अपनी बिलिंग अवधि चुनें"
 totalForSeats = "कुल ({{count}} सीटें)"
+
+[pdfCommentAgent]
+submit = "Generate comments"
+
+[pdfCommentAgent.error]
+emptyPrompt = "Please describe what the AI should comment on"
+failed = "Failed to generate comments"
+tooLong = "Prompt is too long (maximum {{max}} characters)"
+
+[pdfCommentAgent.prompt]
+label = "What should the AI comment on?"
+placeholder = "e.g. Flag any ambiguous dates and suggest clarifications"
+
+[pdfCommentAgent.results]
+title = "Commented PDF"
+
+[pdfCommentAgent.settings]
+title = "Comment instructions"
 
 [pdfOrganiser]
 header = "PDF पृष्ठ व्यवस्थापक"

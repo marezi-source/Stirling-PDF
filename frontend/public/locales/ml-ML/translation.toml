@@ -4203,6 +4203,11 @@ desc = "ഒരു PDF പ്രമാണത്തിന്റെ ഒന്നി
 tags = "ലേയൗട്ട്,ക്രമീകരിക്കുക,ചേർക്കുക"
 title = "മൾട്ടി-പേജ് ലേഔട്ട്"
 
+[home.pdfCommentAgent]
+desc = "Ask AI to annotate a PDF with sticky-note comments based on your prompt"
+tags = "AI,agent,comment,annotate,sticky note,review,feedback,notes"
+title = "Add AI comments"
+
 [home.pdfOrganiser]
 desc = "ഏത് ക്രമത്തിലും പേജുകൾ നീക്കം ചെയ്യുക/പുനഃക്രമീകരിക്കുക"
 tags = "സംഘടിപ്പിക്കുക,പുനഃക്രമീകരിക്കുക,വീണ്ടും ക്രമപ്പെടുത്തുക"
@@ -5278,6 +5283,24 @@ selectMonthly = "മാസികം തിരഞ്ഞെടുക്കുക"
 selectYearly = "വാർഷികം തിരഞ്ഞെടുക്കുക"
 title = "നിങ്ങളുടെ ബില്ലിംഗ് കാലയളവ് തിരഞ്ഞെടുക്കുക"
 totalForSeats = "ആകെ ({{count}} സീറ്റുകൾ)"
+
+[pdfCommentAgent]
+submit = "Generate comments"
+
+[pdfCommentAgent.error]
+emptyPrompt = "Please describe what the AI should comment on"
+failed = "Failed to generate comments"
+tooLong = "Prompt is too long (maximum {{max}} characters)"
+
+[pdfCommentAgent.prompt]
+label = "What should the AI comment on?"
+placeholder = "e.g. Flag any ambiguous dates and suggest clarifications"
+
+[pdfCommentAgent.results]
+title = "Commented PDF"
+
+[pdfCommentAgent.settings]
+title = "Comment instructions"
 
 [pdfOrganiser]
 header = "PDF പേജ് ഓർഗനൈസർ"

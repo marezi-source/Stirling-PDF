@@ -4203,6 +4203,11 @@ desc = "Voeg meerdere pagina's van een PDF-document samen op één pagina"
 tags = "lay-out,schikken,combineren"
 title = "Multi-pagina indeling"
 
+[home.pdfCommentAgent]
+desc = "Ask AI to annotate a PDF with sticky-note comments based on your prompt"
+tags = "AI,agent,comment,annotate,sticky note,review,feedback,notes"
+title = "Add AI comments"
+
 [home.pdfOrganiser]
 desc = "Verwijder/herschik pagina's in een volgorde naar keus"
 tags = "organiseren,herordenen,herindelen"
@@ -5278,6 +5283,24 @@ selectMonthly = "Maandelijks selecteren"
 selectYearly = "Jaarlijks selecteren"
 title = "Kies uw facturatieperiode"
 totalForSeats = "Totaal ({{count}} plaatsen)"
+
+[pdfCommentAgent]
+submit = "Generate comments"
+
+[pdfCommentAgent.error]
+emptyPrompt = "Please describe what the AI should comment on"
+failed = "Failed to generate comments"
+tooLong = "Prompt is too long (maximum {{max}} characters)"
+
+[pdfCommentAgent.prompt]
+label = "What should the AI comment on?"
+placeholder = "e.g. Flag any ambiguous dates and suggest clarifications"
+
+[pdfCommentAgent.results]
+title = "Commented PDF"
+
+[pdfCommentAgent.settings]
+title = "Comment instructions"
 
 [pdfOrganiser]
 header = "PDF pagina organisator"

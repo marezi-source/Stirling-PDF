@@ -4203,6 +4203,11 @@ desc = "Bir PDF belgesinin çoklu sayfalarını tek bir sayfada birleştirir"
 tags = "düzen,yerleştir,birleştir"
 title = "Çoklu-Sayfa Düzeni"
 
+[home.pdfCommentAgent]
+desc = "Ask AI to annotate a PDF with sticky-note comments based on your prompt"
+tags = "AI,agent,comment,annotate,sticky note,review,feedback,notes"
+title = "Add AI comments"
+
 [home.pdfOrganiser]
 desc = "Sayfaları herhangi bir sırayla kaldırın/düzenleyin"
 tags = "düzenle,yeniden_sırala,yeniden_düzenle"
@@ -5278,6 +5283,24 @@ selectMonthly = "Aylığı Seç"
 selectYearly = "Yıllığı Seç"
 title = "Faturalandırma Döneminizi Seçin"
 totalForSeats = "Toplam ({{count}} koltuk)"
+
+[pdfCommentAgent]
+submit = "Generate comments"
+
+[pdfCommentAgent.error]
+emptyPrompt = "Please describe what the AI should comment on"
+failed = "Failed to generate comments"
+tooLong = "Prompt is too long (maximum {{max}} characters)"
+
+[pdfCommentAgent.prompt]
+label = "What should the AI comment on?"
+placeholder = "e.g. Flag any ambiguous dates and suggest clarifications"
+
+[pdfCommentAgent.results]
+title = "Commented PDF"
+
+[pdfCommentAgent.settings]
+title = "Comment instructions"
 
 [pdfOrganiser]
 header = "PDF Sayfa Organizatörü"

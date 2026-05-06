@@ -255,23 +255,58 @@ get_unoserver_count() {
   read_setting_value "libreOfficeSessionLimit"
 }
 
+# Returns the unoserver --conversion-timeout in seconds. Sourced from the same
+# libreOfficetimeoutMinutes setting the Java-side ProcessExecutor uses, so both
+# layers agree on when to give up. Falls back to 30 minutes (1800s).
+get_unoserver_conversion_timeout_seconds() {
+  local minutes=""
+  if [ -n "${PROCESS_EXECUTOR_TIMEOUT_MINUTES_LIBRE_OFFICETIMEOUT_MINUTES:-}" ]; then
+    minutes="$PROCESS_EXECUTOR_TIMEOUT_MINUTES_LIBRE_OFFICETIMEOUT_MINUTES"
+  elif [ -n "${UNO_SERVER_CONVERSION_TIMEOUT_MINUTES:-}" ]; then
+    minutes="$UNO_SERVER_CONVERSION_TIMEOUT_MINUTES"
+  else
+    minutes="$(read_setting_value "libreOfficetimeoutMinutes")"
+  fi
+  case "$minutes" in
+    ''|*[!0-9]*) minutes=30 ;;
+  esac
+  if [ "$minutes" -le 0 ]; then
+    minutes=30
+  fi
+  echo $((minutes * 60))
+}
+
 start_unoserver_instance() {
   local port=$1
   local uno_port=$2
-  # Suppress repetitive POST /RPC2 access logs from health checks
+  local conversion_timeout
+  conversion_timeout="$(get_unoserver_conversion_timeout_seconds)"
+  # Each instance gets its own LibreOffice user profile to avoid lock-file
+  # contention between concurrent unoserver processes (a documented crash
+  # cause for headless LibreOffice).
+  local profile_dir="${LIBREOFFICE_PROFILE}/instance_${port}"
+  run_as_runtime_user mkdir -p "$profile_dir"
+  # Suppress repetitive POST /RPC2 access logs from health checks.
+  # NOTE: unoserver expects --user-installation as a plain filesystem path —
+  # it wraps it as a file:// URI internally. Passing a pre-wrapped URI makes
+  # unoserver 3.6 crash on Path('file://...').as_uri().
   run_as_runtime_user "$UNOSERVER_BIN" \
     --interface 127.0.0.1 \
     --port "$port" \
     --uno-port "$uno_port" \
+    --user-installation "$profile_dir" \
+    --conversion-timeout "$conversion_timeout" \
     2> >(grep --line-buffered -v "POST /RPC2" >&2) \
     &
   LAST_UNOSERVER_PID=$!
 }
 
 start_unoserver_watchdog() {
-  local interval=${UNO_SERVER_HEALTH_INTERVAL:-120}
+  # Default to 30s so a hung unoserver is detected before a long queue of user
+  # requests piles up on the Java-side BlockingQueue. Override via env var.
+  local interval=${UNO_SERVER_HEALTH_INTERVAL:-30}
   case "$interval" in
-    ''|*[!0-9]*) interval=120 ;;
+    ''|*[!0-9]*) interval=30 ;;
   esac
   (
     while true; do

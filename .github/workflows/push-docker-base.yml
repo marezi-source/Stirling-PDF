@@ -88,7 +88,10 @@ jobs:
         uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
         with:
           builder: ${{ steps.buildx.outputs.name }}
-          context: docker/base
+          # Context is the repo root so the base Dockerfile can COPY shared
+          # files (docker/shared/fonts.conf) used by both stirling-pdf and
+          # the standalone stirling-unoserver images.
+          context: .
           file: ./docker/base/Dockerfile
           push: true
           cache-from: type=gha,scope=stirling-pdf-base

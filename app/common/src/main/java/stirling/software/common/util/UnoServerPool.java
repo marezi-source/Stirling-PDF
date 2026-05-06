@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import stirling.software.common.model.ApplicationProperties;
@@ -39,6 +41,31 @@ public class UnoServerPool {
 
         // Block until an endpoint index becomes available
         Integer index = availableIndices.take();
+        return new UnoServerLease(endpoints.get(index), index, this);
+    }
+
+    /**
+     * Acquire an endpoint with a timeout. Throws {@link TimeoutException} if no endpoint becomes
+     * available before the timeout elapses, allowing callers to fail-fast under sustained overload
+     * instead of queueing indefinitely.
+     */
+    public UnoServerLease acquireEndpoint(long timeout, TimeUnit unit)
+            throws InterruptedException, TimeoutException {
+        if (endpoints.isEmpty()) {
+            return new UnoServerLease(defaultEndpoint(), null, this);
+        }
+        if (timeout <= 0) {
+            return acquireEndpoint();
+        }
+
+        Integer index = availableIndices.poll(timeout, unit);
+        if (index == null) {
+            throw new TimeoutException(
+                    "Timed out waiting for a free unoserver endpoint after "
+                            + timeout
+                            + " "
+                            + unit.name().toLowerCase(java.util.Locale.ROOT));
+        }
         return new UnoServerLease(endpoints.get(index), index, this);
     }
 

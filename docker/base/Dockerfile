@@ -390,12 +390,20 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
       poppler-utils fontforge \
       unpaper pngquant \
       # Fonts: full coverage for standard + fat variants
+      # Liberation v1 is kept alongside v2 because older Office documents
+      # request the v1 metric profile by name; emoji pack ensures emoji
+      # render as glyphs rather than tofu boxes in modern documents.
       fonts-dejavu \
-      fonts-liberation2 \
+      fonts-liberation fonts-liberation2 \
       fonts-crosextra-caladea fonts-crosextra-carlito \
       fonts-noto-core fonts-noto-mono fonts-noto-extra \
-      fonts-noto-cjk poppler-data \
+      fonts-noto-cjk fonts-noto-color-emoji poppler-data \
       fonts-freefont-ttf fonts-terminus \
+      # Hyphenation packs — LibreOffice consults these for proper text
+      # wrap when rendering Writer documents to PDF. Curated subset of
+      # European languages; matches the standalone unoserver image.
+      hyphen-en-gb hyphen-en-us hyphen-fr hyphen-de hyphen-es hyphen-it \
+      hyphen-pt-pt hyphen-pt-br hyphen-nl hyphen-pl hyphen-ru \
       # Python runtime & UNO bridge
       python3 python3-uno python3-packaging \
       # OCR
@@ -590,6 +598,31 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     \
     # Misc caches
     rm -rf /var/cache/fontconfig/* /tmp/*
+
+# Register hyphenation dicts with LibreOffice. Modern Ubuntu hyphen-* packages
+# install only to /usr/share/hyphen/ and skip the LibreOffice registration
+# step, so we wire them up by hand: dict symlink + one-line `HYPH lang
+# country basename` file under /usr/share/myspell/. Without this the dicts
+# would be dead weight; with it, soffice's UNO Hyphenator service sees every
+# locale and the standalone unoserver image and the embedded Stirling-PDF
+# image both expose the same languages.
+RUN set -eu; \
+    mkdir -p /usr/share/myspell/dicts /usr/share/myspell/infos/ooo; \
+    for f in /usr/share/hyphen/hyph_*_*.dic; do \
+      base=$(basename "$f" .dic); \
+      locale=${base#hyph_}; \
+      lang=${locale%_*}; \
+      country=${locale#*_}; \
+      ln -sfn "../../hyphen/${base}.dic" "/usr/share/myspell/dicts/${base}.dic"; \
+      printf "HYPH %s %s %s\n" "$lang" "$country" "$base" \
+        > "/usr/share/myspell/infos/ooo/hyphen-${lang}-${country}"; \
+    done
+
+# Shared font-rendering tweaks — same file is copied into the standalone
+# stirling-unoserver image so output looks identical across both deployment
+# modes. fc-cache rebuilds against the new config.
+COPY --link --chmod=0644 docker/shared/fonts.conf /etc/fonts/conf.d/100-stirling.conf
+RUN fc-cache -f >/dev/null 2>&1 || true
 
 # External tool layers, all use --link for independent layer caching and parallel pulls.
 COPY --link --from=calibre-build   /opt/calibre           /opt/calibre

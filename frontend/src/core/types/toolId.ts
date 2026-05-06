@@ -31,15 +31,9 @@ export const CORE_REGULAR_TOOL_IDS = [
   "addImage",
   "rotate",
   "annotate",
-  "scannerImageSplit",
   "editTableOfContents",
-  "scannerEffect",
-  "autoRename",
-  "pageLayout",
   "scalePages",
-  "adjustContrast",
   "crop",
-  "pdfToSinglePage",
   "repair",
   "compare",
   "addPageNumbers",
@@ -58,9 +52,6 @@ export const CORE_REGULAR_TOOL_IDS = [
   "getPdfInfo",
   "validateSignature",
   "timestampPdf",
-  "replaceColor",
-  "showJS",
-  "bookletImposition",
   "pdfTextEditor",
   "formFill",
 ] as const;
@@ -69,9 +60,6 @@ export const CORE_SUPER_TOOL_IDS = ["multiTool", "read", "automate"] as const;
 
 export const CORE_LINK_TOOL_IDS = [
   "devApi",
-  "devFolderScanning",
-  "devSsoGuide",
-  "devAirgapped",
 ] as const;
 
 export const REGULAR_TOOL_IDS = [

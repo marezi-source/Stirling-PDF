@@ -1320,6 +1320,8 @@ const EmbedPdfViewerContent = ({
             <PdfViewerToolbar
               currentPage={scrollState.currentPage}
               totalPages={scrollState.totalPages}
+              documentId={activeFiles[activeFileIndex]?.fileId}
+              documentName={activeFiles[activeFileIndex]?.file?.name}
             />
           </div>
         </div>

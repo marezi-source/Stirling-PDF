@@ -56,6 +56,10 @@ dependencies {
     api 'io.swagger.core.v3:swagger-core-jakarta:2.2.46'
     implementation 'com.bucket4j:bucket4j_jdk17-core:8.18.0'
 
+    // WebSocket / STOMP for real-time collaboration
+    implementation 'org.springframework:spring-websocket'
+    implementation 'org.springframework:spring-messaging'
+
     // https://mvnrepository.com/artifact/com.bucket4j/bucket4j_jdk17
     implementation "org.bouncycastle:bcprov-jdk18on:$bouncycastleVersion"
 

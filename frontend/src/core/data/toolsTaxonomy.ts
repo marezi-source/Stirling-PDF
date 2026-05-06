@@ -83,15 +83,15 @@ export type ProprietaryToolRegistry = Record<
 export type PrototypeToolRegistry = Record<PrototypeToolId, ToolRegistryEntry>;
 
 export const SUBCATEGORY_ORDER: SubcategoryId[] = [
-  SubcategoryId.SIGNING,
-  SubcategoryId.DOCUMENT_SECURITY,
-  SubcategoryId.VERIFICATION,
+  SubcategoryId.GENERAL,
   SubcategoryId.DOCUMENT_REVIEW,
   SubcategoryId.PAGE_FORMATTING,
   SubcategoryId.EXTRACTION,
   SubcategoryId.REMOVAL,
+  SubcategoryId.SIGNING,
+  SubcategoryId.DOCUMENT_SECURITY,
+  SubcategoryId.VERIFICATION,
   SubcategoryId.AUTOMATION,
-  SubcategoryId.GENERAL,
   SubcategoryId.ADVANCED_FORMATTING,
   SubcategoryId.DEVELOPER_TOOLS,
 ];

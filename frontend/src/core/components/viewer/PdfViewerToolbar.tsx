@@ -3,6 +3,7 @@ import { Button, Paper, Group, NumberInput } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { useViewer } from "@app/contexts/ViewerContext";
 import { Tooltip } from "@app/components/shared/Tooltip";
+import { CollabBar } from "@app/components/collab/CollabBar";
 import FirstPageIcon from "@mui/icons-material/FirstPage";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
@@ -14,16 +15,19 @@ import WbSunnyIcon from "@mui/icons-material/WbSunny";
 import WbTwilightIcon from "@mui/icons-material/WbTwilight";
 
 interface PdfViewerToolbarProps {
-  // Page navigation props (placeholders for now)
   currentPage?: number;
   totalPages?: number;
   onPageChange?: (page: number) => void;
+  documentId?: string;
+  documentName?: string;
 }
 
 export function PdfViewerToolbar({
   currentPage = 1,
   totalPages: _totalPages = 1,
   onPageChange,
+  documentId,
+  documentName,
 }: PdfViewerToolbarProps) {
   const { t } = useTranslation();
   const {
@@ -317,6 +321,16 @@ export function PdfViewerToolbar({
           +
         </Button>
       </Group>
+
+      {/* Collaboration bar */}
+      {documentId && (
+        <Group gap="xs" align="center" style={{ marginLeft: "auto" }}>
+          <CollabBar
+            documentId={documentId}
+            documentName={documentName ?? documentId}
+          />
+        </Group>
+      )}
     </Paper>
   );
 }

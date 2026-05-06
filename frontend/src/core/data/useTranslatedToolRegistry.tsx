@@ -12,7 +12,6 @@ import {
   LinkToolRegistry,
 } from "@app/data/toolsTaxonomy";
 import { isSuperToolId, isLinkToolId } from "@app/types/toolId";
-import { adjustContrastOperationConfig } from "@app/hooks/tools/adjustContrast/useAdjustContrastOperation";
 import { getSynonyms } from "@app/utils/toolSynonyms";
 import { useProprietaryToolRegistry } from "@app/data/useProprietaryToolRegistry";
 import { compressOperationConfig } from "@app/hooks/tools/compress/useCompressOperation";
@@ -25,17 +24,14 @@ import { addWatermarkOperationConfig } from "@app/hooks/tools/addWatermark/useAd
 import { addStampOperationConfig } from "@app/components/tools/addStamp/useAddStampOperation";
 import { addAttachmentsOperationConfig } from "@app/hooks/tools/addAttachments/useAddAttachmentsOperation";
 import { unlockPdfFormsOperationConfig } from "@app/hooks/tools/unlockPdfForms/useUnlockPdfFormsOperation";
-import { singleLargePageOperationConfig } from "@app/hooks/tools/singleLargePage/useSingleLargePageOperation";
 import { ocrOperationConfig } from "@app/hooks/tools/ocr/useOCROperation";
 import { convertOperationConfig } from "@app/hooks/tools/convert/useConvertOperation";
 import { removeCertificateSignOperationConfig } from "@app/hooks/tools/removeCertificateSign/useRemoveCertificateSignOperation";
 import { changePermissionsOperationConfig } from "@app/hooks/tools/changePermissions/useChangePermissionsOperation";
 import { certSignOperationConfig } from "@app/hooks/tools/certSign/useCertSignOperation";
 import { timestampPdfOperationConfig } from "@app/hooks/tools/timestampPdf/useTimestampPdfOperation";
-import { bookletImpositionOperationConfig } from "@app/hooks/tools/bookletImposition/useBookletImpositionOperation";
 import { mergeOperationConfig } from "@app/hooks/tools/merge/useMergeOperation";
 import { editTableOfContentsOperationConfig } from "@app/hooks/tools/editTableOfContents/useEditTableOfContentsOperation";
-import { autoRenameOperationConfig } from "@app/hooks/tools/autoRename/useAutoRenameOperation";
 import { usePrototypeToolRegistry } from "@app/data/usePrototypeToolRegistry";
 import { flattenOperationConfig } from "@app/hooks/tools/flatten/useFlattenOperation";
 import { redactOperationConfig } from "@app/hooks/tools/redact/useRedactOperation";
@@ -45,12 +41,10 @@ import { signOperationConfig } from "@app/hooks/tools/sign/useSignOperation";
 import { cropOperationConfig } from "@app/hooks/tools/crop/useCropOperation";
 import { removeAnnotationsOperationConfig } from "@app/hooks/tools/removeAnnotations/useRemoveAnnotationsOperation";
 import { extractImagesOperationConfig } from "@app/hooks/tools/extractImages/useExtractImagesOperation";
-import { replaceColorOperationConfig } from "@app/hooks/tools/replaceColor/useReplaceColorOperation";
 import { removePagesOperationConfig } from "@app/hooks/tools/removePages/useRemovePagesOperation";
 import { removeBlanksOperationConfig } from "@app/hooks/tools/removeBlanks/useRemoveBlanksOperation";
 import { overlayPdfsOperationConfig } from "@app/hooks/tools/overlayPdfs/useOverlayPdfsOperation";
 import { adjustPageScaleOperationConfig } from "@app/hooks/tools/adjustPageScale/useAdjustPageScaleOperation";
-import { scannerImageSplitOperationConfig } from "@app/hooks/tools/scannerImageSplit/useScannerImageSplitOperation";
 import { addPageNumbersOperationConfig } from "@app/components/tools/addPageNumbers/useAddPageNumbersOperation";
 import { extractPagesOperationConfig } from "@app/hooks/tools/extractPages/useExtractPagesOperation";
 import { ENDPOINTS as SPLIT_ENDPOINT_NAMES } from "@app/constants/splitConstants";
@@ -656,67 +650,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         operationConfig: addPageNumbersOperationConfig,
         synonyms: getSynonyms(t, "addPageNumbers"),
       },
-      pageLayout: {
-        icon: (
-          <LocalIcon icon="dashboard-rounded" width="1.5rem" height="1.5rem" />
-        ),
-        name: t("home.pageLayout.title", "Multi-Page Layout"),
-        component: lazy(() => import("@app/tools/PageLayout")),
-        description: t(
-          "home.pageLayout.desc",
-          "Merge multiple pages of a PDF document into a single page",
-        ),
-        categoryId: ToolCategoryId.STANDARD_TOOLS,
-        subcategoryId: SubcategoryId.PAGE_FORMATTING,
-        maxFiles: -1,
-        endpoints: ["multi-page-layout"],
-        automationSettings: lazy(
-          () => import("@app/components/tools/pageLayout/PageLayoutSettings"),
-        ),
-        synonyms: getSynonyms(t, "pageLayout"),
-      },
-      bookletImposition: {
-        icon: (
-          <LocalIcon icon="menu-book-rounded" width="1.5rem" height="1.5rem" />
-        ),
-        name: t("home.bookletImposition.title", "Booklet Imposition"),
-        component: lazy(() => import("@app/tools/BookletImposition")),
-        operationConfig: bookletImpositionOperationConfig,
-        automationSettings: lazy(
-          () =>
-            import("@app/components/tools/bookletImposition/BookletImpositionSettings"),
-        ),
-        description: t(
-          "home.bookletImposition.desc",
-          "Create booklets with proper page ordering and multi-page layout for printing and binding",
-        ),
-        categoryId: ToolCategoryId.STANDARD_TOOLS,
-        subcategoryId: SubcategoryId.PAGE_FORMATTING,
-        endpoints: ["booklet-imposition"],
-      },
-      pdfToSinglePage: {
-        icon: (
-          <LocalIcon
-            icon="looks-one-outline-rounded"
-            width="1.5rem"
-            height="1.5rem"
-          />
-        ),
-        name: t("home.pdfToSinglePage.title", "PDF to Single Large Page"),
-        component: lazy(() => import("@app/tools/SingleLargePage")),
-
-        description: t(
-          "home.pdfToSinglePage.desc",
-          "Merges all PDF pages into one large single page",
-        ),
-        categoryId: ToolCategoryId.STANDARD_TOOLS,
-        subcategoryId: SubcategoryId.PAGE_FORMATTING,
-        maxFiles: -1,
-        endpoints: ["pdf-to-single-page"],
-        operationConfig: singleLargePageOperationConfig,
-        synonyms: getSynonyms(t, "pdfToSinglePage"),
-        automationSettings: null,
-      },
       addAttachments: {
         icon: (
           <LocalIcon icon="attachment-rounded" width="1.5rem" height="1.5rem" />
@@ -950,45 +883,8 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         synonyms: getSynonyms(t, "automate"),
         automationSettings: null,
       },
-      autoRename: {
-        icon: (
-          <LocalIcon icon="match-word-rounded" width="1.5rem" height="1.5rem" />
-        ),
-        name: t("home.autoRename.title", "Auto Rename PDF File"),
-        component: lazy(() => import("@app/tools/AutoRename")),
-        maxFiles: -1,
-        endpoints: ["auto-rename"],
-        operationConfig: autoRenameOperationConfig,
-        description: t(
-          "home.autoRename.desc",
-          "Automatically rename PDF files based on their content",
-        ),
-        categoryId: ToolCategoryId.ADVANCED_TOOLS,
-        subcategoryId: SubcategoryId.AUTOMATION,
-        synonyms: getSynonyms(t, "autoRename"),
-        automationSettings: null,
-      },
       // Advanced Formatting
 
-      adjustContrast: {
-        icon: <LocalIcon icon="palette" width="1.5rem" height="1.5rem" />,
-        name: t("home.adjustContrast.title", "Adjust Colors/Contrast"),
-        component: lazy(() => import("@app/tools/AdjustContrast")),
-        description: t(
-          "home.adjustContrast.desc",
-          "Adjust colors and contrast of PDF documents",
-        ),
-        categoryId: ToolCategoryId.ADVANCED_TOOLS,
-        subcategoryId: SubcategoryId.ADVANCED_FORMATTING,
-        maxFiles: -1,
-        endpoints: ["adjust-contrast"],
-        operationConfig: adjustContrastOperationConfig,
-        automationSettings: lazy(
-          () =>
-            import("@app/components/tools/adjustContrast/AdjustContrastSingleStepSettings"),
-        ),
-        synonyms: getSynonyms(t, "adjustContrast"),
-      },
       repair: {
         icon: (
           <LocalIcon
@@ -1011,30 +907,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         synonyms: getSynonyms(t, "repair"),
         automationSettings: null,
       },
-      scannerImageSplit: {
-        icon: (
-          <LocalIcon icon="scanner-rounded" width="1.5rem" height="1.5rem" />
-        ),
-        name: t(
-          "home.scannerImageSplit.title",
-          "Detect & Split Scanned Photos",
-        ),
-        component: lazy(() => import("@app/tools/ScannerImageSplit")),
-        description: t(
-          "home.scannerImageSplit.desc",
-          "Detect and split scanned photos into separate pages",
-        ),
-        categoryId: ToolCategoryId.ADVANCED_TOOLS,
-        subcategoryId: SubcategoryId.ADVANCED_FORMATTING,
-        maxFiles: -1,
-        endpoints: ["extract-image-scans"],
-        operationConfig: scannerImageSplitOperationConfig,
-        automationSettings: lazy(
-          () =>
-            import("@app/components/tools/scannerImageSplit/ScannerImageSplitSettings"),
-        ),
-        synonyms: getSynonyms(t, "ScannerImageSplit"),
-      },
       overlayPdfs: {
         icon: (
           <LocalIcon icon="layers-rounded" width="1.5rem" height="1.5rem" />
@@ -1054,68 +926,8 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
           () => import("@app/components/tools/overlayPdfs/OverlayPdfsSettings"),
         ),
       },
-      replaceColor: {
-        icon: (
-          <LocalIcon
-            icon="format-color-fill-rounded"
-            width="1.5rem"
-            height="1.5rem"
-          />
-        ),
-        name: t("home.replaceColor.title", "Replace & Invert Color"),
-        component: lazy(() => import("@app/tools/ReplaceColor")),
-        description: t(
-          "home.replaceColor.desc",
-          "Replace or invert colors in PDF documents",
-        ),
-        categoryId: ToolCategoryId.ADVANCED_TOOLS,
-        subcategoryId: SubcategoryId.ADVANCED_FORMATTING,
-        maxFiles: -1,
-        endpoints: ["replace-invert-pdf"],
-        operationConfig: replaceColorOperationConfig,
-        automationSettings: lazy(
-          () =>
-            import("@app/components/tools/replaceColor/ReplaceColorSettings"),
-        ),
-        synonyms: getSynonyms(t, "replaceColor"),
-      },
-      scannerEffect: {
-        icon: (
-          <LocalIcon icon="scanner-rounded" width="1.5rem" height="1.5rem" />
-        ),
-        name: t("home.scannerEffect.title", "Scanner Effect"),
-        component: null,
-        description: t(
-          "home.scannerEffect.desc",
-          "Create a PDF that looks like it was scanned",
-        ),
-        categoryId: ToolCategoryId.ADVANCED_TOOLS,
-        subcategoryId: SubcategoryId.ADVANCED_FORMATTING,
-        endpoints: ["scanner-effect"],
-        synonyms: getSynonyms(t, "scannerEffect"),
-        automationSettings: null,
-      },
-
       // Developer Tools
 
-      showJS: {
-        icon: (
-          <LocalIcon icon="javascript-rounded" width="1.5rem" height="1.5rem" />
-        ),
-        name: t("home.showJS.title", "Show JavaScript"),
-        component: lazy(() => import("@app/tools/ShowJS")),
-        description: t(
-          "home.showJS.desc",
-          "Extract and display JavaScript code from PDF documents",
-        ),
-        categoryId: ToolCategoryId.ADVANCED_TOOLS,
-        subcategoryId: SubcategoryId.DEVELOPER_TOOLS,
-        maxFiles: 1,
-        endpoints: ["show-javascript"],
-        synonyms: getSynonyms(t, "showJS"),
-        supportsAutomate: false,
-        automationSettings: null,
-      },
       devApi: {
         icon: (
           <LocalIcon
@@ -1133,72 +945,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         link: devApiLink,
         endpoints: ["dev-api-docs"],
         synonyms: getSynonyms(t, "devApi"),
-        supportsAutomate: false,
-        automationSettings: null,
-      },
-      devFolderScanning: {
-        icon: (
-          <LocalIcon
-            icon="open-in-new-rounded"
-            width="1.5rem"
-            height="1.5rem"
-            style={{ color: "#2F7BF6" }}
-          />
-        ),
-        name: t("home.devFolderScanning.title", "Automated Folder Scanning"),
-        component: null,
-        description: t(
-          "home.devFolderScanning.desc",
-          "Link to automated folder scanning guide",
-        ),
-        categoryId: ToolCategoryId.ADVANCED_TOOLS,
-        subcategoryId: SubcategoryId.DEVELOPER_TOOLS,
-        link: "https://docs.stirlingpdf.com/Configuration/Folder%20Scanning/",
-        endpoints: ["dev-folder-scanning-docs"],
-        synonyms: getSynonyms(t, "devFolderScanning"),
-        supportsAutomate: false,
-        automationSettings: null,
-      },
-      devSsoGuide: {
-        icon: (
-          <LocalIcon
-            icon="open-in-new-rounded"
-            width="1.5rem"
-            height="1.5rem"
-            style={{ color: "#2F7BF6" }}
-          />
-        ),
-        name: t("home.devSsoGuide.title", "SSO Guide"),
-        component: null,
-        description: t("home.devSsoGuide.desc", "Link to SSO guide"),
-        categoryId: ToolCategoryId.ADVANCED_TOOLS,
-        subcategoryId: SubcategoryId.DEVELOPER_TOOLS,
-        link: "https://docs.stirlingpdf.com/Configuration/Single%20Sign-On%20Configuration/",
-        endpoints: ["dev-sso-guide-docs"],
-        synonyms: getSynonyms(t, "devSsoGuide"),
-        supportsAutomate: false,
-        automationSettings: null,
-      },
-      devAirgapped: {
-        icon: (
-          <LocalIcon
-            icon="open-in-new-rounded"
-            width="1.5rem"
-            height="1.5rem"
-            style={{ color: "#2F7BF6" }}
-          />
-        ),
-        name: t("home.devAirgapped.title", "Air-gapped Setup"),
-        component: null,
-        description: t(
-          "home.devAirgapped.desc",
-          "Link to air-gapped setup guide",
-        ),
-        categoryId: ToolCategoryId.ADVANCED_TOOLS,
-        subcategoryId: SubcategoryId.DEVELOPER_TOOLS,
-        link: "https://docs.stirlingpdf.com/Paid-Offerings/#activating-your-license",
-        endpoints: ["dev-airgapped-docs"],
-        synonyms: getSynonyms(t, "devAirgapped"),
         supportsAutomate: false,
         automationSettings: null,
       },

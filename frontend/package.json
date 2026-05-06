@@ -5,6 +5,8 @@
   "license": "SEE LICENSE IN https://raw.githubusercontent.com/Stirling-Tools/Stirling-PDF/refs/heads/main/proprietary/LICENSE",
   "proxy": "http://localhost:8080",
   "dependencies": {
+    "@stomp/stompjs": "^7.0.0",
+    "sockjs-client": "^1.6.1",
     "@atlaskit/pragmatic-drag-and-drop": "^1.7.7",
     "@cantoo/pdf-lib": "^2.5.3",
     "@dnd-kit/core": "^6.3.1",
@@ -98,6 +100,7 @@
     ]
   },
   "devDependencies": {
+    "@types/sockjs-client": "^1.5.4",
     "@eslint/js": "^10.0.1",
     "@iconify-json/material-symbols": "^1.2.53",
     "@iconify/utils": "^3.1.0",

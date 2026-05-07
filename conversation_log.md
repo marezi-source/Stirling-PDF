@@ -1,6 +1,6 @@
 # OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-07 (Session 5)
+**Last updated:** 2026-05-07 (Session 6)
 **Branch:** main  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -316,6 +316,24 @@ Added a `<div class="qab-brand">` block at the very top of the sidebar (above th
 - [ ] All visible "Stirling PDF" / "My PDF" references replaced with "OnePDF"
 - [ ] `frontend/public/images/onepdf-login-logo.png` is the correct logo file
 
+### Session 6 — Auth Fixes + Auth Layout Redesign + Dashboard
+- [ ] "Login" nav button on landing page always opens `/login` (even when already logged in)
+- [ ] "Sign up" nav button on landing page always opens `/signup` (even when already logged in)
+- [ ] Login page shows the form without auto-redirecting to dashboard when session exists
+- [ ] Signup page shows the form without auto-redirecting to landing page when session exists
+- [ ] Login and Signup pages use two-panel card layout (left branding + right form)
+- [ ] Left panel shows OnePDF logo (large), tagline, and 3 feature items
+- [ ] Right panel shows title, subtitle, form fields, divider, and bottom cross-link
+- [ ] Login bottom link: "Don't have an account? Sign up" navigates to `/signup`
+- [ ] Signup bottom link: "Already have an account? Log in" navigates to `/login`
+- [ ] After successful login, user lands at `/app/home` (dashboard)
+- [ ] Dashboard shows sidebar with Home, Tools, Recent, Starred, Trash nav items
+- [ ] Dashboard shows correct username and email in the top-right user chip
+- [ ] Dashboard shows 8 Quick Tools in a 4-column grid
+- [ ] Clicking any tool card navigates to `/app` (PDF workspace)
+- [ ] Recent Files table shows up to 5 files from IndexedDB (or empty state)
+- [ ] Direct navigation to `/app` still opens the PDF workspace as before
+
 ---
 
 ## Key Architecture Notes
@@ -432,3 +450,99 @@ Renamed all user-visible brand references across the entire frontend codebase.
 - Internal type names (`StirlingFile`)
 - External URLs (`stirlingpdf.com`)
 - Technical identifiers (`stirling_sso_*` session storage keys)
+
+---
+
+## Session 6: Auth Page Fixes + Auth Layout Redesign + Dashboard
+
+### Auth Page Navigation Fixes
+
+**Problem 1 — Login button went straight to dashboard:**
+`Login.tsx` had a `useEffect` that detected an existing session and immediately called `navigate("/app", { replace: true })`, plus an early return that rendered `<LoggedInState />` instead of the form. Both bypassed the login page for already-authenticated users.
+
+**Fix:** Removed the session-check `useEffect`, removed the `<LoggedInState />` early return, and removed the now-unused `LoggedInState` import from `Login.tsx`.
+
+**Problem 2 — Signup button blinked then went back to landing page:**
+`Signup.tsx` had a `useEffect` that detected an existing session and called `navigate("/", { replace: true })`, bouncing the user back to the marketing page.
+
+**Fix:** Removed the session-check `useEffect`, removed unused `useEffect`, `useAuth`, and `LoginHeader` imports from `Signup.tsx`.
+
+**Problem 3 — Landing page nav buttons conditionally routed based on session:**
+The "Login" and "Sign up" buttons in `MarketingLanding.tsx` used `navigate(session ? "/app" : "/login")`, so authenticated users were taken to the dashboard instead of the auth pages.
+
+**Fix:** Changed both to always navigate directly — `navigate("/login")` and `navigate("/signup")`.
+
+---
+
+### Auth Layout Redesign (Login & Signup pages)
+
+Redesigned both pages to a two-panel card layout matching a clean mockup.
+
+**`frontend/src/proprietary/routes/authShared/AuthLayout.tsx`** — Complete rewrite:
+- Two-panel card: left branding panel (260px) + right form panel (flex: 1)
+- Left panel: logo, "OnePDF" brand text, tagline, 3 feature items with inline SVG icons
+- Right panel: title + subtitle props, then `{children}`
+- Props interface: `{ children, title?, subtitle? }`
+- Logo is a clickable button: `navigate("/")`
+- Light-only CSS variables override the dark theme defaults
+
+**`frontend/src/proprietary/routes/authShared/AuthLayout.module.css`** — Complete rewrite:
+- Page background: `#e8e8e8`; card: `max-width: 700px`, `border-radius: 1.25rem`, subtle shadow
+- Left panel: `background: #f5f5f5`, `border-right: 1px solid #e8e8e8`
+- Light CSS variables: white inputs, `#0a0a0a` labels/borders/buttons
+- Mobile (<640px): card stacks vertically; tagline + feature list hidden
+
+**`frontend/src/proprietary/routes/Login.tsx`** — Updated:
+- `<AuthLayout title="Welcome back" subtitle="Log in to your account to continue">`
+- Removed `<LoginHeader />` from render
+- Added "Don't have an account? Sign up" bottom link
+
+**`frontend/src/proprietary/routes/Signup.tsx`** — Updated:
+- `<AuthLayout title="Create your account" subtitle="Start your 7-day free trial. No credit card required.">`
+- Removed `<LoginHeader />` from render
+- Added "Already have an account? Log in" bottom link
+
+---
+
+### Auth Layout Logo Tweak
+
+Logo size in the left panel increased from `5.5rem` to `8rem` (mobile: `3.5rem` → `5rem`).
+"OnePDF" brand text (`<span className={styles.brand}>`) removed from `AuthLayout.tsx` — logo alone represents the brand.
+
+---
+
+### Dashboard — `/app/home`
+
+Created a new post-login dashboard matching a mockup (sidebar + topbar + tools grid + recent files table).
+
+#### New Files
+
+**`frontend/src/proprietary/pages/AppDashboard.tsx`**
+- Left sidebar (240px): logo + "OnePDF", nav items (Home, Tools, Recent, Starred, Trash), Settings + Help & Support pinned at bottom
+- Top bar (4rem): search input, sun/theme icon button, user avatar (initials) + username + email + chevron — all pulled from `session.user`
+- Welcome heading: "Welcome back, [FirstName]!" — first name derived from `username` or `email`
+- Quick Tools grid (4 columns, 2 rows): Edit PDF, Convert PDF, Merge PDF, Split PDF, Compress PDF, Delete Pages, Extract Pages, Sign PDF — each click navigates to `/app`
+- Recent Files table: reads `fileStorage.getAllStirlingFileStubs()` from IndexedDB, sorted by `lastModified` desc, top 5; shows name / size / modified date / star + dots action buttons; empty state shown when no files
+- Auth guard: redirects to `/login` if no session
+
+**`frontend/src/proprietary/pages/AppDashboard.module.css`**
+- Full-height flex layout; sidebar with hover/active nav pill states
+- Tool cards: bordered, hover shadow; table: bordered wrapper, row hover
+- Responsive: tool grid collapses to 2-col at 1100px; sidebar hidden on mobile
+
+#### Routing Changes
+
+| File | Change |
+|---|---|
+| `frontend/src/proprietary/App.tsx` | Added `<Route path="/app/home" element={<AppDashboard />} />` before `/*` catch-all |
+| `frontend/src/proprietary/routes/Login.tsx` | On sign-in success: `navigate("/app/home", { replace: true })` instead of relying on Landing auto-redirect |
+
+#### Flow After This Session
+
+| Action | Result |
+|---|---|
+| Click "Login" on landing page | `/login` form (always, regardless of session) |
+| Click "Sign up" on landing page | `/signup` form (always, regardless of session) |
+| Successful login | → `/app/home` (dashboard) |
+| Click tool card on dashboard | → `/app` (PDF workspace) |
+| Direct `/app` URL | PDF workspace via Landing → `<HomePage />` (unchanged) |

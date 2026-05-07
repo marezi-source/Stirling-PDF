@@ -63,7 +63,6 @@ export default function AuthLayout({ children, title, subtitle }: AuthLayoutProp
           <button className={styles.logoBtn} onClick={() => navigate("/")} aria-label="Go to home">
             <img src={logoSrc} alt="OnePDF" className={styles.logo} />
           </button>
-          <span className={styles.brand}>OnePDF</span>
           <p className={styles.tagline}>All-in-one PDF tools to get<br />your work done.</p>
           <ul className={styles.featureList}>
             {FEATURES.map(({ Icon, text }) => (

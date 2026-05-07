@@ -523,8 +523,7 @@ export default function Login() {
         clearLogoutBlock();
         setRequiresMfa(false);
         setMfaCode("");
-        // Auth state will update automatically and Landing will redirect to home
-        // No need to navigate manually here
+        navigate("/app/home", { replace: true });
       }
     } catch (err) {
       console.error("[Login] Unexpected error:", err);

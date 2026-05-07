@@ -7,6 +7,7 @@ import { PreferencesProvider } from "@app/contexts/PreferencesContext";
 import { RainbowThemeProvider } from "@app/components/shared/RainbowThemeProvider";
 import Landing from "@app/routes/Landing";
 import MarketingLanding from "@app/routes/MarketingLanding";
+import AppDashboard from "@app/pages/AppDashboard";
 import Login from "@app/routes/Login";
 import Signup from "@app/routes/Signup";
 import AuthCallback from "@app/routes/AuthCallback";
@@ -79,6 +80,8 @@ export default function App() {
                   <Route path="/share/:token" element={<ShareLinkPage />} />
                   {/* Marketing landing — always public, no auth check */}
                   <Route path="/" element={<MarketingLanding />} />
+                  {/* Dashboard — shown after login */}
+                  <Route path="/app/home" element={<AppDashboard />} />
                   {/* Main app routes - Landing handles auth logic */}
                   <Route path="/*" element={<Landing />} />
                 </Routes>

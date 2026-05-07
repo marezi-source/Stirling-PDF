@@ -39,10 +39,11 @@ cd "/Users/user/Downloads/Cloned Git-Hub Projects/PDF-Editor/Stirling-PDF"
 task backend:dev
 
 # Terminal 2 — frontend (port 5173)
-task frontend:dev
+# NOTE: must use 127.0.0.1 — "localhost" DNS resolution is broken on this machine
+BACKEND_URL=http://127.0.0.1:8080 task frontend:dev
 ```
 
-Open **http://localhost:5173** in the browser.
+Open **http://127.0.0.1:5173** in the browser.
 
 Default login: **admin / stirling** (created on first boot by `InitialSecuritySetup`).
 
@@ -254,3 +255,4 @@ SIGNING → DOCUMENT_SECURITY → VERIFICATION → AUTOMATION → ADVANCED_FORMA
 | JWT decode (frontend) | Inline `atob(token.split(".")[1])` — no extra library |
 | Import paths | All new frontend files use `@app/*` as required by CLAUDE.md |
 | macOS 12 constraint | No Homebrew for new packages — use direct binary downloads/installers |
+| localhost DNS | `localhost` doesn't resolve on this machine — always use `127.0.0.1` instead |

@@ -55,7 +55,7 @@ const FullscreenToolSurface = ({
   // Enable focus trap when surface is active
   useFocusTrap(surfaceRef, !isExiting);
 
-  const brandAltText = t("home.mobile.brandAlt", "Stirling PDF logo");
+  const brandAltText = t("home.mobile.brandAlt", "OnePDF logo");
 
   const handleExit = () => {
     const prefersReducedMotion = window.matchMedia(

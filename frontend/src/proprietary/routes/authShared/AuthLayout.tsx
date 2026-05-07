@@ -23,7 +23,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
     };
   }, []);
 
-  const logoSrc = `${BASE_PATH}/images/my-pdf-login-logo.png`;
+  const logoSrc = `${BASE_PATH}/images/onepdf-login-logo.png`;
 
   return (
     <div className={styles.authContainer}>
@@ -47,7 +47,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
 
       {/* Centered form area */}
       <div className={styles.authContent}>
-        <img src={logoSrc} alt="My PDF" className={styles.logo} />
+        <img src={logoSrc} alt="OnePDF" className={styles.logo} />
         {children}
       </div>
     </div>

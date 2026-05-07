@@ -1,6 +1,6 @@
-# My PDF — Project Checkpoint
+# OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-07 (Session 4)
+**Last updated:** 2026-05-07 (Session 5)
 **Branch:** main  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -9,12 +9,12 @@
 
 ## Goal
 
-Build "My PDF" — an editor-first, web-based collaborative PDF editor forked from Stirling-PDF. Four phases:
+Build "OnePDF" — an editor-first, web-based collaborative PDF editor forked from Stirling-PDF. Four phases:
 
 1. **Phase 1** — Rename/brand + curate tools (remove low-value tools)
 2. **Phase 2** — Add a real-time collaboration layer (WebSocket, comments, review)
 3. **Phase 3** — Reorder tool categories to lead with editing workflows
-4. **Phase 4** — Sidebar UI redesign (modern, unified active state + "My PDF" brand mark)
+4. **Phase 4** — Sidebar UI redesign (modern, unified active state + brand mark)
 
 All four phases are complete. The app is running.
 
@@ -56,8 +56,8 @@ Default login: **admin / stirling** (created on first boot by `InitialSecuritySe
 
 | File | Change |
 |---|---|
-| `frontend/index.html` | `<title>` → "My PDF", meta description updated |
-| `frontend/public/manifest.json` | `short_name` + `name` → "My PDF" |
+| `frontend/index.html` | `<title>` → "OnePDF", meta description updated |
+| `frontend/public/manifest.json` | `short_name` + `name` → "OnePDF" |
 
 ### Tools Removed (Frontend)
 
@@ -263,8 +263,8 @@ Added a `<div class="qab-brand">` block at the very top of the sidebar (above th
 
 | File | Change |
 |---|---|
-| `frontend/src/core/components/tools/ToolPanelModePrompt.tsx` | "Stirling PDF tools" → "My PDF tools" |
-| `frontend/src/core/components/fileEditor/AddFileCard.tsx` | `alt="Stirling PDF"` → `alt="My PDF"` |
+| `frontend/src/core/components/tools/ToolPanelModePrompt.tsx` | "Stirling PDF tools" → "OnePDF tools" |
+| `frontend/src/core/components/fileEditor/AddFileCard.tsx` | `alt="Stirling PDF"` → `alt="OnePDF"` |
 
 ---
 
@@ -294,13 +294,27 @@ Added a `<div class="qab-brand">` block at the very top of the sidebar (above th
 - [ ] Unauthenticated WebSocket connection is rejected (401)
 
 ### Phase 4 — Sidebar UI
-- [ ] "MY PDF" brand mark visible at top of left sidebar
+- [ ] "ONEPDF" brand mark visible at top of left sidebar
 - [ ] Active nav button shows dark near-black full-width pill (light mode)
 - [ ] Active nav button shows near-white full-width pill (dark mode)
 - [ ] Inactive nav buttons have no background, muted gray icon/label
 - [ ] Hovering an inactive nav button shows a subtle dark tint
 - [ ] All active states (Tools, Reader, Files, Automate, Settings) use the same unified color
-- [ ] "My PDF tools" text appears in the layout-picker modal (not "Stirling PDF tools")
+- [ ] "OnePDF tools" text appears in the layout-picker modal
+
+### Session 5 — Login Redesign + Landing Page + Brand Rename
+- [ ] `http://localhost:5173/` shows the OnePDF marketing landing page (not the app)
+- [ ] Logged-in users see "Open App" button in the landing page nav
+- [ ] Unauthenticated users see "Login" and "Sign Up" buttons in the landing page nav
+- [ ] Clicking "Upload file" or "Login" navigates to `/login`
+- [ ] After logging in, user is redirected to `/app` (not `/`)
+- [ ] `/app` route shows the full tool dashboard when authenticated
+- [ ] Unauthenticated visit to `/app` redirects to `/login`
+- [ ] Login page has full-screen black background
+- [ ] OnePDF logo appears above the login form
+- [ ] Top nav on login page has "← Back to home" and "Sign Up" button
+- [ ] All visible "Stirling PDF" / "My PDF" references replaced with "OnePDF"
+- [ ] `frontend/public/images/onepdf-login-logo.png` is the correct logo file
 
 ---
 
@@ -318,3 +332,103 @@ Added a `<div class="qab-brand">` block at the very top of the sidebar (above th
 | Import paths | All new frontend files use `@app/*` as required by CLAUDE.md |
 | macOS 12 constraint | No Homebrew for new packages — use direct binary downloads/installers |
 | localhost DNS | `localhost` doesn't resolve on this machine — always use `127.0.0.1` instead |
+
+---
+
+## Session 5: Login Page Redesign + Marketing Landing Page + Full Brand Rename
+
+### Login Page — Dark Theme Redesign
+
+Redesigned the login/auth pages to a full-screen black theme matching a clean minimal reference design.
+
+**`frontend/src/proprietary/routes/authShared/AuthLayout.tsx`** — Complete rewrite:
+- Removed forced Mantine light-mode override
+- Full-screen black layout with fixed top nav (← Back to home, Not a member? / Sign Up)
+- OnePDF logo rendered above the form for all auth pages
+- Logo loaded from `${BASE_PATH}/images/onepdf-login-logo.png`
+
+**`frontend/src/proprietary/routes/authShared/AuthLayout.module.css`** — Complete rewrite:
+- Overrides all `--auth-*-light-only` CSS variables to dark values on `.authContainer`
+- Black background (`#000000`), white text, translucent input fields
+- Fixed top nav with back-link and sign-up button
+
+**`frontend/src/proprietary/routes/authShared/auth.css`** — Updated:
+- `.auth-fields` gap increased to 1rem
+- Labels: uppercase, 0.6875rem, letter-spaced
+- Input border-radius tightened to 0.375rem
+- Added Mantine-specific dark overrides for `TextInput` / `PasswordInput`
+- `.auth-cta-button` uses `var(--auth-button-bg-light-only)` instead of hardcoded red
+
+**`frontend/src/proprietary/routes/login/LoginHeader.tsx`** — Simplified:
+- Removed Wordmark SVG + h1 title (logo moved to AuthLayout)
+- Now only renders subtitle `<p>` if provided, otherwise returns null
+
+**`frontend/src/proprietary/routes/login/EmailPasswordForm.tsx`** — Updated:
+- `authInputStyles` label updated with uppercase, letter-spacing, 0.6875rem font-size
+
+**`frontend/public/images/onepdf-login-logo.png`** — Added:
+- Directory `frontend/public/images/` created
+- Logo file placed here (replace with actual OnePDF logo PNG)
+
+---
+
+### Marketing Landing Page
+
+Created a new public-facing marketing landing page at `/` (always shown regardless of auth).
+
+**`frontend/src/proprietary/routes/MarketingLanding.tsx`** — New file:
+- Top nav: OnePDF logo + brand name, Features/Tools links, Login + Sign Up buttons
+- If logged in: shows "Open App" button instead of Login/Sign Up
+- Hero section: large bold heading, subtitle, description, "Upload file" CTA, security note
+- Right side: CSS-only PDF document illustration with 5 floating tool icon cards
+- Bottom section: "Powerful tools. Easy to use." + 6 tool cards (Edit, Convert, Merge, Split, Compress, Sign)
+- All inline SVG icons — no external icon library
+
+**`frontend/src/proprietary/routes/MarketingLanding.module.css`** — New file:
+- White/light background, sticky nav with border
+- Responsive: stacks to single-column on mobile, tool grid collapses from 3→2→1 columns
+
+---
+
+### Routing Changes
+
+| Route | Before | After |
+|---|---|---|
+| `/` | Smart router → app if logged in, `/login` redirect if not | Always `MarketingLanding` (no auth check) |
+| `/app` | Did not exist | Smart router → app if logged in, `/login` redirect if not |
+| Post-login redirect | `/` | `/app` |
+
+**Files modified:**
+
+| File | Change |
+|---|---|
+| `frontend/src/proprietary/App.tsx` | Added explicit `<Route path="/" element={<MarketingLanding />} />` before `/*` catch-all |
+| `frontend/src/proprietary/routes/Landing.tsx` | Final unauthenticated fallback changed from `<MarketingLanding />` to `<Navigate to="/login" />` ; all `navigate("/")` → `navigate("/app")` |
+| `frontend/src/proprietary/routes/Login.tsx` | Post-auth redirect changed from `"/"` to `"/app"` |
+
+---
+
+### Full Brand Rename: "My PDF" / "Stirling PDF" → "OnePDF"
+
+Renamed all user-visible brand references across the entire frontend codebase.
+
+**Scope of changes:**
+- `frontend/index.html` — `<title>`
+- `frontend/public/manifest.json` + `manifest-classic.json` — PWA names
+- `frontend/public/locales/en-GB/translation.toml` — all 48+ translation values
+- All proprietary routes: `Login`, `Signup`, `InviteAccept`, `ShareLinkPage`, `LoggedInState`, `AuthLayout`, `MarketingLanding`
+- All proprietary admin sections: `AdminGeneralSection`, `AdminFeaturesSection`, `AdminAdvancedSection`, `AdminLegalSection`
+- Core components: `QuickAccessBar`, `AddFileCard`, `EmptyFilesState`, `ToolPanelModePrompt`, `FullscreenToolSurface`, `HomePage`, `Tooltip`, `ShareManagementModal`, onboarding slides
+- Core hooks: `useDocumentMeta`, `useCookieConsent`, `pdfPageHelpers`
+- Desktop layer: `DefaultAppBanner`, `DefaultAppSettings`, `ServerSelection`, `authService`, `defaultAppService`
+- SaaS layer: `GuestUserBanner`, `FreeTrialSlide`, `TrialStatusBanner`, `Signup`
+- Backend static files: `manifest.json`, `site.webmanifest`
+
+**Logo file renamed:** `my-pdf-login-logo.png` → `onepdf-login-logo.png`
+
+**Not changed (intentional):**
+- Other locale files (`fr-FR`, `de-DE`, etc.) — per project convention, only `en-GB` is maintained
+- Java package names (`stirling.software.*`)
+- Internal type names (`StirlingFile`)
+- External URLs (`stirlingpdf.com`)
+- Technical identifiers (`stirling_sso_*` session storage keys)

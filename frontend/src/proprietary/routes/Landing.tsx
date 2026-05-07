@@ -58,7 +58,7 @@ export default function Landing() {
       if (result.status === "up") {
         await refetch();
         if (result.loginDisabled) {
-          navigate("/", { replace: true });
+          navigate("/app", { replace: true });
         }
       }
     };
@@ -167,11 +167,6 @@ export default function Landing() {
     return <HomePage />;
   }
 
-  // No session - redirect to login page
-  // This ensures the URL always shows /login when not authenticated
-  return config?.enableLogin === true && !backendProbe.loginDisabled ? (
-    <Navigate to="/login" replace state={{ from: location }} />
-  ) : (
-    <HomePage />
-  );
+  // No session - redirect to login
+  return <Navigate to="/login" replace />;
 }

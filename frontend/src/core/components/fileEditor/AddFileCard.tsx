@@ -94,10 +94,10 @@ const AddFileCard = ({
 
         {/* Main content area */}
         <div className={styles.addFileContent}>
-          {/* My PDF Branding */}
+          {/* OnePDF Branding */}
           <Group gap="xs" align="center">
             <Wordmark
-              alt="My PDF"
+              alt="OnePDF"
               muted
               style={{ height: "2.2rem", width: "auto" }}
             />

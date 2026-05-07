@@ -77,7 +77,7 @@ const ToolPanelModePrompt = ({
         <Text size="sm" c="dimmed">
           {t(
             "toolPanel.modePrompt.description",
-            "Preview both layouts and decide how you want to explore My PDF tools.",
+            "Preview both layouts and decide how you want to explore OnePDF tools.",
           )}
         </Text>
         <div className="tool-panel-mode-prompt__options">

@@ -186,7 +186,7 @@ export default function Login() {
       console.debug("[Login] User already authenticated, redirecting to home", {
         returnPath,
       });
-      navigate(returnPath || "/", { replace: true });
+      navigate(returnPath || "/app", { replace: true });
     }
   }, [session, loading, navigate, location.state, searchParams]);
 
@@ -217,7 +217,7 @@ export default function Login() {
         // Check if login is disabled - if so, redirect to home
         if (data.enableLogin === false) {
           console.debug("[Login] Login disabled, redirecting to home");
-          navigate("/");
+          navigate("/app");
           return;
         }
 
@@ -437,12 +437,12 @@ export default function Login() {
 
   // Set document meta
   useDocumentMeta({
-    title: `${t("login.title", "Sign in")} - Stirling PDF`,
+    title: `${t("login.title", "Sign in")} - OnePDF`,
     description: t(
       "app.description",
       "The Free Adobe Acrobat alternative (10M+ Downloads)",
     ),
-    ogTitle: `${t("login.title", "Sign in")} - Stirling PDF`,
+    ogTitle: `${t("login.title", "Sign in")} - OnePDF`,
     ogDescription: t(
       "app.description",
       "The Free Adobe Acrobat alternative (10M+ Downloads)",

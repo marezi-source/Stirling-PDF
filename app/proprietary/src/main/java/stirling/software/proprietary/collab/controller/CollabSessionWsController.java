@@ -40,7 +40,12 @@ public class CollabSessionWsController {
         String username = principal.getName();
         AnnotationPayload saved =
                 sessionService.addAnnotation(
-                        sessionId, username, req.type(), req.pageNumber(), req.coords(), req.content());
+                        sessionId,
+                        username,
+                        req.type(),
+                        req.pageNumber(),
+                        req.coords(),
+                        req.content());
         messaging.convertAndSend(
                 "/topic/session/" + sessionId, WsMessage.of("ANNOTATION_ADD", saved));
     }
@@ -72,15 +77,12 @@ public class CollabSessionWsController {
 
     @MessageMapping("/session/{sessionId}/presence")
     public void broadcastPresence(
-            @DestinationVariable String sessionId,
-            @Payload String action,
-            Principal principal) {
+            @DestinationVariable String sessionId, @Payload String action, Principal principal) {
         String username = principal.getName();
         PresencePayload payload =
                 "LEAVE".equalsIgnoreCase(action)
                         ? PresencePayload.leave(username)
                         : PresencePayload.join(username);
-        messaging.convertAndSend(
-                "/topic/session/" + sessionId, WsMessage.of("PRESENCE", payload));
+        messaging.convertAndSend("/topic/session/" + sessionId, WsMessage.of("PRESENCE", payload));
     }
 }

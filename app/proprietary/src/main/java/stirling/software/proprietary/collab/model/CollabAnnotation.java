@@ -55,9 +55,7 @@ public class CollabAnnotation {
 
     private boolean resolved = false;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+    @CreationTimestamp private LocalDateTime createdAt;
 
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    @UpdateTimestamp private LocalDateTime updatedAt;
 }

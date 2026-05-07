@@ -37,7 +37,8 @@ public class CollabSessionRestController {
     public ResponseEntity<SessionDto> createSession(
             @RequestBody CreateSessionRequest req, Principal principal) {
         CollabSession session =
-                sessionService.createSession(req.documentId(), req.documentName(), principal.getName());
+                sessionService.createSession(
+                        req.documentId(), req.documentName(), principal.getName());
         return ResponseEntity.ok(SessionDto.from(session));
     }
 
@@ -52,13 +53,12 @@ public class CollabSessionRestController {
     @PostMapping("/sessions/{sessionId}/invite")
     @Operation(summary = "Invite a user to the session")
     public ResponseEntity<SessionDto> inviteUser(
-            @PathVariable String sessionId,
-            @RequestBody InviteRequest req,
-            Principal principal) {
+            @PathVariable String sessionId, @RequestBody InviteRequest req, Principal principal) {
         CollabSession session =
                 sessionService.inviteUser(sessionId, principal.getName(), req.username());
         SessionDto dto = SessionDto.from(session);
-        messaging.convertAndSend("/topic/session/" + sessionId, WsMessage.of("PARTICIPANT_JOIN", dto));
+        messaging.convertAndSend(
+                "/topic/session/" + sessionId, WsMessage.of("PARTICIPANT_JOIN", dto));
         return ResponseEntity.ok(dto);
     }
 
@@ -78,8 +78,7 @@ public class CollabSessionRestController {
 
     @PostMapping("/sessions/{sessionId}/review/approve")
     @Operation(summary = "Approve the document (owner only)")
-    public ResponseEntity<SessionDto> approve(
-            @PathVariable String sessionId, Principal principal) {
+    public ResponseEntity<SessionDto> approve(@PathVariable String sessionId, Principal principal) {
         return reviewAction(sessionId, principal.getName(), Status.APPROVED);
     }
 
@@ -90,7 +89,8 @@ public class CollabSessionRestController {
         return reviewAction(sessionId, principal.getName(), Status.CHANGES_REQUESTED);
     }
 
-    private ResponseEntity<SessionDto> reviewAction(String sessionId, String username, Status status) {
+    private ResponseEntity<SessionDto> reviewAction(
+            String sessionId, String username, Status status) {
         CollabSession session = sessionService.changeStatus(sessionId, username, status);
         SessionDto dto = SessionDto.from(session);
         messaging.convertAndSend("/topic/session/" + sessionId, WsMessage.of("REVIEW_STATUS", dto));

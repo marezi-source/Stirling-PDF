@@ -10,6 +10,7 @@ import stirling.software.proprietary.collab.model.CollabSession;
 
 public interface CollabSessionRepository extends JpaRepository<CollabSession, String> {
 
-    @Query("SELECT s FROM CollabSession s WHERE s.owner.username = :username OR :username MEMBER OF (SELECT u.username FROM s.participants u)")
+    @Query(
+            "SELECT DISTINCT s FROM CollabSession s LEFT JOIN s.participants p WHERE s.owner.username = :username OR p.username = :username")
     List<CollabSession> findByParticipantUsername(@Param("username") String username);
 }

@@ -1,8 +1,9 @@
 # My PDF — Project Checkpoint
 
-**Date:** 2026-05-06  
+**Last updated:** 2026-05-07  
 **Branch:** main  
-**Base:** Stirling-PDF (open-source fork)
+**Base:** Stirling-PDF (open-source fork)  
+**Status: RUNNING** — backend on port 8080, frontend on port 5173
 
 ---
 
@@ -13,6 +14,37 @@ Build "My PDF" — an editor-first, web-based collaborative PDF editor forked fr
 1. **Phase 1** — Rename/brand + curate tools (remove low-value tools)
 2. **Phase 2** — Add a real-time collaboration layer (WebSocket, comments, review)
 3. **Phase 3** — Reorder tool categories to lead with editing workflows
+
+All three phases are complete. The app is running.
+
+---
+
+## How to Run
+
+### Prerequisites (all installed)
+| Tool | Version | How installed |
+|---|---|---|
+| Java | Zulu 21.0.11 (x86-64) | Azul `.dmg` from azul.com |
+| Node.js | v24.15.0 | nodejs.org `.pkg` |
+| npm | 11.12.1 | bundled with Node |
+| task | 3.50.0 | binary from GitHub releases → `/usr/local/bin/task` |
+
+> macOS 12 (Intel x86-64) — Homebrew not usable for installing new packages (Tier 3 / build failures). Use direct binary/installer downloads instead.
+
+### Start the app
+```bash
+cd "/Users/user/Downloads/Cloned Git-Hub Projects/PDF-Editor/Stirling-PDF"
+
+# Terminal 1 — backend (port 8080)
+task backend:dev
+
+# Terminal 2 — frontend (port 5173)
+task frontend:dev
+```
+
+Open **http://localhost:5173** in the browser.
+
+Default login: **admin / stirling** (created on first boot by `InitialSecuritySetup`).
 
 ---
 
@@ -28,22 +60,10 @@ Build "My PDF" — an editor-first, web-based collaborative PDF editor forked fr
 ### Tools Removed (Frontend)
 
 Removed from `CORE_REGULAR_TOOL_IDS` in `frontend/src/core/types/toolId.ts`:
-
-- `scannerImageSplit`
-- `scannerEffect`
-- `autoRename`
-- `pageLayout`
-- `adjustContrast`
-- `pdfToSinglePage`
-- `replaceColor`
-- `showJS`
-- `bookletImposition`
+- `scannerImageSplit`, `scannerEffect`, `autoRename`, `pageLayout`, `adjustContrast`, `pdfToSinglePage`, `replaceColor`, `showJS`, `bookletImposition`
 
 Removed from `CORE_LINK_TOOL_IDS` (kept only `devApi`):
-
-- `devFolderScanning`
-- `devSsoGuide`
-- `devAirgapped`
+- `devFolderScanning`, `devSsoGuide`, `devAirgapped`
 
 Removed entries from `frontend/src/core/data/useTranslatedToolRegistry.tsx`:
 - Tool entries: `pageLayout`, `bookletImposition`, `pdfToSinglePage`, `autoRename`, `adjustContrast`, `scannerImageSplit`, `replaceColor`, `scannerEffect`, `showJS`
@@ -83,6 +103,19 @@ implementation 'org.springframework:spring-messaging'
 ```
 > Uses `spring-websocket` directly (not the starter) to avoid pulling in Tomcat, since the project runs on Jetty.
 
+**`app/proprietary/.../security/configuration/DatabaseConfig.java`** — Added collab packages to both annotations:
+```java
+@EnableJpaRepositories(basePackages = {
+    ...,
+    "stirling.software.proprietary.collab.repository"   // added
+})
+@EntityScan({
+    ...,
+    "stirling.software.proprietary.collab.model"        // added
+})
+```
+> Without this, Spring Data JPA does not scan the new repository/entity packages (they are listed explicitly, not auto-discovered).
+
 #### New Files
 
 **`collab/config/WebSocketConfig.java`**
@@ -114,37 +147,30 @@ implementation 'org.springframework:spring-messaging'
 > Tables are auto-created by Hibernate (`spring.jpa.hibernate.ddl-auto=update`) — no migration files needed.
 
 **`collab/repository/CollabSessionRepository.java`**
-- Extends `JpaRepository<CollabSession, String>`
-- Custom query: `findByParticipantUsername(String username)`
+- Custom query uses `LEFT JOIN` (not `MEMBER OF` subquery — invalid HQL):
+```java
+@Query("SELECT DISTINCT s FROM CollabSession s LEFT JOIN s.participants p WHERE s.owner.username = :username OR p.username = :username")
+List<CollabSession> findByParticipantUsername(@Param("username") String username);
+```
 
 **`collab/repository/CollabAnnotationRepository.java`**
 - `findBySessionIdOrderByCreatedAtAsc(String sessionId)`
 
 **`collab/dto/` — Java Records**
-- `AnnotationPayload` — all annotation fields
-- `WsMessage<T>` — `type` + `payload`, static `of()` factory
-- `PresencePayload` — `username` + `action`, static `join()` / `leave()` factories
-- `SessionDto` — session summary, static `from(CollabSession)` factory
+- `AnnotationPayload`, `WsMessage<T>`, `PresencePayload`, `SessionDto`
 
 **`collab/service/CollabSessionService.java`**
-- `createSession`, `getSession`, `inviteUser`, `getAnnotations`
-- `addAnnotation`, `updateAnnotation`, `deleteAnnotation`, `changeStatus`
-- Auth helpers: `requireUser()`, `requireOwnerOrParticipant()`
+- `createSession`, `getSession`, `inviteUser`, `getAnnotations`, `addAnnotation`, `updateAnnotation`, `deleteAnnotation`, `changeStatus`
 
 **`collab/controller/CollabSessionWsController.java`** (STOMP)
-- `@MessageMapping("/session/{id}/annotation/add")` → persist + broadcast `ANNOTATION_ADD`
-- `@MessageMapping("/session/{id}/annotation/update")` → update + broadcast `ANNOTATION_UPDATE`
-- `@MessageMapping("/session/{id}/annotation/delete")` → delete + broadcast `ANNOTATION_DELETE`
-- `@MessageMapping("/session/{id}/presence")` → broadcast `PRESENCE`
-- Sends to `/topic/session/{id}` via `SimpMessagingTemplate`
+- Handles annotation add/update/delete + presence broadcasts to `/topic/session/{id}`
 
 **`collab/controller/CollabSessionRestController.java`**
-- `POST /api/v1/collab/sessions` — create session
-- `GET /api/v1/collab/sessions/{id}` — get session info
-- `POST /api/v1/collab/sessions/{id}/invite` — invite user by username
-- `GET /api/v1/collab/sessions/{id}/annotations` — fetch all annotations
+- `POST /api/v1/collab/sessions`
+- `GET /api/v1/collab/sessions/{id}`
+- `POST /api/v1/collab/sessions/{id}/invite`
+- `GET /api/v1/collab/sessions/{id}/annotations`
 - `POST /api/v1/collab/sessions/{id}/review/submit|approve|request-changes`
-- Broadcasts WebSocket events on invite and review status changes
 
 ---
 
@@ -156,92 +182,54 @@ implementation 'org.springframework:spring-messaging'
 "sockjs-client": "^1.6.1",
 "@types/sockjs-client": "^1.5.4"
 ```
-> Added directly to `package.json` (npm not available in build environment; `task frontend:install` will install them).
 
-**`frontend/src/core/hooks/collab/collabTypes.ts`**
-- TypeScript interfaces: `AnnotationType`, `AnnotationPayload`, `PresencePayload`, `SessionDto`, `WsMessageType`, `WsMessage<T>`
+**`frontend/src/core/hooks/collab/collabTypes.ts`** — TypeScript interfaces for all collab types
 
-**`frontend/src/core/hooks/collab/useCollabSession.ts`**
-- Fetches initial session + annotations from REST API
-- Creates STOMP `Client` with SockJS transport, connects with JWT `Authorization` header
-- Subscribes to `/topic/session/{sessionId}`, dispatches all `WsMessage` types
-- Returns: `{ session, annotations, participants, connected, addAnnotation, updateAnnotation, deleteAnnotation, sendPresence }`
+**`frontend/src/core/hooks/collab/useCollabSession.ts`** — STOMP WebSocket hook
 
-**`frontend/src/core/components/collab/CollabPresence.tsx`**
-- Avatar row with initials, deterministic color from username hash
-- Green dot = connected, overflow count badge
-- `Tooltip` with username on hover
+**`frontend/src/core/components/collab/CollabPresence.tsx`** — Avatar presence bar
 
-**`frontend/src/core/components/collab/CollabCommentThread.tsx`**
-- `ScrollArea` list of `NOTE`/`COMMENT` annotations
-- Filter prop: `"all" | "unresolved" | "mine"`
-- Inline edit, resolve toggle, delete (author/owner only)
+**`frontend/src/core/components/collab/CollabCommentThread.tsx`** — Threaded comment sidebar
 
-**`frontend/src/core/components/collab/CollabReviewPanel.tsx`**
-- Status badge with color mapping
-- `Timeline` component: Draft → In Review → Approved
-- Action buttons: Submit for Review, Approve, Request Changes (role-gated)
-- Calls REST API directly, fires `onStatusChange` callback on success
+**`frontend/src/core/components/collab/CollabReviewPanel.tsx`** — Review workflow panel
 
-**`frontend/src/core/components/collab/CollabBar.tsx`**
-- Reads JWT from `localStorage.getItem("stirling_jwt")`
-- Decodes username: `JSON.parse(atob(token.split(".")[1])).sub`
-- "Collaborate" button → `POST /api/v1/collab/sessions` → shows share modal
-- Active state shows: `CollabPresence` + icon buttons (Comments, Review, Invite)
-- `Drawer` (right, sm): switches between `CollabCommentThread` and `CollabReviewPanel`
-- `Modal`: displays session ID (click-to-copy) + invite by username form
+**`frontend/src/core/components/collab/CollabBar.tsx`** — Orchestrator shown in toolbar
 
 **Modified: `frontend/src/core/components/viewer/PdfViewerToolbar.tsx`**
-- Added optional props: `documentId?: string`, `documentName?: string`
-- Renders `<CollabBar>` at the trailing end of toolbar when `documentId` is provided
+- Added `documentId?` and `documentName?` props
+- Renders `<CollabBar>` when `documentId` is present
 
 **Modified: `frontend/src/core/components/viewer/EmbedPdfViewer.tsx`**
-- Passes `documentId={activeFiles[activeFileIndex]?.fileId}` and `documentName={...}` to `<PdfViewerToolbar>`
+- Passes `documentId` and `documentName` to `<PdfViewerToolbar>`
 
 ---
 
 ## Phase 3: Tool Category Reorder
 
-**`frontend/src/core/data/toolsTaxonomy.ts`** — `SUBCATEGORY_ORDER` updated to:
+**`frontend/src/core/data/toolsTaxonomy.ts`** — `SUBCATEGORY_ORDER`:
 
-```typescript
-[
-  SubcategoryId.GENERAL,
-  SubcategoryId.DOCUMENT_REVIEW,
-  SubcategoryId.PAGE_FORMATTING,
-  SubcategoryId.EXTRACTION,
-  SubcategoryId.REMOVAL,
-  SubcategoryId.SIGNING,
-  SubcategoryId.DOCUMENT_SECURITY,
-  SubcategoryId.VERIFICATION,
-  SubcategoryId.AUTOMATION,
-  SubcategoryId.ADVANCED_FORMATTING,
-  SubcategoryId.DEVELOPER_TOOLS,
-]
+```
+GENERAL → DOCUMENT_REVIEW → PAGE_FORMATTING → EXTRACTION → REMOVAL →
+SIGNING → DOCUMENT_SECURITY → VERIFICATION → AUTOMATION → ADVANCED_FORMATTING → DEVELOPER_TOOLS
 ```
 
 ---
 
-## Remaining Validation Steps
+## Bugs Fixed During Startup
 
-```bash
-# Validate Java compilation (collab package + modified ConvertImgPDFController)
-task backend:check
+| Error | Root Cause | Fix |
+|---|---|---|
+| `processResources` failed — could not set file mode 644 | pdfjs-legacy locale files had wrong permissions | `find ... -exec chmod 644/755 {}` + `./gradlew clean` |
+| `CollabSessionRepository` bean not found | `@EnableJpaRepositories` in `DatabaseConfig` had explicit package list missing collab | Added `stirling.software.proprietary.collab.repository` and `collab.model` to both annotations |
+| Bad HQL grammar in `findByParticipantUsername` | `MEMBER OF (SELECT ...)` subquery is invalid HQL | Rewrote as `LEFT JOIN s.participants p WHERE p.username = :username` |
 
-# Validate TypeScript types + lint (collab hooks, components, toolbar wiring)
-task frontend:check
+---
 
-# Install newly added npm packages
-task frontend:install
-
-# End-to-end test
-task dev
-```
-
-### Manual Test Checklist
+## Manual Test Checklist
 
 - [ ] Removed tools no longer appear in tool picker
 - [ ] Kept tools still work (merge, split, compress, annotate, sign, etc.)
+- [ ] Tool category order: General → Review → Page Formatting → ... → Automation
 - [ ] "Collaborate" button appears in PDF viewer toolbar
 - [ ] Create session → session ID shown in modal
 - [ ] Invite user → second browser tab joins session
@@ -250,7 +238,6 @@ task dev
 - [ ] Submit for review in Tab 1 → status updates in Tab 2
 - [ ] Approve / Request Changes flow works (owner only)
 - [ ] Unauthenticated WebSocket connection is rejected (401)
-- [ ] Tool category order: General → Review → Page Formatting → ... → Automation
 
 ---
 
@@ -262,6 +249,8 @@ task dev
 | DB schema | Hibernate `ddl-auto=update` auto-creates `collab_sessions` / `collab_annotations` |
 | Auth on WS | `ChannelInterceptor` validates JWT on `CONNECT` frame |
 | Collab package location | `app/proprietary` (depends on `User`, `UserService`, `JwtService`) |
+| JPA scanning | Must be explicitly listed in `DatabaseConfig` `@EnableJpaRepositories` / `@EntityScan` |
 | Frontend WS client | `@stomp/stompjs` + `sockjs-client` |
 | JWT decode (frontend) | Inline `atob(token.split(".")[1])` — no extra library |
 | Import paths | All new frontend files use `@app/*` as required by CLAUDE.md |
+| macOS 12 constraint | No Homebrew for new packages — use direct binary downloads/installers |

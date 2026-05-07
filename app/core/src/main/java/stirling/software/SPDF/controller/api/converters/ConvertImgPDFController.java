@@ -17,7 +17,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.rendering.ImageType;
-import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -42,7 +41,6 @@ import stirling.software.common.util.GeneralUtils;
 import stirling.software.common.util.PdfUtils;
 import stirling.software.common.util.ProcessExecutor;
 import stirling.software.common.util.ProcessExecutor.ProcessExecutorResult;
-import stirling.software.common.util.TempFile;
 import stirling.software.common.util.TempFileManager;
 import stirling.software.common.util.WebResponseUtils;
 
@@ -54,6 +52,7 @@ public class ConvertImgPDFController {
     private final CustomPDFDocumentFactory pdfDocumentFactory;
     private final TempFileManager tempFileManager;
     private final EndpointConfiguration endpointConfiguration;
+
     private boolean isGhostscriptEnabled() {
         return endpointConfiguration.isGroupEnabled("Ghostscript");
     }

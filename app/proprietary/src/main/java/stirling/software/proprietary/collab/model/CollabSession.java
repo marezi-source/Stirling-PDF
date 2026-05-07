@@ -59,8 +59,7 @@ public class CollabSession {
     @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CollabAnnotation> annotations = new ArrayList<>();
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+    @CreationTimestamp private LocalDateTime createdAt;
 
     private LocalDateTime closedAt;
 

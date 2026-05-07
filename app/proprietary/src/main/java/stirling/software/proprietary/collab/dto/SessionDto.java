@@ -19,9 +19,7 @@ public record SessionDto(
                 s.getDocumentId(),
                 s.getDocumentName(),
                 s.getOwner().getUsername(),
-                s.getParticipants().stream()
-                        .map(u -> u.getUsername())
-                        .toList(),
+                s.getParticipants().stream().map(u -> u.getUsername()).toList(),
                 s.getStatus().name(),
                 s.getCreatedAt() != null ? s.getCreatedAt().toString() : null);
     }

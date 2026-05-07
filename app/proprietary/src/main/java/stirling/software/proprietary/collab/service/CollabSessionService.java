@@ -27,18 +27,24 @@ public class CollabSessionService {
     private final UserService userService;
 
     @Transactional
-    public CollabSession createSession(String documentId, String documentName, String ownerUsername) {
+    public CollabSession createSession(
+            String documentId, String documentName, String ownerUsername) {
         User owner = requireUser(ownerUsername);
         return sessionRepo.save(new CollabSession(documentId, documentName, owner));
     }
 
     public CollabSession getSession(String sessionId) {
-        return sessionRepo.findById(sessionId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
+        return sessionRepo
+                .findById(sessionId)
+                .orElseThrow(
+                        () ->
+                                new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND, "Session not found"));
     }
 
     @Transactional
-    public CollabSession inviteUser(String sessionId, String inviterUsername, String inviteeUsername) {
+    public CollabSession inviteUser(
+            String sessionId, String inviterUsername, String inviteeUsername) {
         CollabSession session = getSession(sessionId);
         requireOwnerOrParticipant(session, inviterUsername);
         User invitee = requireUser(inviteeUsername);
@@ -79,8 +85,13 @@ public class CollabSessionService {
     @Transactional
     public AnnotationPayload updateAnnotation(
             String annotationId, String editorUsername, String content, boolean resolved) {
-        CollabAnnotation ann = annotationRepo.findById(annotationId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Annotation not found"));
+        CollabAnnotation ann =
+                annotationRepo
+                        .findById(annotationId)
+                        .orElseThrow(
+                                () ->
+                                        new ResponseStatusException(
+                                                HttpStatus.NOT_FOUND, "Annotation not found"));
         requireOwnerOrParticipant(ann.getSession(), editorUsername);
         ann.setContent(content);
         ann.setResolved(resolved);
@@ -89,8 +100,13 @@ public class CollabSessionService {
 
     @Transactional
     public void deleteAnnotation(String annotationId, String requestingUsername) {
-        CollabAnnotation ann = annotationRepo.findById(annotationId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Annotation not found"));
+        CollabAnnotation ann =
+                annotationRepo
+                        .findById(annotationId)
+                        .orElseThrow(
+                                () ->
+                                        new ResponseStatusException(
+                                                HttpStatus.NOT_FOUND, "Annotation not found"));
         boolean isAuthor = ann.getAuthor().getUsername().equals(requestingUsername);
         boolean isOwner = ann.getSession().getOwner().getUsername().equals(requestingUsername);
         if (!isAuthor && !isOwner) {
@@ -100,17 +116,20 @@ public class CollabSessionService {
     }
 
     @Transactional
-    public CollabSession changeStatus(String sessionId, String requestingUsername, Status newStatus) {
+    public CollabSession changeStatus(
+            String sessionId, String requestingUsername, Status newStatus) {
         CollabSession session = getSession(sessionId);
         boolean isOwner = session.getOwner().getUsername().equals(requestingUsername);
-        boolean isParticipant = session.getParticipants().stream()
-                .anyMatch(u -> u.getUsername().equals(requestingUsername));
+        boolean isParticipant =
+                session.getParticipants().stream()
+                        .anyMatch(u -> u.getUsername().equals(requestingUsername));
 
         if (!isOwner && !isParticipant) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not a participant");
         }
         if ((newStatus == Status.APPROVED || newStatus == Status.CHANGES_REQUESTED) && !isOwner) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the owner can approve or request changes");
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "Only the owner can approve or request changes");
         }
 
         session.setStatus(newStatus);
@@ -118,15 +137,22 @@ public class CollabSessionService {
     }
 
     private User requireUser(String username) {
-        return userService.findByUsernameIgnoreCase(username)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + username));
+        return userService
+                .findByUsernameIgnoreCase(username)
+                .orElseThrow(
+                        () ->
+                                new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND, "User not found: " + username));
     }
 
     private void requireOwnerOrParticipant(CollabSession session, String username) {
-        boolean allowed = session.getOwner().getUsername().equals(username)
-                || session.getParticipants().stream().anyMatch(u -> u.getUsername().equals(username));
+        boolean allowed =
+                session.getOwner().getUsername().equals(username)
+                        || session.getParticipants().stream()
+                                .anyMatch(u -> u.getUsername().equals(username));
         if (!allowed) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not a participant in this session");
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "Not a participant in this session");
         }
     }
 

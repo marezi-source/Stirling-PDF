@@ -412,6 +412,14 @@
   --dropdown-group-label: var(--mantine-color-gray-6);
 }
 
+/* Sidebar navigation button colors (light mode) */
+:root {
+  --nav-btn-active-bg: #0f172a;
+  --nav-btn-active-color: #f8fafc;
+  --nav-btn-inactive-color: #374151;
+  --nav-btn-hover-bg: rgba(15, 23, 42, 0.07);
+}
+
 /* Onboarding (light mode) */
 :root {
   --onboarding-title: #0a0a0a;
@@ -551,6 +559,12 @@
   /* Inactive icon colors for dark mode */
   --icon-inactive-bg: #2a2f36;
   --icon-inactive-color: #6e7581;
+
+  /* Sidebar navigation button colors (dark mode) */
+  --nav-btn-active-bg: #e2e8f0;
+  --nav-btn-active-color: #0f172a;
+  --nav-btn-inactive-color: #9ca3af;
+  --nav-btn-hover-bg: rgba(226, 232, 240, 0.1);
 
   /* RightRail (dark) */
   --right-rail-bg: #1f2329; /* dark background */

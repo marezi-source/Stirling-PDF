@@ -1,3 +1,38 @@
+/* Brand mark at top of sidebar */
+.qab-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.875rem 0.25rem 0.25rem;
+  flex-shrink: 0;
+}
+
+.qab-brand__text {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nav-btn-active-bg);
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+[data-mantine-color-scheme="dark"] .qab-brand__text {
+  color: var(--nav-btn-active-bg);
+}
+
+/* Full-width pill button base */
+.qab-pill {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Hover on inactive pills */
+.qab-pill:not(.qab-pill--active):hover {
+  background-color: var(--nav-btn-hover-bg) !important;
+}
+
 .activeIconScale {
   transform: scale(1);
   transition: transform 0.2s;

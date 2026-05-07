@@ -811,6 +811,11 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
       data-tour="quick-access-bar"
       className={`h-screen flex flex-col w-16 quick-access-bar-main ${isRainbowMode ? "rainbow-mode" : ""}`}
     >
+      {/* Brand mark */}
+      <div className="qab-brand">
+        <span className="qab-brand__text">My PDF</span>
+      </div>
+
       {/* Fixed header outside scrollable area */}
       <div className="quick-access-header">
         <ActiveToolButton

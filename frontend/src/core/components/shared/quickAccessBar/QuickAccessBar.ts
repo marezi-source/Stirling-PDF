@@ -49,8 +49,8 @@ export const getNavButtonStyle = (
 
   if (isActive) {
     return {
-      backgroundColor: `var(--icon-${config.id}-bg)`,
-      color: `var(--icon-${config.id}-color)`,
+      backgroundColor: "var(--nav-btn-active-bg)",
+      color: "var(--nav-btn-active-color)",
       border: "none",
       borderRadius: ROUND_BORDER_RADIUS,
     };
@@ -58,8 +58,8 @@ export const getNavButtonStyle = (
 
   // Inactive state for all buttons
   return {
-    backgroundColor: "var(--icon-inactive-bg)",
-    color: "var(--icon-inactive-color)",
+    backgroundColor: "transparent",
+    color: "var(--nav-btn-inactive-color)",
     border: "none",
     borderRadius: ROUND_BORDER_RADIUS,
   };

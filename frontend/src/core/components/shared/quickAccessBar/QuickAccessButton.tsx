@@ -37,13 +37,13 @@ const QuickAccessButton: React.FC<QuickAccessButtonProps> = ({
   dataTour,
   disabled = false,
 }) => {
-  const buttonSize = size || (isActive ? "lg" : "md");
+  const buttonSize = size || "md";
   const bgColor =
     backgroundColor ||
-    (isActive ? "var(--icon-tools-bg)" : "var(--icon-inactive-bg)");
+    (isActive ? "var(--nav-btn-active-bg)" : "transparent");
   const textColor =
     color ||
-    (isActive ? "var(--icon-tools-color)" : "var(--icon-inactive-color)");
+    (isActive ? "var(--nav-btn-active-color)" : "var(--nav-btn-inactive-color)");
 
   const actionIconProps =
     component === "a" && href
@@ -59,22 +59,34 @@ const QuickAccessButton: React.FC<QuickAccessButtonProps> = ({
         };
 
   return (
-    <div className="flex flex-col items-center gap-1" data-tour={dataTour}>
+    <div
+      className={`flex flex-col items-center gap-1 qab-pill${isActive ? " qab-pill--active" : ""}`}
+      style={{
+        backgroundColor: bgColor,
+        borderRadius: "10px",
+        padding: "0.375rem 0.25rem",
+        width: "100%",
+        boxSizing: "border-box",
+        transition: "background-color 150ms ease",
+        opacity: disabled ? 0.5 : 1,
+        cursor: disabled ? "not-allowed" : "pointer",
+      }}
+      data-tour={dataTour}
+    >
       <ActionIcon
         {...actionIconProps}
         size={buttonSize}
         variant="subtle"
         disabled={disabled}
         style={{
-          backgroundColor: bgColor,
+          backgroundColor: "transparent",
           color: textColor,
           border: "none",
           borderRadius: "8px",
           textDecoration: "none",
-          opacity: disabled ? 0.5 : 1,
-          cursor: disabled ? "not-allowed" : "pointer",
+          cursor: "inherit",
         }}
-        className={className || (isActive ? "activeIconScale" : "")}
+        className={className || ""}
         data-testid={dataTestId}
       >
         <span className="iconContainer">{icon}</span>
@@ -90,6 +102,7 @@ const QuickAccessButton: React.FC<QuickAccessButtonProps> = ({
             fontSize: "0.75rem",
             textAlign: "center",
             display: "block",
+            color: textColor,
           }}
         />
       </div>

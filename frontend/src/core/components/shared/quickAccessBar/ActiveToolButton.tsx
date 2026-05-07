@@ -187,9 +187,9 @@ const ActiveToolButton: React.FC<ActiveToolButtonProps> = ({
                   }
                   style={{
                     backgroundColor: isBackHover
-                      ? "var(--color-gray-300)"
-                      : "var(--icon-tools-bg)",
-                    color: isBackHover ? "#fff" : "var(--icon-tools-color)",
+                      ? "var(--nav-btn-hover-bg)"
+                      : "var(--nav-btn-active-bg)",
+                    color: "var(--nav-btn-active-color)",
                     border: "none",
                     borderRadius: "8px",
                     cursor: "pointer",

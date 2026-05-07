@@ -2,18 +2,18 @@ import { useTranslation } from "react-i18next";
 import "@app/routes/authShared/auth.css";
 import { TextInput, PasswordInput, Button } from "@mantine/core";
 
-// Force light mode styles for auth inputs
 const authInputStyles = {
   input: {
     backgroundColor: "var(--auth-input-bg-light-only)",
     color: "var(--auth-input-text-light-only)",
     borderColor: "var(--auth-input-border-light-only)",
-    "&:focus": {
-      borderColor: "var(--auth-border-focus-light-only)",
-    },
   },
   label: {
     color: "var(--auth-label-text-light-only)",
+    fontSize: "0.6875rem",
+    fontWeight: 500,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase" as const,
   },
 };
 

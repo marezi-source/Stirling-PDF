@@ -1,10 +1,8 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import LoginRightCarousel from "@app/components/shared/LoginRightCarousel";
-import buildLoginSlides from "@app/components/shared/loginSlides";
+import { BASE_PATH } from "@app/constants/app";
 import styles from "@app/routes/authShared/AuthLayout.module.css";
-import { useLogoVariant } from "@app/hooks/useLogoVariant";
-import Footer from "@app/components/shared/Footer";
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -12,83 +10,45 @@ interface AuthLayoutProps {
 
 export default function AuthLayout({ children }: AuthLayoutProps) {
   const { t } = useTranslation();
-  const cardRef = useRef<HTMLDivElement | null>(null);
-  const [hideRightPanel, setHideRightPanel] = useState(false);
-  const logoVariant = useLogoVariant();
-  const imageSlides = useMemo(
-    () => buildLoginSlides(logoVariant, t),
-    [logoVariant, t],
-  );
+  const navigate = useNavigate();
 
-  // Force light mode on auth pages
+  // Disable Mantine color scheme overrides on auth pages — CSS handles theming
   useEffect(() => {
     const htmlElement = document.documentElement;
-    const previousColorScheme = htmlElement.getAttribute(
-      "data-mantine-color-scheme",
-    );
-
-    // Set light mode
-    htmlElement.setAttribute("data-mantine-color-scheme", "light");
-
-    // Cleanup: restore previous theme when leaving auth pages
+    const previous = htmlElement.getAttribute("data-mantine-color-scheme");
     return () => {
-      if (previousColorScheme) {
-        htmlElement.setAttribute(
-          "data-mantine-color-scheme",
-          previousColorScheme,
-        );
+      if (previous) {
+        htmlElement.setAttribute("data-mantine-color-scheme", previous);
       }
     };
   }, []);
 
-  useEffect(() => {
-    const update = () => {
-      // Use viewport to avoid hysteresis when the card is already in single-column mode
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      const cardWidthIfTwoCols = Math.min(1180, viewportWidth * 0.96); // matches min(73.75rem, 96vw)
-      const columnWidth = cardWidthIfTwoCols / 2;
-      const tooNarrow = columnWidth < 470;
-      const tooShort = viewportHeight < 740;
-      setHideRightPanel(tooNarrow || tooShort);
-    };
-    update();
-    window.addEventListener("resize", update);
-    window.addEventListener("orientationchange", update);
-    return () => {
-      window.removeEventListener("resize", update);
-      window.removeEventListener("orientationchange", update);
-    };
-  }, []);
+  const logoSrc = `${BASE_PATH}/images/my-pdf-login-logo.png`;
 
   return (
     <div className={styles.authContainer}>
-      <div
-        ref={cardRef}
-        className={`${styles.authCard} ${!hideRightPanel ? styles.authCardTwoColumns : ""}`}
-      >
-        <div className={styles.authLeftPanel}>
-          <div className={styles.authContent}>{children}</div>
+      {/* Top navigation */}
+      <nav className={styles.topNav}>
+        <button className={styles.backLink} onClick={() => navigate("/")}>
+          ← {t("auth.backToHome", "Back to home")}
+        </button>
+        <div className={styles.topNavRight}>
+          <span className={styles.notMemberText}>
+            {t("auth.notAMember", "Not a member?")}
+          </span>
+          <button
+            className={styles.signUpButton}
+            onClick={() => navigate("/signup")}
+          >
+            {t("auth.signUp", "Sign Up")}
+          </button>
         </div>
-        {!hideRightPanel && (
-          <LoginRightCarousel
-            imageSlides={imageSlides}
-            initialSeconds={5}
-            slideSeconds={8}
-          />
-        )}
-      </div>
-      <div
-        style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          width: "100%",
-          zIndex: 10,
-        }}
-      >
-        <Footer forceLightMode={true} />
+      </nav>
+
+      {/* Centered form area */}
+      <div className={styles.authContent}>
+        <img src={logoSrc} alt="My PDF" className={styles.logo} />
+        {children}
       </div>
     </div>
   );

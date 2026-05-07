@@ -1,28 +1,30 @@
 .auth-fields {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem; /* 8px */
-  margin-bottom: 0.75rem; /* 12px */
+  gap: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .auth-field {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem; /* 4px */
+  gap: 0.25rem;
 }
 
 .auth-label {
-  font-size: 0.875rem; /* 14px */
+  font-size: 0.6875rem;
   color: var(--auth-label-text-light-only);
   font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .auth-input {
   width: 100%;
-  padding: 0.625rem 0.75rem; /* 10px 12px */
+  padding: 0.625rem 0.75rem;
   border: 1px solid var(--auth-input-border-light-only);
-  border-radius: 0.625rem; /* 10px */
-  font-size: 0.875rem; /* 14px */
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
   background-color: var(--auth-input-bg-light-only);
   color: var(--auth-input-text-light-only);
   outline: none;
@@ -35,20 +37,52 @@
 
 .auth-button {
   width: 100%;
-  padding: 0.625rem 0.75rem; /* 10px 12px */
+  padding: 0.75rem 0.75rem;
   border: none;
-  border-radius: 0.625rem; /* 10px */
+  border-radius: 0.375rem;
   background-color: var(--auth-button-bg-light-only);
   color: var(--auth-button-text-light-only);
-  font-size: 0.875rem; /* 14px */
+  font-size: 0.875rem;
   font-weight: 600;
-  margin-bottom: 0.75rem; /* 12px */
+  margin-bottom: 0.75rem;
   cursor: pointer;
 }
 
 .auth-button:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Mantine overrides for dark auth inputs */
+.auth-field .mantine-TextInput-label,
+.auth-field .mantine-PasswordInput-label {
+  font-size: 0.6875rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: var(--auth-label-text-light-only) !important;
+}
+
+.auth-field .mantine-TextInput-input,
+.auth-field .mantine-PasswordInput-input {
+  background-color: var(--auth-input-bg-light-only) !important;
+  color: var(--auth-input-text-light-only) !important;
+  border-color: var(--auth-input-border-light-only) !important;
+  border-radius: 0.375rem !important;
+}
+
+.auth-field .mantine-TextInput-input:focus,
+.auth-field .mantine-PasswordInput-input:focus {
+  border-color: var(--auth-border-focus-light-only) !important;
+}
+
+.auth-field .mantine-PasswordInput-innerInput {
+  color: var(--auth-input-text-light-only) !important;
+  background-color: transparent !important;
+}
+
+.auth-field .mantine-PasswordInput-visibilityToggle {
+  color: var(--auth-label-text-light-only) !important;
 }
 
 .auth-toggle-wrapper {
@@ -599,19 +633,19 @@
   color: var(--auth-text-primary-light-only);
 }
 
-/* Email login button - red CTA style matching SaaS version */
+/* Login CTA button - uses auth theme variable so it adapts to dark layout */
 .auth-cta-button {
-  background-color: #af3434 !important;
-  color: white !important;
+  background-color: var(--auth-button-bg-light-only) !important;
+  color: var(--auth-button-text-light-only) !important;
   border: none !important;
   font-weight: 600 !important;
+  border-radius: 0.375rem !important;
 }
 
 .auth-cta-button:hover:not(:disabled) {
-  background-color: #9a2e2e !important;
+  opacity: 0.88 !important;
 }
 
 .auth-cta-button:disabled {
-  background-color: #af3434 !important;
-  opacity: 0.6 !important;
+  opacity: 0.5 !important;
 }

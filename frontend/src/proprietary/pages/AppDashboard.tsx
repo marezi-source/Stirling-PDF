@@ -213,14 +213,14 @@ function SignIcon() {
 // ── Data ───────────────────────────────────────────────────────────────────
 
 const QUICK_TOOLS = [
-  { key: "edit", name: "Edit PDF", desc: "Edit text, pages and more", Icon: EditIcon },
-  { key: "convert", name: "Convert PDF", desc: "Convert to and from PDF", Icon: ConvertIcon },
-  { key: "merge", name: "Merge PDF", desc: "Combine multiple PDF files", Icon: MergeIcon },
-  { key: "split", name: "Split PDF", desc: "Split PDF into multiple files", Icon: SplitIcon },
-  { key: "compress", name: "Compress PDF", desc: "Reduce PDF file size", Icon: CompressIcon },
-  { key: "delete-pages", name: "Delete Pages", desc: "Remove pages from PDF", Icon: DeletePagesIcon },
-  { key: "extract-pages", name: "Extract Pages", desc: "Extract pages from PDF", Icon: ExtractPagesIcon },
-  { key: "sign", name: "Sign PDF", desc: "Create and add signatures", Icon: SignIcon },
+  { key: "edit", name: "Edit PDF", desc: "Edit text, pages and more", Icon: EditIcon, path: "/app/edit-pdf" },
+  { key: "convert", name: "Convert PDF", desc: "Convert to and from PDF", Icon: ConvertIcon, path: "/app" },
+  { key: "merge", name: "Merge PDF", desc: "Combine multiple PDF files", Icon: MergeIcon, path: "/app" },
+  { key: "split", name: "Split PDF", desc: "Split PDF into multiple files", Icon: SplitIcon, path: "/app" },
+  { key: "compress", name: "Compress PDF", desc: "Reduce PDF file size", Icon: CompressIcon, path: "/app" },
+  { key: "delete-pages", name: "Delete Pages", desc: "Remove pages from PDF", Icon: DeletePagesIcon, path: "/app" },
+  { key: "extract-pages", name: "Extract Pages", desc: "Extract pages from PDF", Icon: ExtractPagesIcon, path: "/app" },
+  { key: "sign", name: "Sign PDF", desc: "Create and add signatures", Icon: SignIcon, path: "/app" },
 ];
 
 const NAV_ITEMS = [
@@ -365,11 +365,11 @@ export default function AppDashboard() {
             </button>
           </div>
           <div className={styles.toolGrid}>
-            {QUICK_TOOLS.map(({ key, name, desc, Icon }) => (
+            {QUICK_TOOLS.map(({ key, name, desc, Icon, path }) => (
               <button
                 key={key}
                 className={styles.toolCard}
-                onClick={() => navigate("/app")}
+                onClick={() => navigate(path)}
               >
                 <div className={styles.toolIcon}>
                   <Icon />

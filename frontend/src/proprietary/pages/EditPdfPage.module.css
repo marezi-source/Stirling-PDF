@@ -1,0 +1,486 @@
+/* ── Page shell ── */
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #ffffff;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ── Top Nav ── */
+.topnav {
+  height: 3.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem 0 0.5rem;
+  border-bottom: 1px solid #e8e8e8;
+  flex-shrink: 0;
+  background: #ffffff;
+  gap: 1rem;
+  z-index: 10;
+}
+
+.topnavLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.topnavRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.backBtn {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  border-radius: 0.375rem;
+  color: #666;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.12s, color 0.12s;
+}
+
+.backBtn:hover {
+  background: #f5f5f5;
+  color: #0a0a0a;
+}
+
+.logoArea {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.logoImg {
+  width: 1.75rem;
+  height: 1.75rem;
+  object-fit: contain;
+}
+
+.brand {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #0a0a0a;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #999;
+  font-size: 0.875rem;
+}
+
+.breadcrumbLink {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #999;
+  font-size: 0.875rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.12s;
+}
+
+.breadcrumbLink:hover {
+  color: #0a0a0a;
+}
+
+.breadcrumbSep {
+  color: #ccc;
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumbCurrent {
+  color: #0a0a0a;
+  font-weight: 500;
+}
+
+/* Nav actions */
+.iconBtn {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  border-radius: 0.375rem;
+  color: #666;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.iconBtn:hover:not(:disabled) {
+  background: #f5f5f5;
+  color: #0a0a0a;
+}
+
+.iconBtn:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.savedStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8125rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.375rem;
+}
+
+.savedStatusSaved {
+  color: #22c55e;
+}
+
+.savedStatusUnsaved {
+  color: #f59e0b;
+}
+
+.shareBtn {
+  height: 2rem;
+  padding: 0 0.875rem;
+  background: #0a0a0a;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s;
+}
+
+.shareBtn:hover:not(:disabled) {
+  background: #222;
+}
+
+.shareBtn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: #e8e8e8;
+  color: #0a0a0a;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+/* ── Secondary Toolbar ── */
+.toolbar {
+  height: 2.75rem;
+  display: flex;
+  align-items: center;
+  padding: 0 0.75rem;
+  border-bottom: 1px solid #e8e8e8;
+  flex-shrink: 0;
+  background: #fafafa;
+  gap: 0;
+  overflow: hidden;
+}
+
+.toolbarCategories {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.toolbarCat {
+  height: 2.75rem;
+  padding: 0 0.875rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.12s, border-color 0.12s;
+  white-space: nowrap;
+  margin-bottom: -1px;
+}
+
+.toolbarCat:hover {
+  color: #0a0a0a;
+}
+
+.toolbarCatActive {
+  color: #0a0a0a;
+  font-weight: 600;
+  border-bottom-color: #0a0a0a;
+}
+
+.toolbarDivider {
+  width: 1px;
+  height: 1.25rem;
+  background: #e0e0e0;
+  margin: 0 0.625rem;
+  flex-shrink: 0;
+}
+
+.toolbarTools {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.toolbarTools::-webkit-scrollbar {
+  display: none;
+}
+
+.toolbarComingSoon {
+  font-size: 0.8125rem;
+  color: #aaa;
+  padding: 0 0.5rem;
+}
+
+.toolBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.25rem 0.5rem;
+  min-width: 3rem;
+  background: none;
+  border: none;
+  border-radius: 0.375rem;
+  color: #555;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.1s, color 0.1s;
+}
+
+.toolBtn:hover {
+  background: #ebebeb;
+  color: #0a0a0a;
+}
+
+.toolBtnActive {
+  background: #e0e0e0;
+  color: #0a0a0a;
+}
+
+.toolBtnLabel {
+  font-size: 0.6875rem;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* ── Main panels ── */
+.panels {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── Pages panel ── */
+.pagesPanel {
+  width: 180px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #e8e8e8;
+  background: #fafafa;
+  overflow: hidden;
+}
+
+.pagesPanelHeader {
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #555;
+  border-bottom: 1px solid #ebebeb;
+  flex-shrink: 0;
+}
+
+.pageCount {
+  font-size: 0.75rem;
+  color: #aaa;
+  font-weight: 400;
+}
+
+.pagesList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem 0.625rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: #ddd transparent;
+}
+
+.pagesList::-webkit-scrollbar {
+  width: 0.25rem;
+}
+
+.pagesList::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 0.25rem;
+}
+
+.pagesEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 1.5rem 0.75rem;
+  text-align: center;
+  color: #bbb;
+  font-size: 0.8125rem;
+  gap: 0.25rem;
+  line-height: 1.4;
+}
+
+.pagesEmpty p {
+  margin: 0;
+}
+
+.pageThumbnail {
+  width: 100%;
+  background: none;
+  border: 1.5px solid transparent;
+  border-radius: 0.5rem;
+  padding: 0.375rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.pageThumbnail:hover {
+  border-color: #ccc;
+  background: #f0f0f0;
+}
+
+.pageThumbnailActive {
+  border-color: #0a0a0a;
+  background: #f0f0f0;
+}
+
+.pageThumbWrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 0.707; /* A4 ratio */
+  background: #ffffff;
+  border-radius: 0.25rem;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pageThumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.pageThumbPlaceholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f5f5f5 0%, #ebebeb 100%);
+}
+
+.dirtyDot {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: #f59e0b;
+  border: 1.5px solid #fafafa;
+}
+
+.pageNum {
+  font-size: 0.6875rem;
+  color: #888;
+  line-height: 1;
+}
+
+.addPageBtn {
+  height: 2.5rem;
+  width: 100%;
+  background: none;
+  border: none;
+  border-top: 1px solid #ebebeb;
+  font-size: 0.8125rem;
+  color: #888;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.12s, color 0.12s;
+}
+
+.addPageBtn:hover:not(:disabled) {
+  background: #f0f0f0;
+  color: #0a0a0a;
+}
+
+.addPageBtn:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+/* ── Canvas ── */
+.canvas {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* ── Properties panel ── */
+.propertiesPanel {
+  width: 260px;
+  flex-shrink: 0;
+  border-left: 1px solid #e8e8e8;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}

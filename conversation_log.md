@@ -1,6 +1,6 @@
 # My PDF — Project Checkpoint
 
-**Last updated:** 2026-05-07  
+**Last updated:** 2026-05-07 (Session 4)
 **Branch:** main  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -9,13 +9,14 @@
 
 ## Goal
 
-Build "My PDF" — an editor-first, web-based collaborative PDF editor forked from Stirling-PDF. Three phases:
+Build "My PDF" — an editor-first, web-based collaborative PDF editor forked from Stirling-PDF. Four phases:
 
 1. **Phase 1** — Rename/brand + curate tools (remove low-value tools)
 2. **Phase 2** — Add a real-time collaboration layer (WebSocket, comments, review)
 3. **Phase 3** — Reorder tool categories to lead with editing workflows
+4. **Phase 4** — Sidebar UI redesign (modern, unified active state + "My PDF" brand mark)
 
-All three phases are complete. The app is running.
+All four phases are complete. The app is running.
 
 ---
 
@@ -216,6 +217,57 @@ SIGNING → DOCUMENT_SECURITY → VERIFICATION → AUTOMATION → ADVANCED_FORMA
 
 ---
 
+## Phase 4: Sidebar UI Redesign
+
+Inspired by a clean two-panel navigation reference (dark active pills, muted inactive icons, brand mark at top).
+
+### New CSS Variables — `frontend/src/core/styles/theme.css`
+
+| Variable | Light | Dark |
+|---|---|---|
+| `--nav-btn-active-bg` | `#0f172a` (near-black) | `#e2e8f0` (near-white) |
+| `--nav-btn-active-color` | `#f8fafc` | `#0f172a` |
+| `--nav-btn-inactive-color` | `#374151` | `#9ca3af` |
+| `--nav-btn-hover-bg` | `rgba(15,23,42,0.07)` | `rgba(226,232,240,0.1)` |
+
+### `QuickAccessBar.ts` — Unified Active State
+
+`getNavButtonStyle()` now returns the same dark pill for every button type (Reader, Files, Automate, Settings, etc.) instead of per-button accent colors. Inactive state is `transparent` background with muted icon color.
+
+### `QuickAccessButton.tsx` — Full-Width Pill
+
+- `backgroundColor` moved from the Mantine `ActionIcon` to the outer wrapper `div`
+- Active state: wrapper gets `--nav-btn-active-bg` fill, `borderRadius: 10px`, full `width: 100%`
+- Inactive state: transparent wrapper, icon/label colored with `--nav-btn-inactive-color`
+- Hover on inactive: `--nav-btn-hover-bg` via CSS class `.qab-pill:not(.qab-pill--active):hover`
+- Icon no longer scales up on active (size stays `"md"` always) — contrast comes from the background fill instead
+
+### `ActiveToolButton.tsx`
+
+Updated inline styles to use `--nav-btn-active-bg` / `--nav-btn-active-color` / `--nav-btn-hover-bg` instead of the old `--icon-tools-bg` vars.
+
+### `QuickAccessBar.tsx` — Brand Mark
+
+Added a `<div class="qab-brand">` block at the very top of the sidebar (above the header section) containing `<span class="qab-brand__text">My PDF</span>`.
+
+### `QuickAccessBar.css` — New Rules
+
+```css
+.qab-brand { ... }           /* Centers the brand text at sidebar top */
+.qab-brand__text { ... }     /* 0.6rem, 800 weight, uppercase, letter-spaced */
+.qab-pill { ... }            /* Full-width wrapper base */
+.qab-pill:not(.qab-pill--active):hover { background-color: var(--nav-btn-hover-bg) }
+```
+
+### Remaining Branding Fixes
+
+| File | Change |
+|---|---|
+| `frontend/src/core/components/tools/ToolPanelModePrompt.tsx` | "Stirling PDF tools" → "My PDF tools" |
+| `frontend/src/core/components/fileEditor/AddFileCard.tsx` | `alt="Stirling PDF"` → `alt="My PDF"` |
+
+---
+
 ## Bugs Fixed During Startup
 
 | Error | Root Cause | Fix |
@@ -228,6 +280,7 @@ SIGNING → DOCUMENT_SECURITY → VERIFICATION → AUTOMATION → ADVANCED_FORMA
 
 ## Manual Test Checklist
 
+### Phase 1–3
 - [ ] Removed tools no longer appear in tool picker
 - [ ] Kept tools still work (merge, split, compress, annotate, sign, etc.)
 - [ ] Tool category order: General → Review → Page Formatting → ... → Automation
@@ -239,6 +292,15 @@ SIGNING → DOCUMENT_SECURITY → VERIFICATION → AUTOMATION → ADVANCED_FORMA
 - [ ] Submit for review in Tab 1 → status updates in Tab 2
 - [ ] Approve / Request Changes flow works (owner only)
 - [ ] Unauthenticated WebSocket connection is rejected (401)
+
+### Phase 4 — Sidebar UI
+- [ ] "MY PDF" brand mark visible at top of left sidebar
+- [ ] Active nav button shows dark near-black full-width pill (light mode)
+- [ ] Active nav button shows near-white full-width pill (dark mode)
+- [ ] Inactive nav buttons have no background, muted gray icon/label
+- [ ] Hovering an inactive nav button shows a subtle dark tint
+- [ ] All active states (Tools, Reader, Files, Automate, Settings) use the same unified color
+- [ ] "My PDF tools" text appears in the layout-picker modal (not "Stirling PDF tools")
 
 ---
 

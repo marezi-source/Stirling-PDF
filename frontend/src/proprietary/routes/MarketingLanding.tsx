@@ -225,10 +225,10 @@ export default function MarketingLanding() {
         </div>
 
         <div className={styles.navActions}>
-          <button className={styles.loginBtn} onClick={() => navigate(session ? "/app" : "/login")}>
+          <button className={styles.loginBtn} onClick={() => navigate("/login")}>
             Login
           </button>
-          <button className={styles.signupBtn} onClick={() => navigate(session ? "/app" : "/signup")}>
+          <button className={styles.signupBtn} onClick={() => navigate("/signup")}>
             Sign up
           </button>
         </div>

@@ -30,7 +30,6 @@ import OAuthButtons, {
   oauthProviderConfig,
 } from "@app/routes/login/OAuthButtons";
 import DividerWithText from "@app/components/shared/DividerWithText";
-import LoggedInState from "@app/routes/login/LoggedInState";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -179,16 +178,6 @@ export default function Login() {
     loginDisabled,
   ]);
 
-  // Redirect immediately if user has valid session (JWT already validated by AuthProvider)
-  useEffect(() => {
-    if (!loading && session) {
-      const returnPath = resolveReturnPath();
-      console.debug("[Login] User already authenticated, redirecting to home", {
-        returnPath,
-      });
-      navigate(returnPath || "/app", { replace: true });
-    }
-  }, [session, loading, navigate, location.state, searchParams]);
 
   // If backend reports login is disabled, redirect to home (anonymous mode)
   useEffect(() => {
@@ -456,11 +445,6 @@ export default function Login() {
     return <Navigate to="/" replace />;
   }
 
-  // Show logged in state if authenticated
-  if (session && !loading) {
-    return <LoggedInState />;
-  }
-
   // If backend isn't ready yet, show a lightweight status screen instead of the form
   if (backendProbe.status !== "up" && !loginDisabled) {
     const backendTitle = t("backendStartup.notFoundTitle", "Backend not found");
@@ -560,11 +544,10 @@ export default function Login() {
   // };
 
   return (
-    <AuthLayout>
-      <LoginHeader
-        title={isSingleSsoOnly ? "" : t("login.login") || "Sign in"}
-        centerOnly={isSingleSsoOnly}
-      />
+    <AuthLayout
+      title={t("login.welcomeBack", "Welcome back")}
+      subtitle={t("login.welcomeSubtitle", "Log in to your account to continue")}
+    >
 
       {/* Success message */}
       {successMessage && (
@@ -699,6 +682,18 @@ export default function Login() {
           </Stack>
         </Alert>
       )}
+
+      {/* Bottom nav link */}
+      <p style={{ textAlign: "center", marginTop: "auto", paddingTop: "1.25rem", fontSize: "0.875rem", color: "#888", margin: "auto 0 0" }}>
+        {t("login.noAccount", "Don't have an account?")}{" "}
+        <button
+          type="button"
+          onClick={() => navigate("/signup")}
+          style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 500, fontSize: "inherit", cursor: "pointer", padding: 0 }}
+        >
+          {t("login.signUpLink", "Sign up")}
+        </button>
+      </p>
     </AuthLayout>
   );
 }

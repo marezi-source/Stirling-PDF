@@ -1,14 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useDocumentMeta } from "@app/hooks/useDocumentMeta";
-import { useAuth } from "@app/auth/UseSession";
 import AuthLayout from "@app/routes/authShared/AuthLayout";
 import "@app/routes/authShared/auth.css";
 import { BASE_PATH } from "@app/constants/app";
 
 // Import signup components
-import LoginHeader from "@app/routes/login/LoginHeader";
 import ErrorMessage from "@app/routes/login/ErrorMessage";
 import DividerWithText from "@app/components/shared/DividerWithText";
 import SignupForm from "@app/routes/signup/SignupForm";
@@ -21,7 +19,6 @@ import { useAuthService } from "@app/routes/signup/AuthService";
 export default function Signup() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { session, loading } = useAuth();
   const [isSigningUp, setIsSigningUp] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -29,13 +26,6 @@ export default function Signup() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<SignupFieldErrors>({});
 
-  // Redirect immediately if user has valid session (JWT already validated by AuthProvider)
-  useEffect(() => {
-    if (!loading && session) {
-      console.debug("[Signup] User already authenticated, redirecting to home");
-      navigate("/", { replace: true });
-    }
-  }, [session, loading, navigate]);
 
   const baseUrl = window.location.origin + BASE_PATH;
 
@@ -91,11 +81,10 @@ export default function Signup() {
   };
 
   return (
-    <AuthLayout>
-      <LoginHeader
-        title={t("signup.title", "Create an account")}
-        subtitle={t("signup.subtitle", "Join OnePDF")}
-      />
+    <AuthLayout
+      title={t("signup.createAccount", "Create your account")}
+      subtitle={t("signup.trialSubtitle", "Start your 7-day free trial. No credit card required.")}
+    >
 
       <ErrorMessage error={error} />
 
@@ -120,16 +109,17 @@ export default function Signup() {
         opacity={0.4}
       />
 
-      {/* Bottom row - centered */}
-      <div style={{ textAlign: "center", margin: "0.5rem 0 0.25rem" }}>
+      {/* Bottom nav link */}
+      <p style={{ textAlign: "center", marginTop: "auto", paddingTop: "1.25rem", fontSize: "0.875rem", color: "#888", margin: "auto 0 0" }}>
+        {t("signup.alreadyHaveAccount", "Already have an account?")}{" "}
         <button
           type="button"
           onClick={() => navigate("/login")}
-          className="auth-link-black"
+          style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 500, fontSize: "inherit", cursor: "pointer", padding: 0 }}
         >
-          {t("login.logIn", "Log In")}
+          {t("login.logIn", "Log in")}
         </button>
-      </div>
+      </p>
     </AuthLayout>
   );
 }

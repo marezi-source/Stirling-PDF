@@ -1,6 +1,6 @@
-# OnePDF — Project Checkpoint
+# My PDF — Project Checkpoint
 
-**Last updated:** 2026-05-07 (Session 6)
+**Last updated:** 2026-05-07 (Session 7)
 **Branch:** main  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -9,7 +9,7 @@
 
 ## Goal
 
-Build "OnePDF" — an editor-first, web-based collaborative PDF editor forked from Stirling-PDF. Four phases:
+Build "My PDF" — an editor-first, web-based collaborative PDF editor forked from Stirling-PDF. Four phases:
 
 1. **Phase 1** — Rename/brand + curate tools (remove low-value tools)
 2. **Phase 2** — Add a real-time collaboration layer (WebSocket, comments, review)
@@ -546,3 +546,82 @@ Created a new post-login dashboard matching a mockup (sidebar + topbar + tools g
 | Successful login | → `/app/home` (dashboard) |
 | Click tool card on dashboard | → `/app` (PDF workspace) |
 | Direct `/app` URL | PDF workspace via Landing → `<HomePage />` (unchanged) |
+
+---
+
+## Session 7: Brand Rename to "My PDF" + Edit PDF Page Redesign + Infinite Loop Fix
+
+### Brand Rename: "OnePDF" → "My PDF"
+
+All user-visible brand references updated from "OnePDF" to "My PDF" across the frontend codebase. Internal type names and Java package names unchanged.
+
+---
+
+### Edit PDF Page — Standalone Three-Panel Layout
+
+Created a new full-page editor route at `/app/edit-pdf` matching a mockup design, replacing the existing tool-panel flow for the Edit PDF action.
+
+**`frontend/src/proprietary/pages/EditPdfPage.tsx`** — New file:
+- Top navbar: back button → `/app/home`, "My PDF" logo + brand, "Tools > Edit PDF" breadcrumb, undo/redo buttons (disabled), cloud save status indicator, download button wired to `viewData.onGeneratePdf()`, "Apply & Save" button wired to `viewData.onSaveToWorkbench()`, user initials avatar
+- Secondary toolbar: 5 category tabs (Edit | Annotate | Page | Protect | Convert) with active underline; Edit shows 13 tool icon buttons (Select, Text, Image, Link, Rectangle, Rounded, Circle, Line, Arrow, Check, Cross, Star, More); other tabs show "coming soon"
+- Left panel (180px): page thumbnail list from `viewData.pagePreviews`, A4 aspect ratio (`0.707`), amber dirty dot for edited pages, `+ Add page` disabled
+- Center panel: `<Workbench />` renders `PdfTextEditorView` when workbench is `"custom:pdfTextEditor"`
+- Right panel (260px): `<ToolRenderer selectedToolKey="pdfTextEditor" />` mounts `PdfTextEditor` → renders `PdfTextEditorSidebar`
+- Auth guard: redirects to `/login` if unauthenticated
+- Mount effect: `selectTool("pdfTextEditor")` → triggers `PdfTextEditor`'s auto-navigate to workbench; cleanup deselects tool
+
+**`frontend/src/proprietary/pages/EditPdfPage.module.css`** — New file:
+- `.page`: `height: 100%; display: flex; flex-direction: column; overflow: hidden`
+- `.topnav`: `height: 3.25rem; border-bottom: 1px solid #e8e8e8`
+- `.toolbar`: `height: 2.75rem; background: #fafafa`; `.toolbarCatActive`: `border-bottom: 2px solid #0a0a0a`
+- `.panels`: `flex: 1; display: flex; flex-direction: row; overflow: hidden; min-height: 0`
+- `.pagesPanel`: `width: 180px; border-right: 1px solid #e8e8e8; background: #fafafa`
+- `.canvas`: `flex: 1; min-width: 0`
+- `.propertiesPanel`: `width: 260px; border-left: 1px solid #e8e8e8`
+- Page thumbnails: `aspect-ratio: 0.707`; active state: `border: 1.5px solid #0a0a0a`
+- `.shareBtn` (Apply & Save): `background: #0a0a0a; color: #fff; border-radius: 0.5rem`
+
+**`frontend/src/proprietary/App.tsx`** — Modified:
+- Added `import EditPdfPage from "@app/pages/EditPdfPage"`
+- Added `<Route path="/app/edit-pdf" element={<EditPdfPage />} />` before the `/*` catch-all
+
+**`frontend/src/proprietary/pages/AppDashboard.tsx`** — Modified:
+- Added `path` property to each `QUICK_TOOLS` entry; "Edit PDF" gets `path: "/app/edit-pdf"`, all others keep `path: "/app"`
+- Tool card `onClick` now uses `navigate(path)` per-tool instead of always `navigate("/app")`
+
+---
+
+### Edit PDF Infinite Loop Fix
+
+**Error:** "Maximum update depth exceeded" — React hit its 50-render nested update limit immediately on mounting `/app/edit-pdf`.
+
+**Root cause chain:**
+1. `EditPdfPage` rendered `<ToolRenderer onComplete={() => {}} onError={() => {}} />`
+2. Inline arrow functions → **new references on every render** of `EditPdfPage`
+3. Inside `PdfTextEditor`, `handleDownloadJson`, `handleGeneratePdf`, and `handleSaveToWorkbench` are `useCallback`s with `onComplete` / `onError` in their deps → **new callbacks** on every parent render
+4. `viewData` is a `useMemo` whose deps include those callbacks → **new `viewData` object** every render
+5. The sync effect `useEffect(() => { setCustomWorkbenchViewData(id, viewData) }, [viewData])` fires on every `viewData` change → updates `customViewData` in context
+6. Context update causes `EditPdfPage` to re-render → new inline functions → **loop**
+
+**Fixes (both in `EditPdfPage.tsx`):**
+
+| Fix | Detail |
+|---|---|
+| Stable callback constants | Defined `NOOP_COMPLETE = (_files: File[]) => {}` and `NOOP_ERROR = (_msg: string) => {}` at **module level** (outside component); passed as `onComplete={NOOP_COMPLETE}` / `onError={NOOP_ERROR}` to `ToolRenderer` |
+| Page-preview effect guard | Added `previewRequestedForCountRef = useRef(0)`; page preview effect returns early if `previewRequestedForCountRef.current === pageCount`, preventing re-requesting previews on every `viewData` update (which fires as each preview is generated) |
+
+---
+
+### Session 7 — Test Checklist
+
+- [ ] Visiting `/app/edit-pdf` no longer shows "Maximum update depth exceeded"
+- [ ] Clicking "Edit PDF" on the dashboard navigates to `/app/edit-pdf`
+- [ ] All other dashboard tool cards still navigate to `/app`
+- [ ] Three-panel layout renders: pages sidebar | canvas | properties panel
+- [ ] Top navbar shows "My PDF" brand, breadcrumb "Tools > Edit PDF", user initials
+- [ ] Edit category toolbar shows all 13 tool icon buttons
+- [ ] Annotate / Page / Protect / Convert categories show "coming soon" message
+- [ ] Back button returns to `/app/home`
+- [ ] Uploading a PDF shows page thumbnails in the left panel
+- [ ] Apply & Save button is disabled until a document with changes is loaded
+- [ ] Download button is disabled until a document is loaded

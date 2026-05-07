@@ -1,6 +1,6 @@
 # My PDF — Project Checkpoint
 
-**Last updated:** 2026-05-07 (Session 7)
+**Last updated:** 2026-05-07 (Session 8)
 **Branch:** main  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -625,3 +625,113 @@ Created a new full-page editor route at `/app/edit-pdf` matching a mockup design
 - [ ] Uploading a PDF shows page thumbnails in the left panel
 - [ ] Apply & Save button is disabled until a document with changes is loaded
 - [ ] Download button is disabled until a document is loaded
+
+---
+
+## Session 8: Full UI Replacement — Stirling PDF → My PDF Design
+
+Completed a comprehensive pass replacing every remaining Stirling PDF UI element with the custom My PDF design language.
+
+### Shared Tool Components (affects all 40+ tools)
+
+**`frontend/src/core/components/tools/shared/OperationButton.tsx`** — Modified:
+- Primary action button replaced from Mantine blue → OnePDF dark pill
+- When `variant="filled"` and `color="blue"` (default), injects CSS variables: `--button-bg: var(--nav-btn-active-bg)`, `--button-hover`, `--button-color: var(--nav-btn-active-color)`, `borderRadius: 0.5rem`
+- Non-default colors/variants are untouched — no regression for callers passing explicit colors
+
+**`frontend/src/core/components/tools/shared/ToolWorkflowTitle.tsx`** — Modified:
+- Description background changed from `var(--color-gray-200)` → `var(--bg-muted)` with `border: 1px solid var(--border-default)`
+- Text color changed to `var(--text-secondary)` for better contrast hierarchy
+- Border-radius set to `0.5rem` to match OnePDF card style
+
+**`frontend/src/core/components/tools/shared/ToolStep.tsx`** — Modified:
+- Step divider changed from hardcoded `#E2E8F0` → `var(--border-default)` (supports both light and dark mode)
+
+**`frontend/src/core/components/tools/shared/NavigationControls.tsx`** — Complete rewrite:
+- Removed Mantine `ActionIcon` + MUI icon dependencies entirely
+- Custom prev/next buttons using CSS variables: `var(--bg-surface)`, `var(--border-default)`, `var(--text-primary)`
+- Uses `‹` / `›` text chevrons for zero-dependency implementation
+
+### Workspace Switcher
+
+**`frontend/src/core/components/shared/TopControls.tsx`** — Modified:
+- Removed `color="blue"` from `SegmentedControl`
+- Active indicator now uses `background: var(--nav-btn-active-bg)` — matches sidebar nav pills in both light/dark mode
+
+### Viewer Sidebar CSS
+
+**`frontend/src/core/components/viewer/SidebarBase.css`** — Modified:
+- Header icon color: `var(--mantine-color-blue-6)` → `var(--text-secondary)`
+
+**`frontend/src/core/components/viewer/LayerSidebar.css`** — Modified:
+- Dirty badge color: `var(--mantine-color-orange-5)` → `var(--color-yellow-500)` (theme-owned token)
+
+**`frontend/src/core/components/viewer/AttachmentSidebar.css`** — Modified:
+- Download icon hover color: `var(--mantine-color-blue-6)` → `var(--text-primary)`
+
+**`frontend/src/core/components/tools/toolPicker/ToolPicker.css`** — Modified:
+- Scrollbar thumb colors: `var(--mantine-color-gray-4/5)` → `var(--color-gray-300/400)` (theme-owned tokens)
+
+### Brand Text — All Remaining "Stirling" References Replaced
+
+Replaced every user-visible "Stirling" string with "My PDF" across the entire frontend.
+
+**Translation file:** `frontend/public/locales/en-GB/translation.toml`
+| Key | Old | New |
+|---|---|---|
+| `config.apiKeys.description` | "Stirling's suite of PDF tools" | "My PDF's suite of PDF tools" |
+| `connectionMode.status.saas` | "Connected to Stirling Cloud" | "Connected to My PDF Cloud" |
+| `localMode.toolUnavailable` | "Sign in to Stirling Cloud" | "Sign in to My PDF Cloud" |
+| `onboarding.desktopInstall.body` | "Stirling works best as a desktop app" | "My PDF works best as a desktop app" |
+| `onboarding.planOverview.adminBody*` | "use Stirling free of charge" | "use My PDF free of charge" |
+| `onboarding.serverLicense.freeBody` | "Stirling Server plan" | "My PDF Server plan" |
+| `onboarding.serverLicense.overLimitBody` | "Stirling users" / "Stirling Server plan" | "My PDF users" / "My PDF Server plan" |
+| `onboarding.welcomeSlide.title` | "Welcome to Stirling" | "Welcome to My PDF" |
+| `settings.connection.mode.saas` | "Stirling Cloud" | "My PDF Cloud" |
+| `settings.planBilling.notAvailable` | "Stirling Cloud (SaaS mode)" | "My PDF Cloud (SaaS mode)" |
+| `setup.mode.saas.description/title` | "Stirling account" / "Stirling Cloud" | "My PDF account" / "My PDF Cloud" |
+| `setup.saas.subtitle/title` | "Stirling account" / "Sign in to Stirling" | "My PDF account" / "Sign in to My PDF" |
+
+**Onboarding slides:**
+- `ServerLicenseSlide.tsx` — `defaults` fallback strings updated
+- `PlanOverviewSlide.tsx` — `defaults` fallback strings updated
+- `DesktopInstallSlide.tsx` — `defaults` fallback string updated
+- `WelcomeSlide.tsx` — `defaults` fallback string updated
+
+**Desktop components:**
+- `ConnectionSettings.tsx` — saas mode label fallback
+- `RightRailFooterExtensions.tsx` — connection status label fallback
+- `SaasPlanSection.tsx` — plan/billing unavailable message fallback
+- `SaaSLoginScreen.tsx` — login screen title fallback
+- `operationRouter.ts` — two error message fallbacks
+- `desktopNotificationService.ts` — `APP_TITLE` constant
+- `useGroupEnabled.ts` — offline reason fallback constant
+
+**Core/SaaS components:**
+- `fullscreen/shared.ts` — offline server error message fallback
+- `useCertSignTooltips.ts` — cert sign tooltip text
+- `saas/ApiKeys.tsx` — API key description fallback
+
+**Not changed (intentional):**
+- GitHub URLs (`github.com/Stirling-Tools/...`) — functional links to upstream releases
+- Java package names (`stirling.software.*`)
+- Internal identifiers (`StirlingFile`, `StirlingPDF_Automations`, `stirling_sso_*`)
+- Logo SVG filenames (`StirlingPDFLogo*.svg`) — physical asset files not renamed
+- Test files and code comments
+
+---
+
+### Session 8 — Test Checklist
+
+- [ ] Primary action button in all tools is dark/near-black pill (not Mantine blue)
+- [ ] Button switches to near-white pill in dark mode
+- [ ] Tool description boxes show `var(--bg-muted)` background with border
+- [ ] Dividers inside tool steps respect dark mode (no hardcoded light gray)
+- [ ] Prev/Next file navigation buttons in ReviewToolStep show OnePDF styled buttons
+- [ ] View switcher active indicator (Viewer / Page Editor / File Manager) is dark, not blue
+- [ ] Layer sidebar icon is gray, not blue
+- [ ] Attachment download icon hover is gray, not blue
+- [ ] No "Stirling" text visible anywhere in the UI (tools, onboarding, settings, desktop app)
+- [ ] "Welcome to My PDF" shows in onboarding welcome slide
+- [ ] "My PDF Cloud" shows in connection settings / SaaS mode labels
+- [ ] Desktop app notifications use "My PDF" as the app title

@@ -23,7 +23,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
     };
   }, []);
 
-  const logoSrc = `${BASE_PATH}/images/onepdf-login-logo.png`;
+  const logoSrc = `${BASE_PATH}/images/OnePDF_Logo.png`;
 
   return (
     <div className={styles.authContainer}>

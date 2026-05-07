@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { BASE_PATH } from "@app/constants/app";
 import { useAuth } from "@app/auth/UseSession";
@@ -94,6 +95,50 @@ function DownloadIcon() {
   );
 }
 
+function ChevronDownIcon({ open }: { open: boolean }) {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ transition: "transform 0.15s", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+    >
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
+const TO_PDF = [
+  "Word to PDF",
+  "Excel to PDF",
+  "PowerPoint to PDF",
+  "Image to PDF",
+  "HTML to PDF",
+  "Markdown to PDF",
+  "SVG to PDF",
+  "URL to PDF",
+  "Email to PDF",
+  "eBook to PDF",
+];
+
+const FROM_PDF = [
+  "PDF to Word",
+  "PDF to Excel",
+  "PDF to PowerPoint",
+  "PDF to Image",
+  "PDF to HTML",
+  "PDF to Text",
+  "PDF to CSV",
+  "PDF to Markdown",
+  "PDF to EPUB",
+  "PDF to PDF/A",
+];
+
 const TOOLS = [
   { name: "Edit PDF", desc: "Edit text, pages and more", Icon: PencilIcon },
   { name: "Convert PDF", desc: "Convert to and from PDF", Icon: ConvertIcon },
@@ -106,7 +151,22 @@ const TOOLS = [
 export default function MarketingLanding() {
   const navigate = useNavigate();
   const { session } = useAuth();
-  const logoSrc = `${BASE_PATH}/images/onepdf-login-logo.png`;
+  const logoSrc = `${BASE_PATH}/images/OnePDF_Logo.png`;
+  const [convertOpen, setConvertOpen] = useState(false);
+  const convertRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!convertOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (convertRef.current && !convertRef.current.contains(e.target as Node)) {
+        setConvertOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [convertOpen]);
+
+  const goToApp = () => navigate(session ? "/app" : "/login");
 
   return (
     <div className={styles.page}>
@@ -116,25 +176,61 @@ export default function MarketingLanding() {
           <img src={logoSrc} alt="OnePDF" className={styles.navLogoImg} />
           <span className={styles.navBrand}>OnePDF</span>
         </div>
-        <div className={styles.navLinks}>
-          <a href="#features" className={styles.navLink}>Features</a>
-          <a href="#tools" className={styles.navLink}>Tools</a>
-        </div>
-        <div className={styles.navActions}>
-          {session ? (
-            <button className={styles.signupBtn} onClick={() => navigate("/app")}>
-              Open App
+
+        <div className={styles.navToolLinks}>
+          <button className={styles.navToolLink} onClick={goToApp}>Edit PDF</button>
+
+          {/* Convert dropdown */}
+          <div className={styles.convertWrapper} ref={convertRef}>
+            <button
+              className={`${styles.navToolLink} ${styles.convertBtn} ${convertOpen ? styles.convertBtnOpen : ""}`}
+              onClick={() => setConvertOpen((o) => !o)}
+            >
+              Convert PDF <ChevronDownIcon open={convertOpen} />
             </button>
-          ) : (
-            <>
-              <button className={styles.loginBtn} onClick={() => navigate("/login")}>
-                Login
-              </button>
-              <button className={styles.signupBtn} onClick={() => navigate("/signup")}>
-                Sign up
-              </button>
-            </>
-          )}
+            {convertOpen && (
+              <div className={styles.convertDropdown}>
+                <div className={styles.convertSection}>
+                  <div className={styles.convertSectionTitle}>To PDF</div>
+                  {TO_PDF.map((f) => (
+                    <button
+                      key={f}
+                      className={styles.convertItem}
+                      onClick={() => { setConvertOpen(false); goToApp(); }}
+                    >
+                      {f}
+                    </button>
+                  ))}
+                </div>
+                <div className={styles.convertSection}>
+                  <div className={styles.convertSectionTitle}>From PDF</div>
+                  {FROM_PDF.map((f) => (
+                    <button
+                      key={f}
+                      className={styles.convertItem}
+                      onClick={() => { setConvertOpen(false); goToApp(); }}
+                    >
+                      {f}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <button className={styles.navToolLink} onClick={goToApp}>Merge PDF</button>
+          <button className={styles.navToolLink} onClick={goToApp}>Split PDF</button>
+          <button className={styles.navToolLink} onClick={goToApp}>Compress PDF</button>
+          <button className={styles.navToolLink} onClick={goToApp}>Sign PDF</button>
+        </div>
+
+        <div className={styles.navActions}>
+          <button className={styles.loginBtn} onClick={() => navigate(session ? "/app" : "/login")}>
+            Login
+          </button>
+          <button className={styles.signupBtn} onClick={() => navigate(session ? "/app" : "/signup")}>
+            Sign up
+          </button>
         </div>
       </nav>
 
@@ -165,7 +261,6 @@ export default function MarketingLanding() {
         {/* ── PDF illustration ── */}
         <div className={styles.heroRight}>
           <div className={styles.illustration}>
-            {/* Floating tool cards */}
             <div className={`${styles.floatCard} ${styles.floatTopLeft}`}>
               <PencilIcon />
             </div>
@@ -182,7 +277,6 @@ export default function MarketingLanding() {
               <SignIcon />
             </div>
 
-            {/* Central PDF document */}
             <div className={styles.pdfDoc}>
               <div className={styles.pdfDocCorner} />
               <div className={styles.pdfLine} />
@@ -202,7 +296,7 @@ export default function MarketingLanding() {
         </p>
         <div className={styles.toolGrid} id="tools">
           {TOOLS.map(({ name, desc, Icon }) => (
-            <div key={name} className={styles.toolCard}>
+            <div key={name} className={styles.toolCard} onClick={goToApp}>
               <div className={styles.toolIcon}>
                 <Icon />
               </div>

@@ -211,14 +211,16 @@ const TopControls = ({
           data={viewOptions}
           value={currentView}
           onChange={handleViewChange}
-          color="blue"
           fullWidth
           className={isRainbowMode ? rainbowStyles.rainbowSegmentedControl : ""}
-          style={{
-            transition: "all 0.2s ease",
-            opacity: switchingTo ? 0.8 : 1,
-            pointerEvents: "auto",
-          }}
+          style={
+            {
+              transition: "all 0.2s ease",
+              opacity: switchingTo ? 0.8 : 1,
+              pointerEvents: "auto",
+              "--sc-color": "var(--nav-btn-active-bg)",
+            } as React.CSSProperties
+          }
           styles={{
             root: {
               borderRadius: "0 0 16px 16px",
@@ -243,6 +245,7 @@ const TopControls = ({
               top: "0rem",
               margin: "0",
               border: "none",
+              background: "var(--nav-btn-active-bg)",
             },
             label: {
               paddingTop: "0",

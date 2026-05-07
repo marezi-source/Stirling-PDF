@@ -117,7 +117,7 @@
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 50%;
-  background: var(--mantine-color-orange-5);
+  background: var(--color-yellow-500);
   flex-shrink: 0;
 }
 

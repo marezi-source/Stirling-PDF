@@ -59,9 +59,10 @@ export function ToolWorkflowTitle({
         mb="md"
         p="sm"
         style={{
-          borderRadius: "var(--mantine-radius-md)",
-          background: "var(--color-gray-200)",
-          color: "var(--mantine-color-text)",
+          borderRadius: "0.5rem",
+          background: "var(--bg-muted)",
+          color: "var(--text-secondary)",
+          border: "1px solid var(--border-default)",
         }}
       >
         {description}

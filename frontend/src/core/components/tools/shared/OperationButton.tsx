@@ -73,6 +73,8 @@ const OperationButton = ({
       ? (reasonTooltip[disabledReason] ?? null)
       : null;
 
+  const isDarkPill = variant === "filled" && color === "blue";
+
   const button = (
     <Button
       type={type}
@@ -84,10 +86,23 @@ const OperationButton = ({
       loading={isLoading}
       disabled={combinedDisabled}
       variant={variant}
-      color={color}
+      color={isDarkPill ? undefined : color}
       data-testid={dataTestId}
       data-tour={dataTour}
-      style={{ minHeight: "2.5rem", position: "relative" }}
+      style={
+        {
+          minHeight: "2.5rem",
+          position: "relative",
+          borderRadius: "0.5rem",
+          ...(isDarkPill && {
+            "--button-bg": "var(--nav-btn-active-bg)",
+            "--button-hover":
+              "color-mix(in srgb, var(--nav-btn-active-bg) 82%, var(--bg-surface))",
+            "--button-color": "var(--nav-btn-active-color)",
+            "--button-bd": "transparent",
+          }),
+        } as React.CSSProperties
+      }
     >
       {isLoading
         ? loadingText || t("loading", "Loading...")

@@ -1,6 +1,6 @@
 # My PDF — Project Checkpoint
 
-**Last updated:** 2026-05-07 (Session 8)
+**Last updated:** 2026-05-07 (Session 9)
 **Branch:** main  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -735,3 +735,54 @@ Replaced every user-visible "Stirling" string with "My PDF" across the entire fr
 - [ ] "Welcome to My PDF" shows in onboarding welcome slide
 - [ ] "My PDF Cloud" shows in connection settings / SaaS mode labels
 - [ ] Desktop app notifications use "My PDF" as the app title
+
+---
+
+## Session 9: Bug Fixes — sockjs-client Crash + Edit PDF Blank Canvas
+
+### Bug 1: `global is not defined` (sockjs-client)
+
+**Symptom:** Any page that triggered loading of the collab feature threw `ReferenceError: global is not defined`, crashing the page. First noticed when uploading a PDF to convert to xlsx.
+
+**Root cause:** `sockjs-client` uses the Node.js global `global` at module load time (in `browser-crypto.js`). Vite does not polyfill `global` for the browser by default.
+
+**Fix:** Added `define: { global: "globalThis" }` to `frontend/vite.config.ts`.
+
+```typescript
+// inside the returned config object:
+define: {
+  global: "globalThis",
+},
+```
+
+This tells Vite to replace all references to `global` with `globalThis` at build/dev time — the standard fix for this library in browser environments.
+
+---
+
+### Bug 2: Edit PDF page shows blank canvas after uploading a document
+
+**Symptom:** On `/app/edit-pdf`, uploading a PDF showed nothing — the canvas area remained blank after the file was selected.
+
+**Root cause:** The center canvas panel was rendering `<Workbench />`. The `Workbench` component is designed to be the full app main content area — it includes `TopControls` (a viewer/fileEditor tabs switcher), `DismissAllErrorsButton`, a scrollable content box, and a `Footer`. When embedded inside the 3-panel `EditPdfPage` layout these elements stole height, broke the flex layout, and introduced workbench-ID / context-guard race conditions that prevented `PdfTextEditorView` from rendering correctly.
+
+**Fix:** Replaced `<Workbench />` with a direct render of `<PdfTextEditorView data={viewData} />` in `EditPdfPage.tsx`. `EditPdfPage` already reads `viewData` from context, so this is straightforward.
+
+**Files changed:**
+
+| File | Change |
+|---|---|
+| `frontend/src/proprietary/pages/EditPdfPage.tsx` | Replaced `Workbench` import with `PdfTextEditorView`; replaced `<Workbench />` with `{viewData && <PdfTextEditorView data={viewData} />}` in the canvas panel |
+
+**Why the null-guard:** `PdfTextEditor` (mounted in the right panel via `ToolRenderer`) registers and sets `viewData` asynchronously on mount. Until it does, `viewData` is `undefined` and the canvas is empty — this is correct and imperceptible since both panels mount concurrently.
+
+---
+
+### Session 9 — Test Checklist
+
+- [ ] PDF-to-xlsx conversion works without `global is not defined` error
+- [ ] All other tool conversions work without errors
+- [ ] `/app/edit-pdf` — uploading a PDF shows the conversion progress bar
+- [ ] After conversion, the document canvas renders the PDF pages
+- [ ] Page thumbnails appear in the left panel after upload
+- [ ] Drop zone shows before any file is uploaded
+- [ ] Error message appears (red alert) if conversion fails

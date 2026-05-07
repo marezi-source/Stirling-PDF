@@ -121,5 +121,8 @@ export default defineConfig(async ({ mode }) => {
             },
     },
     base: env.RUN_SUBPATH ? `/${env.RUN_SUBPATH}` : "./",
+    define: {
+      global: "globalThis",
+    },
   };
 });

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToolWorkflow } from "@app/contexts/ToolWorkflowContext";
 import { useAuth } from "@app/auth/UseSession";
-import Workbench from "@app/components/layout/Workbench";
+import PdfTextEditorView from "@app/components/tools/pdfTextEditor/PdfTextEditorView";
 import ToolRenderer from "@app/components/tools/ToolRenderer";
 import type { PdfTextEditorViewData } from "@app/tools/pdfTextEditor/pdfTextEditorTypes";
 import styles from "./EditPdfPage.module.css";
@@ -418,9 +418,9 @@ export default function EditPdfPage() {
           </button>
         </aside>
 
-        {/* Canvas — Workbench renders PdfTextEditorView */}
+        {/* Canvas — render PdfTextEditorView directly to avoid Workbench layout overhead */}
         <div className={styles.canvas}>
-          <Workbench />
+          {viewData && <PdfTextEditorView data={viewData} />}
         </div>
 
         {/* Properties — ToolRenderer mounts PdfTextEditor + renders its sidebar */}

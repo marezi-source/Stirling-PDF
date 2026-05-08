@@ -57,6 +57,12 @@ export const mantineTheme = createTheme({
   // Primary color
   primaryColor: "primary",
 
+  // Font family — matches landing page Inter-first stack
+  fontFamily:
+    '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
+  fontFamilyMonospace:
+    'source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace',
+
   // Color palette
   colors: {
     primary,

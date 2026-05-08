@@ -1,6 +1,6 @@
 # OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-08 (Session 16)
+**Last updated:** 2026-05-08 (Session 17)
 **Branch:** OnePDF-UI-Change  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -1319,3 +1319,74 @@ Previously login redirected to `/app/home` (the AppDashboard). Since the dashboa
 - [ ] Successful login navigates to `/app` (workspace), not `/app/home`
 - [ ] `/app/home` returns 404 (route no longer exists)
 - [ ] Workspace loads correctly after login (file drop zone visible)
+
+---
+
+## Session 17: Workspace Font — Inter (Matching Landing Page)
+
+### Goal
+
+Apply the same Inter-first font family to the workspace that is already referenced in the landing page design (onboarding modal, PDF toolbar), so the entire app feels typographically consistent.
+
+### Root Cause
+
+The `body` used the Create React App default system font stack (`-apple-system, BlinkMacSystemFont, "Segoe UI"...`). Mantine components used Mantine's own default font (`--mantine-font-family`). `"Inter"` was referenced in several CSS files (`InitialOnboardingModal.module.css`, `theme.css` PDF toolbar) but was never actually loaded — it fell back to system fonts.
+
+### Changes
+
+#### `frontend/package.json`
+
+Added `@fontsource/inter` package (self-hosted Inter, no CDN dependency):
+
+```json
+"@fontsource/inter": "^5.2.8"
+```
+
+#### `frontend/src/index.tsx`
+
+Added Inter weight imports before Mantine styles:
+
+```typescript
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter/700.css";
+```
+
+#### `frontend/src/core/styles/index.css`
+
+Updated `body` font-family to put Inter first:
+
+```css
+body {
+  font-family:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+}
+```
+
+#### `frontend/src/core/theme/mantineTheme.ts`
+
+Added `fontFamily` and `fontFamilyMonospace` to the Mantine theme so all Mantine components (buttons, inputs, labels, menus) inherit Inter:
+
+```typescript
+fontFamily:
+  '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
+fontFamilyMonospace:
+  'source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace',
+```
+
+### Why `@fontsource/inter` Over Google Fonts
+
+`@fontsource/inter` bundles the font files locally — no CDN request, works offline, no CSP issues, and Vite's HMR picks it up instantly via the `import` in `index.tsx`.
+
+---
+
+### Session 17 — Test Checklist
+
+- [ ] Body text in the workspace uses Inter (verify in browser DevTools → Computed → font-family)
+- [ ] Mantine UI elements (buttons, inputs, dropdowns) use Inter
+- [ ] Font renders at all four weights: regular (400), medium (500), semibold (600), bold (700)
+- [ ] No visual regression in dark or light mode
+- [ ] Font consistent between landing page text and workspace UI

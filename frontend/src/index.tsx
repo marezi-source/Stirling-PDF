@@ -3,6 +3,10 @@
 // (Edge / Google Translate / extensions) from crashing the app via
 // parent-mismatch DOMExceptions. See the module for details.
 import "@app/utils/patchDomForTranslators";
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter/700.css";
 import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
 import "../vite-env.d.ts"; // eslint-disable-line no-restricted-imports -- Outside app paths

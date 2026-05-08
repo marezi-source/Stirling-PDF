@@ -5,8 +5,6 @@
   "license": "SEE LICENSE IN https://raw.githubusercontent.com/Stirling-Tools/Stirling-PDF/refs/heads/main/proprietary/LICENSE",
   "proxy": "http://localhost:8080",
   "dependencies": {
-    "@stomp/stompjs": "^7.0.0",
-    "sockjs-client": "^1.6.1",
     "@atlaskit/pragmatic-drag-and-drop": "^1.7.7",
     "@cantoo/pdf-lib": "^2.5.3",
     "@dnd-kit/core": "^6.3.1",
@@ -35,6 +33,7 @@
     "@embedpdf/plugin-zoom": "^2.14.1",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@fontsource/inter": "^5.2.8",
     "@iconify/react": "^6.0.2",
     "@mantine/core": "^8.3.1",
     "@mantine/dates": "^8.3.1",
@@ -44,6 +43,7 @@
     "@mui/material": "^9.0.0",
     "@posthog/react": "^1.8.2",
     "@reactour/tour": "^3.8.0",
+    "@stomp/stompjs": "^7.0.0",
     "@stripe/react-stripe-js": "^4.0.2",
     "@stripe/stripe-js": "^7.9.0",
     "@supabase/supabase-js": "^2.47.13",
@@ -78,6 +78,7 @@
     "recharts": "^3.7.0",
     "signature_pad": "^5.0.4",
     "smol-toml": "^1.4.2",
+    "sockjs-client": "^1.6.1",
     "tailwindcss": "^4.1.13",
     "web-vitals": "^5.1.0"
   },
@@ -100,7 +101,6 @@
     ]
   },
   "devDependencies": {
-    "@types/sockjs-client": "^1.5.4",
     "@eslint/js": "^10.0.1",
     "@iconify-json/material-symbols": "^1.2.53",
     "@iconify/utils": "^3.1.0",
@@ -118,6 +118,7 @@
     "@types/node": "^24.5.2",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
+    "@types/sockjs-client": "^1.5.4",
     "@typescript-eslint/eslint-plugin": "^8.44.1",
     "@typescript-eslint/parser": "^8.44.1",
     "@vitejs/plugin-react-swc": "^4.1.0",

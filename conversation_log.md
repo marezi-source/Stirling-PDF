@@ -1,7 +1,7 @@
 # OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-08 (Session 13)
-**Branch:** main  
+**Last updated:** 2026-05-08 (Session 14)
+**Branch:** OnePDF-New-Main  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
 
@@ -1097,3 +1097,89 @@ Then restarted the backend — `ExternalAppDepConfig` re-runs and enables the Li
 - [ ] Unauthenticated user: clicking any tool button redirects to `/login`
 - [ ] DOCX → PDF conversion works (no "unavailable on your server" tooltip)
 - [ ] PPTX → PDF, XLSX → PDF also work (all LibreOffice-dependent conversions)
+
+---
+
+## Session 14: Workspace UI Redesign — Match Landing Page Design Language
+
+### Goal
+
+Align the workspace (post-file-upload UI — sidebar, tool panel, popouts) visually with the landing page design language without breaking any button behaviour. Changes are CSS-only.
+
+### Landing Page Design Language (reference)
+
+| Element | Value |
+|---|---|
+| Primary accent | `linear-gradient(135deg, #4c8bf5 0%, #3a7be8 100%)` |
+| Card background | `#ffffff` with 12px border-radius and soft shadow |
+| Active/interactive fill | Blue gradient on white |
+| App background | `#f9fafb` |
+| Primary button radius | `0.75rem` (12px) |
+
+### Changes
+
+#### `frontend/src/core/styles/theme.css`
+
+**Sidebar nav button active state (light mode):**
+
+| Variable | Before | After |
+|---|---|---|
+| `--nav-btn-active-bg` | `#0f172a` (near-black) | `#4c8bf5` (landing gradient start) |
+| `--nav-btn-active-color` | `#f8fafc` | `#ffffff` |
+| `--nav-btn-hover-bg` | `rgba(15,23,42,0.07)` | `rgba(76,139,245,0.09)` (light blue tint) |
+
+> Dark mode nav button variables left unchanged — landing page aesthetic is light-mode only.
+
+**Tool picker sticky category header (light mode):**
+
+| Variable | Before | After |
+|---|---|---|
+| `--tool-header-bg` | `#dbefff` | `rgba(76,139,245,0.08)` |
+| `--tool-header-border` | `#bee2ff` | `rgba(76,139,245,0.22)` |
+| `--tool-header-text` | `#1e88e5` | `#3a7be8` (landing gradient end) |
+| `--tool-header-badge-bg` | `#c0ddff` | `rgba(76,139,245,0.14)` |
+| `--tool-header-badge-text` | `#004e99` | `#1a55c0` |
+
+#### `frontend/src/core/components/shared/quickAccessBar/QuickAccessBar.css`
+
+| Element | Before | After |
+|---|---|---|
+| `.quick-access-bar-main` background | `var(--bg-muted)` (#f3f4f6 gray) | `var(--bg-surface)` (#ffffff white) — matches landing page card style |
+| `.quick-access-bar-main.rainbow-mode` background | `var(--bg-muted)` | `var(--bg-surface)` |
+| `.quick-access-popout__card` shadow | Generic dark shadow + `border-radius: 16px` | Blue-tinted shadow (`color-mix(in srgb, #4c8bf5 10%, transparent)`) + `border-radius: 12px` |
+| `.quick-access-popout__header` (light mode) | `background: #3c4c6f` (dark slate) | `background: var(--landing-hero-gradient)` (blue gradient) |
+| `.quick-access-popout__primary` | `background: var(--btn-open-file)` flat blue, `border-radius: 10px` | `background: var(--landing-hero-gradient)`, `border-radius: 12px` |
+| `.quick-access-popout__link` | `border-radius: 10px` | `border-radius: 12px` |
+
+#### `frontend/src/core/pages/HomePage.css`
+
+| Element | Before | After |
+|---|---|---|
+| `.mobile-toggle-button.active` | `background: rgba(34,139,230,0.12)`, `color: var(--text-primary)` | `background: var(--landing-hero-gradient)`, `color: #ffffff` |
+| `.mobile-toggle-buttons` border | `1px solid var(--border-subtle)` | `1px solid rgba(76,139,245,0.25)` (blue-tinted) |
+
+#### `frontend/src/core/styles/tailwind.css`
+
+Added a no-op comment (`/* workspace theme refresh */`) to force Vite's file watcher to re-inject all CSS into the browser after the changes were made.
+
+---
+
+### How the variables propagate at runtime
+
+- `--nav-btn-active-bg` is consumed as an **inline style** in `QuickAccessBar.ts` → `getNavButtonStyle()` returns `backgroundColor: "var(--nav-btn-active-bg)"`, and in `QuickAccessButton.tsx` and `ActiveToolButton.tsx` — inline styles do resolve CSS variables, so the blue takes effect immediately.
+- `--landing-hero-gradient` is defined in `theme.css` (imported via `tailwind.css` → `App.tsx`) and referenced in `QuickAccessBar.css` — both in the same CSS cascade.
+- All changes only target light mode. Dark mode sidebar/popout colours are unchanged.
+
+---
+
+### Session 14 — Test Checklist
+
+- [ ] QuickAccessBar sidebar background is white (not light gray) in light mode
+- [ ] Active nav button (selected tool/mode) shows blue (`#4c8bf5`) background instead of near-black
+- [ ] Hovering an inactive nav button shows a subtle blue tint (not dark gray)
+- [ ] Tool category sticky headers in tool panel use blue-tinted background (lighter, more gradient-aligned)
+- [ ] Opening any popout (Sign, Share/Access): header is blue gradient (not dark slate)
+- [ ] Primary action button inside popouts uses blue gradient, 12px radius
+- [ ] Mobile toggle active tab shows blue gradient background with white text
+- [ ] Mobile toggle pill container has a blue-tinted border
+- [ ] Dark mode: no visual regression — all dark-mode colours unchanged

@@ -86,7 +86,7 @@
 
 /* Main container styles */
 .quick-access-bar-main {
-  background-color: var(--bg-muted);
+  background-color: var(--bg-surface);
   width: 4.5rem;
   min-width: 4.5rem;
   max-width: 4.5rem;
@@ -100,7 +100,7 @@
 
 /* Rainbow mode container */
 .quick-access-bar-main.rainbow-mode {
-  background-color: var(--bg-muted);
+  background-color: var(--bg-surface);
   width: 4.5rem;
   min-width: 4.5rem;
   max-width: 4.5rem;
@@ -338,10 +338,10 @@
 
 .quick-access-popout__card {
   background: var(--bg-raised);
-  border-radius: 16px;
+  border-radius: 12px;
   border: 1px solid var(--border-default);
-  box-shadow: 0 18px 36px
-    color-mix(in srgb, var(--text-primary) 12%, transparent);
+  box-shadow: 0 12px 32px color-mix(in srgb, #4c8bf5 10%, transparent),
+    0 4px 12px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -359,7 +359,7 @@
 }
 
 [data-mantine-color-scheme="light"] .quick-access-popout__header {
-  background: #3c4c6f;
+  background: var(--landing-hero-gradient);
   color: #fff;
 }
 
@@ -707,10 +707,10 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: var(--btn-open-file);
+  background: var(--landing-hero-gradient);
   color: #fff;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 0.5rem 0.75rem;
   font-weight: 600;
   cursor: pointer;
@@ -730,7 +730,7 @@
   background: var(--bg-surface);
   color: var(--btn-open-file);
   border: 1px solid var(--border-default);
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 0.5rem 0.75rem;
   font-weight: 600;
   cursor: pointer;

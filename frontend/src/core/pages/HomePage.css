@@ -48,7 +48,7 @@
   padding: 0.2rem;
   border-radius: 9999px;
   background: var(--bg-background);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid rgba(76, 139, 245, 0.25);
 }
 
 .mobile-toggle-button {
@@ -70,8 +70,8 @@
 }
 
 .mobile-toggle-button.active {
-  background: var(--primary-surface, rgba(34, 139, 230, 0.12));
-  color: var(--text-primary);
+  background: var(--landing-hero-gradient);
+  color: #ffffff;
 }
 
 .mobile-toggle-hint {

@@ -230,12 +230,12 @@
   /* New theme colors for text and icons */
   --tools-text-and-icon-color: #374151;
 
-  /* Tool picker sticky header variables (light mode) */
-  --tool-header-bg: #dbefff;
-  --tool-header-border: #bee2ff;
-  --tool-header-text: #1e88e5;
-  --tool-header-badge-bg: #c0ddff;
-  --tool-header-badge-text: #004e99;
+  /* Tool picker sticky header variables (light mode) — aligned with landing page gradient */
+  --tool-header-bg: rgba(76, 139, 245, 0.08);
+  --tool-header-border: rgba(76, 139, 245, 0.22);
+  --tool-header-text: #3a7be8;
+  --tool-header-badge-bg: rgba(76, 139, 245, 0.14);
+  --tool-header-badge-text: #1a55c0;
 
   /* Subcategory title styling (light mode) */
   --tool-subcategory-text-color: #9ca3af; /* lighter text */
@@ -412,12 +412,12 @@
   --dropdown-group-label: var(--mantine-color-gray-6);
 }
 
-/* Sidebar navigation button colors (light mode) */
+/* Sidebar navigation button colors (light mode) — matches landing page blue gradient */
 :root {
-  --nav-btn-active-bg: #0f172a;
-  --nav-btn-active-color: #f8fafc;
+  --nav-btn-active-bg: #4c8bf5;
+  --nav-btn-active-color: #ffffff;
   --nav-btn-inactive-color: #374151;
-  --nav-btn-hover-bg: rgba(15, 23, 42, 0.07);
+  --nav-btn-hover-bg: rgba(76, 139, 245, 0.09);
 }
 
 /* Onboarding (light mode) */

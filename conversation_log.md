@@ -1,6 +1,6 @@
 # OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-08 (Session 15)
+**Last updated:** 2026-05-08 (Session 16)
 **Branch:** OnePDF-UI-Change  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -1285,3 +1285,37 @@ Align the workspace's dark mode color palette with the marketing landing page (`
 - [ ] Primary text is `#fafafa`, secondary `#aaa`, muted `#666`
 - [ ] Nav buttons: active = white pill (`#fafafa` bg, `#0a0a0a` text)
 - [ ] Light mode: no visual regression — light mode colors unchanged
+
+---
+
+## Session 16: Login Redirect Fix + Dashboard Removal
+
+### Changes
+
+**Successful login now links directly to the workspace (`/app`) instead of the dashboard.**
+
+Previously login redirected to `/app/home` (the AppDashboard). Since the dashboard is no longer needed, the redirect was updated and the dashboard was deleted entirely.
+
+#### `frontend/src/proprietary/routes/Login.tsx`
+
+| Location | Before | After |
+|---|---|---|
+| Post-login `navigate()` (line ~526) | `navigate("/app/home", { replace: true })` | `navigate("/app", { replace: true })` |
+
+#### `frontend/src/proprietary/App.tsx`
+
+- Removed `import AppDashboard from "@app/pages/AppDashboard"`
+- Removed `<Route path="/app/home" element={<AppDashboard />} />`
+
+#### Files Deleted
+
+| File | Reason |
+|---|---|
+| `frontend/src/proprietary/pages/AppDashboard.tsx` | Dashboard page no longer used |
+| `frontend/src/proprietary/pages/AppDashboard.module.css` | Styles for deleted dashboard |
+
+### Session 16 — Test Checklist
+
+- [ ] Successful login navigates to `/app` (workspace), not `/app/home`
+- [ ] `/app/home` returns 404 (route no longer exists)
+- [ ] Workspace loads correctly after login (file drop zone visible)

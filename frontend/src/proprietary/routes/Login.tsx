@@ -523,7 +523,7 @@ export default function Login() {
         clearLogoutBlock();
         setRequiresMfa(false);
         setMfaCode("");
-        navigate("/app/home", { replace: true });
+        navigate("/app", { replace: true });
       }
     } catch (err) {
       console.error("[Login] Unexpected error:", err);

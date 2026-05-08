@@ -84,7 +84,7 @@ export const useCertSignTooltips = (): TooltipContent => {
           ),
           t(
             "certSign.tooltip.signing.bullet5",
-            "Use server certificate for simple 'Sign with My PDF' option",
+            "Use server certificate for simple 'Sign with OnePDF' option",
           ),
         ],
       },

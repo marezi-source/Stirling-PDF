@@ -285,8 +285,8 @@ export default function EditPdfPage() {
             <ArrowLeftIcon />
           </button>
           <div className={styles.logoArea}>
-            <img src="/logo.png" alt="My PDF" className={styles.logoImg} onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
-            <span className={styles.brand}>My PDF</span>
+            <img src="/logo.png" alt="OnePDF" className={styles.logoImg} onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+            <span className={styles.brand}>OnePDF</span>
           </div>
           <div className={styles.breadcrumb}>
             <button className={styles.breadcrumbLink} onClick={() => navigate("/app")}>

@@ -159,7 +159,7 @@ export class OperationRouter {
             throw new Error(
               i18n.t(
                 "localMode.toolUnavailable",
-                "This tool requires an account. Sign in to My PDF Cloud or connect to a self-hosted server to use it.",
+                "This tool requires an account. Sign in to OnePDF Cloud or connect to a self-hosted server to use it.",
               ),
             );
           }
@@ -275,7 +275,7 @@ export class OperationRouter {
         throw new Error(
           i18n.t(
             "selfHosted.offline.toolNotAvailableLocally",
-            'Your My PDF server is offline and "{{endpoint}}" is not available on the local backend.',
+            'Your OnePDF server is offline and "{{endpoint}}" is not available on the local backend.',
             { endpoint: endpointName },
           ),
         );

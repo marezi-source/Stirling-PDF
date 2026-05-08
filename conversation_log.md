@@ -1,6 +1,6 @@
-# My PDF — Project Checkpoint
+# OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-08 (Session 10)
+**Last updated:** 2026-05-08 (Session 11)
 **Branch:** main  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -874,3 +874,64 @@ if (activeCustomView) {
 - [ ] Conversion progress bar shows while PDF is being processed
 - [ ] `/app/edit-pdf` continues to work (unchanged — renders PdfTextEditorView directly)
 - [ ] Other custom workbench views (Compare, GetPdfInfo, etc.) unaffected
+
+---
+
+## Session 11: Full Brand Rename — "My PDF" / "Stirling PDF" → "OnePDF"
+
+### Problem
+
+The drop zone / upload area was still rendering "Stirling PDF" text (from the SVG wordmark logo files: `StirlingPDFLogoBlackText.svg`, etc.). These SVG files contained the "Stirling PDF" brand text encoded as font path data — not editable text. Additionally, scattered "My PDF" references remained across source files and the translation file.
+
+### Root Cause
+
+The `Wordmark` component rendered `<img>` tags pointing to `StirlingPDFLogoBlackText.svg` / `StirlingPDFLogoGreyText.svg` / `StirlingPDFLogoWhiteText.svg`. These SVGs embed the "Stirling PDF" wordmark as SVG `<path>` elements (raw font glyph data), so no string replacement could fix them.
+
+### Fix
+
+**`frontend/src/core/components/shared/Wordmark.tsx`** — Complete rewrite:
+- Removed `<img>` rendering of SVG wordmark files
+- Now renders a `<span>` with the text `OnePDF` directly
+- Inherits light/dark/muted color logic: dark mode → `#f8fafc`, muted → `#9ca3af`, default → `#0f172a`
+- `role="img"` preserved for accessibility; accepts same `style`/`className` spread as before
+
+All call sites (`FullscreenToolSurface`, `AddFileCard`, `EmptyFilesState`, `HomePage`, `MobileScannerPage`) automatically render "OnePDF" text with correct theming — no call site changes needed.
+
+**"My PDF" → "OnePDF" replacements across all source files:**
+
+| File | Change |
+|---|---|
+| `frontend/src/core/components/tools/fullscreen/shared.ts` | Offline server error fallback |
+| `frontend/src/core/components/tooltips/useCertSignTooltips.ts` | Sign tooltip text |
+| `frontend/src/core/components/onboarding/slides/PlanOverviewSlide.tsx` | Plan overview body |
+| `frontend/src/core/components/onboarding/slides/DesktopInstallSlide.tsx` | Desktop install body |
+| `frontend/src/core/components/onboarding/slides/ServerLicenseSlide.tsx` | License body (free / over-limit) |
+| `frontend/src/core/components/onboarding/slides/WelcomeSlide.tsx` | Welcome title |
+| `frontend/src/desktop/components/shared/config/configSections/SaasPlanSection.tsx` | Plan & Billing unavailable message |
+| `frontend/src/desktop/components/ConnectionSettings.tsx` | SaaS mode label fallback |
+| `frontend/src/desktop/components/SetupWizard/SaaSLoginScreen.tsx` | SaaS login title |
+| `frontend/src/desktop/hooks/useGroupEnabled.ts` | Offline reason fallback |
+| `frontend/src/desktop/services/operationRouter.ts` | Two error message fallbacks |
+| `frontend/src/desktop/services/desktopNotificationService.ts` | `APP_TITLE` constant |
+| `frontend/src/desktop/components/rightRail/RightRailFooterExtensions.tsx` | Connection status label |
+| `frontend/src/saas/components/shared/config/configSections/ApiKeys.tsx` | API key description |
+| `frontend/src/proprietary/pages/EditPdfPage.tsx` | Logo `alt` text + brand `<span>` |
+| `frontend/public/locales/en-GB/translation.toml` | All "My PDF" occurrences in translation values |
+
+**Not changed (intentional):**
+- Other locale files (fr-FR, de-DE, tr-TR, etc.) — per project convention, only en-GB is maintained
+- SVG logo files (`StirlingPDFLogoBlackText.svg`, etc.) — still on disk but no longer loaded by `Wordmark`
+- Java package names, internal identifiers, GitHub URLs
+
+---
+
+### Session 11 — Test Checklist
+
+- [ ] Drop zone / upload area shows "OnePDF" text (not "Stirling PDF")
+- [ ] File editor empty state shows "OnePDF" wordmark
+- [ ] Home page mobile brand text shows "OnePDF"
+- [ ] Onboarding welcome slide: "Welcome to OnePDF"
+- [ ] Desktop connection settings SaaS mode label: "OnePDF Cloud"
+- [ ] SaaS login screen title: "Sign in to OnePDF Cloud"
+- [ ] Desktop notifications use "OnePDF" as app title
+- [ ] No "My PDF" or "Stirling PDF" text visible anywhere in the UI

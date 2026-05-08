@@ -31,8 +31,8 @@ const AdminOverviewBody: React.FC<{
     : "onboarding.planOverview.adminBodyLoginDisabled";
 
   const defaultValue = loginEnabled
-    ? "As an admin, you can manage users, configure settings, and monitor server health. The first <strong>{{freeTierLimit}}</strong> people on your server get to use My PDF free of charge."
-    : "Once you enable login mode, you can manage users, configure settings, and monitor server health. The first <strong>{{freeTierLimit}}</strong> people on your server get to use My PDF free of charge.";
+    ? "As an admin, you can manage users, configure settings, and monitor server health. The first <strong>{{freeTierLimit}}</strong> people on your server get to use OnePDF free of charge."
+    : "Once you enable login mode, you can manage users, configure settings, and monitor server health. The first <strong>{{freeTierLimit}}</strong> people on your server get to use OnePDF free of charge.";
 
   return (
     <Trans

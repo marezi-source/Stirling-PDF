@@ -7,7 +7,7 @@ import {
 } from "@tauri-apps/plugin-notification";
 import i18n from "@app/i18n";
 
-const APP_TITLE = "My PDF";
+const APP_TITLE = "OnePDF";
 
 async function shouldShowBackgroundNotification(): Promise<boolean> {
   if (!isTauri()) {

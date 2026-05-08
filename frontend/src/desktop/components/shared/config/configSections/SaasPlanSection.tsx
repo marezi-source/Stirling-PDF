@@ -106,7 +106,7 @@ export function SaasPlanSection() {
           <Text size="sm">
             {t(
               "settings.planBilling.notAvailable",
-              "Plan & Billing is only available when connected to My PDF Cloud (SaaS mode).",
+              "Plan & Billing is only available when connected to OnePDF Cloud (SaaS mode).",
             )}
           </Text>
         </Alert>

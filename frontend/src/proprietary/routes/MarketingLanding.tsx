@@ -95,6 +95,41 @@ function DownloadIcon() {
   );
 }
 
+function ShieldIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  );
+}
+
+function ZapIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    </svg>
+  );
+}
+
+function GridIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" />
+      <rect x="14" y="3" width="7" height="7" />
+      <rect x="3" y="14" width="7" height="7" />
+      <rect x="14" y="14" width="7" height="7" />
+    </svg>
+  );
+}
+
+function CloudBaseIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" />
+    </svg>
+  );
+}
+
 function ChevronDownIcon({ open }: { open: boolean }) {
   return (
     <svg
@@ -238,24 +273,53 @@ export default function MarketingLanding() {
       <section className={styles.hero}>
         <div className={styles.heroLeft}>
           <h1 className={styles.heroTitle}>
-            All the tools you need for your PDF.
+            Everything you need<br />to do more with PDFs.
           </h1>
-          <p className={styles.heroSubtitle}>Simple. Fast. Secure.</p>
-          <p className={styles.heroDesc}>
-            OnePDF is the all-in-one PDF toolkit to edit, convert, compress,
-            merge, and more — in just a few clicks.
+          <p className={styles.heroSubtitle}>
+            Edit, convert, merge, split, compress, sign,<br />
+            and collaborate on PDFs — all in one place.
           </p>
-          <button
-            className={styles.uploadBtn}
-            onClick={() => navigate(session ? "/app" : "/login")}
-          >
-            <UploadIcon />
-            Upload file
-          </button>
-          <p className={styles.securityNote}>
-            <LockIcon />
-            Your files stay private and secure
-          </p>
+          <div className={styles.heroCtas}>
+            <button
+              className={styles.getStartedBtn}
+              onClick={() => navigate(session ? "/app" : "/login")}
+            >
+              Get Started →
+            </button>
+            <button className={styles.signInBtn} onClick={() => navigate("/login")}>
+              Sign In
+            </button>
+          </div>
+          <div className={styles.featureStrip}>
+            <div className={styles.featureItem}>
+              <div className={styles.featureIcon}><ShieldIcon /></div>
+              <div className={styles.featureText}>
+                <span className={styles.featureTitle}>Secure</span>
+                <span className={styles.featureSubtext}>Your files are always protected</span>
+              </div>
+            </div>
+            <div className={styles.featureItem}>
+              <div className={styles.featureIcon}><ZapIcon /></div>
+              <div className={styles.featureText}>
+                <span className={styles.featureTitle}>Fast</span>
+                <span className={styles.featureSubtext}>Process files in seconds</span>
+              </div>
+            </div>
+            <div className={styles.featureItem}>
+              <div className={styles.featureIcon}><GridIcon /></div>
+              <div className={styles.featureText}>
+                <span className={styles.featureTitle}>All in One</span>
+                <span className={styles.featureSubtext}>Powerful tools in one place</span>
+              </div>
+            </div>
+            <div className={styles.featureItem}>
+              <div className={styles.featureIcon}><CloudBaseIcon /></div>
+              <div className={styles.featureText}>
+                <span className={styles.featureTitle}>Cloud-Based</span>
+                <span className={styles.featureSubtext}>Access anywhere, anytime</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* ── PDF illustration ── */}

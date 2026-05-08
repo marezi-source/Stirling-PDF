@@ -129,6 +129,78 @@ function DotsIcon() {
   );
 }
 
+function BellIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+  );
+}
+
+function HelpCircleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  );
+}
+
+function MyFilesIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+    </svg>
+  );
+}
+
+function SharedIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
+function ChevronRightSmallIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="9 18 15 12 9 6" />
+    </svg>
+  );
+}
+
+function AnnotateIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+  );
+}
+
+function ProtectIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  );
+}
+
 // Tool icons
 function EditIcon() {
   return (
@@ -213,22 +285,34 @@ function SignIcon() {
 // ── Data ───────────────────────────────────────────────────────────────────
 
 const QUICK_TOOLS = [
-  { key: "edit", name: "Edit PDF", desc: "Edit text, pages and more", Icon: EditIcon, path: "/app/edit-pdf" },
-  { key: "convert", name: "Convert PDF", desc: "Convert to and from PDF", Icon: ConvertIcon, path: "/app" },
-  { key: "merge", name: "Merge PDF", desc: "Combine multiple PDF files", Icon: MergeIcon, path: "/app" },
-  { key: "split", name: "Split PDF", desc: "Split PDF into multiple files", Icon: SplitIcon, path: "/app" },
-  { key: "compress", name: "Compress PDF", desc: "Reduce PDF file size", Icon: CompressIcon, path: "/app" },
-  { key: "delete-pages", name: "Delete Pages", desc: "Remove pages from PDF", Icon: DeletePagesIcon, path: "/app" },
-  { key: "extract-pages", name: "Extract Pages", desc: "Extract pages from PDF", Icon: ExtractPagesIcon, path: "/app" },
-  { key: "sign", name: "Sign PDF", desc: "Create and add signatures", Icon: SignIcon, path: "/app" },
+  { key: "edit", name: "Edit PDF", desc: "Edit text, images, and pages", Icon: EditIcon, path: "/app/edit-pdf" },
+  { key: "convert", name: "Convert PDF", desc: "Convert to Word, Excel, PPT and more", Icon: ConvertIcon, path: "/app" },
+  { key: "merge", name: "Merge PDF", desc: "Combine multiple PDFs into one", Icon: MergeIcon, path: "/app" },
+  { key: "split", name: "Split PDF", desc: "Extract pages or split into multiple", Icon: SplitIcon, path: "/app" },
+  { key: "compress", name: "Compress PDF", desc: "Reduce file size without losing quality", Icon: CompressIcon, path: "/app" },
+  { key: "sign", name: "Sign PDF", desc: "Add signatures electronically", Icon: SignIcon, path: "/app" },
+  { key: "annotate", name: "Annotate PDF", desc: "Add comments, highlights and more", Icon: AnnotateIcon, path: "/app" },
+  { key: "protect", name: "Protect PDF", desc: "Password protect and restrict access", Icon: ProtectIcon, path: "/app" },
 ];
 
 const NAV_ITEMS = [
   { key: "home", label: "Home", Icon: HomeIcon, path: "/app/home" },
-  { key: "tools", label: "Tools", Icon: ToolsIcon, path: "/app" },
+  { key: "files", label: "My Files", Icon: MyFilesIcon, path: "/app" },
+  { key: "shared", label: "Shared with me", Icon: SharedIcon, path: "/app" },
   { key: "recent", label: "Recent", Icon: RecentIcon, path: "/app" },
   { key: "starred", label: "Starred", Icon: StarIcon, path: "/app" },
   { key: "trash", label: "Trash", Icon: TrashIcon, path: "/app" },
+];
+
+const TOOLS_NAV = [
+  { key: "edit", label: "Edit PDF", path: "/app/edit-pdf" },
+  { key: "convert", label: "Convert PDF", path: "/app" },
+  { key: "merge", label: "Merge PDF", path: "/app" },
+  { key: "split", label: "Split PDF", path: "/app" },
+  { key: "compress", label: "Compress PDF", path: "/app" },
+  { key: "sign", label: "Sign PDF", path: "/app" },
+  { key: "annotate", label: "Annotate PDF", path: "/app" },
+  { key: "protect", label: "Protect PDF", path: "/app" },
 ];
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -315,6 +399,20 @@ export default function AppDashboard() {
           ))}
         </nav>
 
+        <div className={styles.sidebarSection}>Tools</div>
+        <div className={styles.toolsNav}>
+          {TOOLS_NAV.map(({ key, label, path }) => (
+            <button
+              key={key}
+              className={styles.toolNavItem}
+              onClick={() => navigate(path)}
+            >
+              <span>{label}</span>
+              <span className={styles.toolNavArrow}><ChevronRightSmallIcon /></span>
+            </button>
+          ))}
+        </div>
+
         <div className={styles.sidebarBottom}>
           <button className={styles.navItem}>
             <SettingsIcon />
@@ -331,30 +429,32 @@ export default function AppDashboard() {
       <div className={styles.main}>
         {/* Topbar */}
         <header className={styles.topbar}>
-          <input
-            className={styles.searchInput}
-            placeholder="Search tools, files, and more..."
-          />
+          <div className={styles.searchWrapper}>
+            <span className={styles.searchIcon}><SearchIcon /></span>
+            <input
+              className={styles.searchInput}
+              placeholder="Search documents or tools"
+            />
+            <span className={styles.searchShortcut}>⌘ K</span>
+          </div>
           <div className={styles.topbarRight}>
-            <button className={styles.iconBtn} aria-label="Toggle theme">
-              <SunIcon />
+            <button className={styles.iconBtn} aria-label="Help">
+              <HelpCircleIcon />
+            </button>
+            <button className={styles.iconBtn} aria-label="Notifications">
+              <BellIcon />
             </button>
             <div className={styles.userChip}>
               <div className={styles.avatar}>{initials}</div>
-              <div className={styles.userText}>
-                <span className={styles.userName}>{username}</span>
-                <span className={styles.userEmail}>{email}</span>
-              </div>
-              <ChevronDownIcon />
             </div>
           </div>
         </header>
 
         {/* Content */}
         <div className={styles.content}>
-          <h1 className={styles.welcomeTitle}>Welcome back, {firstName}!</h1>
+          <h1 className={styles.welcomeTitle}>Welcome back, {firstName}</h1>
           <p className={styles.welcomeSubtitle}>
-            All-in-one PDF tools to get your work done.
+            What would you like to do today?
           </p>
 
           {/* Quick Tools */}
@@ -395,15 +495,16 @@ export default function AppDashboard() {
               <thead>
                 <tr>
                   <th className={styles.thName}>Name</th>
-                  <th className={styles.thSize}>Size</th>
                   <th className={styles.thModified}>Modified</th>
+                  <th className={styles.thSize}>Size</th>
+                  <th className={styles.thShared}>Shared By</th>
                   <th className={styles.thActions}></th>
                 </tr>
               </thead>
               <tbody>
                 {recentFiles.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className={styles.emptyRow}>
+                    <td colSpan={5} className={styles.emptyRow}>
                       No recent files. Open the app to get started.
                     </td>
                   </tr>
@@ -425,8 +526,9 @@ export default function AppDashboard() {
                           <StarSmallIcon />
                         </button>
                       </td>
-                      <td className={styles.tdSize}>{formatBytes(file.size)}</td>
                       <td className={styles.tdModified}>{formatDate(file.lastModified)}</td>
+                      <td className={styles.tdSize}>{formatBytes(file.size)}</td>
+                      <td className={styles.tdShared}>—</td>
                       <td className={styles.tdActions}>
                         <button
                           className={styles.dotsBtn}

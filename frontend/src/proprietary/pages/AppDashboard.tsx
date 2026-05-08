@@ -285,7 +285,7 @@ function SignIcon() {
 // ── Data ───────────────────────────────────────────────────────────────────
 
 const QUICK_TOOLS = [
-  { key: "edit", name: "Edit PDF", desc: "Edit text, images, and pages", Icon: EditIcon, path: "/app/edit-pdf" },
+  { key: "edit", name: "Edit PDF", desc: "Edit text, images, and pages", Icon: EditIcon, path: "/pdf-text-editor" },
   { key: "convert", name: "Convert PDF", desc: "Convert to Word, Excel, PPT and more", Icon: ConvertIcon, path: "/app" },
   { key: "merge", name: "Merge PDF", desc: "Combine multiple PDFs into one", Icon: MergeIcon, path: "/app" },
   { key: "split", name: "Split PDF", desc: "Extract pages or split into multiple", Icon: SplitIcon, path: "/app" },
@@ -305,7 +305,7 @@ const NAV_ITEMS = [
 ];
 
 const TOOLS_NAV = [
-  { key: "edit", label: "Edit PDF", path: "/app/edit-pdf" },
+  { key: "edit", label: "Edit PDF", path: "/pdf-text-editor" },
   { key: "convert", label: "Convert PDF", path: "/app" },
   { key: "merge", label: "Merge PDF", path: "/app" },
   { key: "split", label: "Split PDF", path: "/app" },

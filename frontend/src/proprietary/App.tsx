@@ -8,7 +8,6 @@ import { RainbowThemeProvider } from "@app/components/shared/RainbowThemeProvide
 import Landing from "@app/routes/Landing";
 import MarketingLanding from "@app/routes/MarketingLanding";
 import AppDashboard from "@app/pages/AppDashboard";
-import EditPdfPage from "@app/pages/EditPdfPage";
 import Login from "@app/routes/Login";
 import Signup from "@app/routes/Signup";
 import AuthCallback from "@app/routes/AuthCallback";
@@ -83,8 +82,6 @@ export default function App() {
                   <Route path="/" element={<MarketingLanding />} />
                   {/* Dashboard — shown after login */}
                   <Route path="/app/home" element={<AppDashboard />} />
-                  {/* Edit PDF page */}
-                  <Route path="/app/edit-pdf" element={<EditPdfPage />} />
                   {/* Main app routes - Landing handles auth logic */}
                   <Route path="/*" element={<Landing />} />
                 </Routes>

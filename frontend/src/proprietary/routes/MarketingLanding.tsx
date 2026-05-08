@@ -2,7 +2,18 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { BASE_PATH } from "@app/constants/app";
 import { useAuth } from "@app/auth/UseSession";
+import { useToolWorkflow } from "@app/contexts/ToolWorkflowContext";
+import { ToolId } from "@app/types/toolId";
 import styles from "./MarketingLanding.module.css";
+
+const PATH_TO_TOOL_ID: Record<string, ToolId> = {
+  "/pdf-text-editor": "pdfTextEditor",
+  "/convert": "convert",
+  "/merge": "merge",
+  "/split": "split",
+  "/compress": "compress",
+  "/sign": "sign",
+};
 
 function PencilIcon() {
   return (
@@ -175,17 +186,18 @@ const FROM_PDF = [
 ];
 
 const TOOLS = [
-  { name: "Edit PDF", desc: "Edit text, pages and more", Icon: PencilIcon },
-  { name: "Convert PDF", desc: "Convert to and from PDF", Icon: ConvertIcon },
-  { name: "Merge PDF", desc: "Combine multiple PDF files", Icon: MergeIcon },
-  { name: "Split PDF", desc: "Split PDF into multiple files", Icon: SplitIcon },
-  { name: "Compress PDF", desc: "Reduce PDF file size", Icon: CompressIcon },
-  { name: "Sign PDF", desc: "Create and add signatures", Icon: SignIcon },
+  { name: "Edit PDF", desc: "Edit text, pages and more", Icon: PencilIcon, path: "/pdf-text-editor" },
+  { name: "Convert PDF", desc: "Convert to and from PDF", Icon: ConvertIcon, path: "/convert" },
+  { name: "Merge PDF", desc: "Combine multiple PDF files", Icon: MergeIcon, path: "/merge" },
+  { name: "Split PDF", desc: "Split PDF into multiple files", Icon: SplitIcon, path: "/split" },
+  { name: "Compress PDF", desc: "Reduce PDF file size", Icon: CompressIcon, path: "/compress" },
+  { name: "Sign PDF", desc: "Create and add signatures", Icon: SignIcon, path: "/sign" },
 ];
 
 export default function MarketingLanding() {
   const navigate = useNavigate();
   const { session } = useAuth();
+  const { handleToolSelect } = useToolWorkflow();
   const logoSrc = `${BASE_PATH}/images/OnePDF_Logo.png`;
   const [convertOpen, setConvertOpen] = useState(false);
   const convertRef = useRef<HTMLDivElement>(null);
@@ -202,6 +214,15 @@ export default function MarketingLanding() {
   }, [convertOpen]);
 
   const goToApp = () => navigate(session ? "/app" : "/login");
+  const goToTool = (path: string) => {
+    if (session) {
+      const toolId = PATH_TO_TOOL_ID[path];
+      if (toolId) handleToolSelect(toolId);
+      navigate(path);
+    } else {
+      navigate("/login");
+    }
+  };
 
   return (
     <div className={styles.page}>
@@ -213,7 +234,7 @@ export default function MarketingLanding() {
         </div>
 
         <div className={styles.navToolLinks}>
-          <button className={styles.navToolLink} onClick={goToApp}>Edit PDF</button>
+          <button className={styles.navToolLink} onClick={() => goToTool("/pdf-text-editor")}>Edit PDF</button>
 
           {/* Convert dropdown */}
           <div className={styles.convertWrapper} ref={convertRef}>
@@ -231,7 +252,7 @@ export default function MarketingLanding() {
                     <button
                       key={f}
                       className={styles.convertItem}
-                      onClick={() => { setConvertOpen(false); goToApp(); }}
+                      onClick={() => { setConvertOpen(false); goToTool("/convert"); }}
                     >
                       {f}
                     </button>
@@ -243,7 +264,7 @@ export default function MarketingLanding() {
                     <button
                       key={f}
                       className={styles.convertItem}
-                      onClick={() => { setConvertOpen(false); goToApp(); }}
+                      onClick={() => { setConvertOpen(false); goToTool("/convert"); }}
                     >
                       {f}
                     </button>
@@ -253,10 +274,10 @@ export default function MarketingLanding() {
             )}
           </div>
 
-          <button className={styles.navToolLink} onClick={goToApp}>Merge PDF</button>
-          <button className={styles.navToolLink} onClick={goToApp}>Split PDF</button>
-          <button className={styles.navToolLink} onClick={goToApp}>Compress PDF</button>
-          <button className={styles.navToolLink} onClick={goToApp}>Sign PDF</button>
+          <button className={styles.navToolLink} onClick={() => goToTool("/merge")}>Merge PDF</button>
+          <button className={styles.navToolLink} onClick={() => goToTool("/split")}>Split PDF</button>
+          <button className={styles.navToolLink} onClick={() => goToTool("/compress")}>Compress PDF</button>
+          <button className={styles.navToolLink} onClick={() => goToTool("/sign")}>Sign PDF</button>
         </div>
 
         <div className={styles.navActions}>
@@ -359,8 +380,8 @@ export default function MarketingLanding() {
           Everything you need to work with PDFs in one place.
         </p>
         <div className={styles.toolGrid} id="tools">
-          {TOOLS.map(({ name, desc, Icon }) => (
-            <div key={name} className={styles.toolCard} onClick={goToApp}>
+          {TOOLS.map(({ name, desc, Icon, path }) => (
+            <div key={name} className={styles.toolCard} onClick={() => goToTool(path)}>
               <div className={styles.toolIcon}>
                 <Icon />
               </div>

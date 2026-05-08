@@ -1,6 +1,6 @@
 # OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-08 (Session 12)
+**Last updated:** 2026-05-08 (Session 13)
 **Branch:** main  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -29,8 +29,9 @@ All four phases are complete. The app is running.
 | Node.js | v24.15.0 | nodejs.org `.pkg` |
 | npm | 11.12.1 | bundled with Node |
 | task | 3.50.0 | binary from GitHub releases → `/usr/local/bin/task` |
+| LibreOffice | 26.2.3 | `brew install --cask libreoffice` (required for DOCX/PPTX/XLSX ↔ PDF conversion) |
 
-> macOS 12 (Intel x86-64) — Homebrew not usable for installing new packages (Tier 3 / build failures). Use direct binary/installer downloads instead.
+> macOS 12 (Intel x86-64) — Homebrew works but is Tier 3 (unsupported). Cask installs (e.g. LibreOffice) succeed; formula builds may fail. Prefer direct binary/installer downloads for CLI tools.
 
 ### Start the app
 ```bash
@@ -935,3 +936,164 @@ All call sites (`FullscreenToolSurface`, `AddFileCard`, `EmptyFilesState`, `Home
 - [ ] SaaS login screen title: "Sign in to OnePDF Cloud"
 - [ ] Desktop notifications use "OnePDF" as app title
 - [ ] No "My PDF" or "Stirling PDF" text visible anywhere in the UI
+
+---
+
+## Session 12: Login Reset + Edit PDF Consolidation + Sidebar Brand Link
+
+### Login Reset (H2 Database)
+
+**Problem:** "Invalid username or password" on login.
+
+**Root cause:** The persistent H2 database (`./configs/stirling-pdf-DB-2.3.232.mv.db`) already had users. `InitialSecuritySetup` only creates the default `admin`/`stirling` user when `!userService.hasUsers()` — it won't recreate it if the DB is non-empty.
+
+**Fix:** Delete the DB file to force recreation on next backend start:
+```bash
+rm ./configs/stirling-pdf-DB-2.3.232.mv.db
+task backend:dev   # recreates DB with admin / stirling
+```
+
+---
+
+### Edit PDF Consolidation — Remove Bespoke Three-Panel Layout
+
+There were two routes wrapping `PdfTextEditor`:
+1. `/pdf-text-editor` — standard workspace (HomePage + tool picker + sidebar) ✓ kept
+2. `/app/edit-pdf` — bespoke full-page layout (custom top nav, page thumbnails, canvas, properties panel) ✗ removed
+
+**Decision:** Delete the bespoke layout, use only the standard workspace for all tools.
+
+**Files deleted:**
+- `frontend/src/proprietary/pages/EditPdfPage.tsx`
+- `frontend/src/proprietary/pages/EditPdfPage.module.css`
+
+**Files modified:**
+
+| File | Change |
+|---|---|
+| `frontend/src/proprietary/App.tsx` | Removed `import EditPdfPage` and `<Route path="/app/edit-pdf" element={<EditPdfPage />} />` |
+| `frontend/src/proprietary/pages/AppDashboard.tsx` | Two references to `/app/edit-pdf` changed to `/pdf-text-editor` |
+
+---
+
+### Sidebar "OnePDF" Brand Text → Clickable Link
+
+Made the "OnePDF" brand text in the left sidebar (`QuickAccessBar`) clickable — navigates to `/` (marketing landing page).
+
+**`frontend/src/core/components/shared/QuickAccessBar.tsx`** — Wrapped brand text in a button:
+```tsx
+<button className="qab-brand__btn" onClick={() => navigate("/")}>
+  <span className="qab-brand__text">OnePDF</span>
+</button>
+```
+(`useNavigate` was already imported.)
+
+**`frontend/src/core/components/shared/quickAccessBar/QuickAccessBar.css`** — Added:
+```css
+.qab-brand__btn {
+  background: none; border: none; padding: 0; cursor: pointer; border-radius: 4px;
+}
+.qab-brand__btn:hover .qab-brand__text { opacity: 0.7; }
+```
+
+---
+
+### Session 12 — Test Checklist
+
+- [ ] Deleting the H2 DB and restarting backend restores `admin`/`stirling` login
+- [ ] `/app/edit-pdf` route no longer exists (404)
+- [ ] Dashboard "Edit PDF" card navigates to `/pdf-text-editor`
+- [ ] Clicking "OnePDF" text in the left sidebar navigates to `/` (marketing landing)
+
+---
+
+## Session 13: Landing Page Tool Deep-Links + LibreOffice Installation
+
+### Landing Page — Tool Buttons Link Directly to Workspace Tools
+
+Previously all tool buttons on the marketing landing page called `goToApp()` which navigated to `/app` with no tool pre-selected. Changed to navigate directly to each tool's workspace path.
+
+#### Root Cause Investigation
+
+Navigating from `/` to `/merge` via React Router's `navigate()` did NOT open the merge tool because:
+- `useNavigationUrlSync` (in `useUrlSync.ts`) only parses the URL once on initial mount, guarded by `hasInitialized.current = true`
+- `ToolWorkflowProvider` (inside `AppProviders`) is already mounted when the user is on `/`, so it never remounts
+- React Router's `navigate()` uses `pushState` which does NOT fire `popstate`, so the hook's back/forward listener also doesn't fire
+
+#### Fix
+
+In `MarketingLanding.tsx`:
+1. Import `useToolWorkflow` and `ToolId`
+2. Add `PATH_TO_TOOL_ID` map at module level
+3. `goToTool(path)` calls **both** `handleToolSelect(toolId)` (pre-selects tool in context) **and** `navigate(path)` (switches React Router from `/` to `/*`)
+4. When `Landing → HomePage` renders, the tool is already selected in context — no URL re-parse needed
+
+No double history entry: `updateToolRoute` in the URL sync effect checks `currentPath !== newPath` before calling `pushState`, so the second push is a no-op.
+
+**`frontend/src/proprietary/routes/MarketingLanding.tsx`** — Changes:
+
+```typescript
+// Added imports
+import { useToolWorkflow } from "@app/contexts/ToolWorkflowContext";
+import { ToolId } from "@app/types/toolId";
+
+// Added at module level
+const PATH_TO_TOOL_ID: Record<string, ToolId> = {
+  "/pdf-text-editor": "pdfTextEditor",
+  "/convert": "convert",
+  "/merge": "merge",
+  "/split": "split",
+  "/compress": "compress",
+  "/sign": "sign",
+};
+
+// Added in component
+const { handleToolSelect } = useToolWorkflow();
+
+// Updated goToTool
+const goToTool = (path: string) => {
+  if (session) {
+    const toolId = PATH_TO_TOOL_ID[path];
+    if (toolId) handleToolSelect(toolId);
+    navigate(path);
+  } else {
+    navigate("/login");
+  }
+};
+```
+
+**Updated all call sites:**
+- Nav bar: "Edit PDF" → `/pdf-text-editor`, "Merge PDF" → `/merge`, "Split PDF" → `/split`, "Compress PDF" → `/compress`, "Sign PDF" → `/sign`
+- Convert dropdown items (both "To PDF" and "From PDF") → `/convert`
+- Tool cards grid: each card uses its `path` from the `TOOLS` array
+
+---
+
+### LibreOffice Installation — DOCX→PDF Conversion Fix
+
+**Problem:** Convert tool showed "This tool is unavailable on your server." when trying to convert DOCX to PDF.
+
+**Root cause:** `ExternalAppDepConfig.java` runs at backend startup and calls `which soffice`. If LibreOffice is not found, it calls `endpointConfiguration.disableGroup("LibreOffice", DisableReason.DEPENDENCY)`, which disables: `file-to-pdf`, `pdf-to-word`, `pdf-to-presentation`, `pdf-to-rtf`, `pdf-to-html`, `pdf-to-xml`, `pdf-to-pdfa`.
+
+The frontend calls `/api/v1/config/endpoints-availability`, and `ConvertSettings.tsx` marks those conversions as unavailable.
+
+**Fix:** Installed LibreOffice via Homebrew:
+```bash
+brew install --cask libreoffice   # installs soffice to /Applications/LibreOffice.app
+```
+Then restarted the backend — `ExternalAppDepConfig` re-runs and enables the LibreOffice group.
+
+---
+
+### Session 13 — Test Checklist
+
+- [ ] Logged-in user: clicking "Edit PDF" on landing page opens `/pdf-text-editor` with tool active
+- [ ] Logged-in user: clicking "Merge PDF" on landing page opens `/merge` with tool active
+- [ ] Logged-in user: clicking "Split PDF" on landing page opens `/split` with tool active
+- [ ] Logged-in user: clicking "Compress PDF" on landing page opens `/compress` with tool active
+- [ ] Logged-in user: clicking "Sign PDF" on landing page opens `/sign` with tool active
+- [ ] Logged-in user: clicking any Convert dropdown item opens `/convert` with tool active
+- [ ] Logged-in user: clicking a tool card in the features grid opens the correct tool
+- [ ] Unauthenticated user: clicking any tool button redirects to `/login`
+- [ ] DOCX → PDF conversion works (no "unavailable on your server" tooltip)
+- [ ] PPTX → PDF, XLSX → PDF also work (all LibreOffice-dependent conversions)

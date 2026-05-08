@@ -7,6 +7,18 @@
   flex-shrink: 0;
 }
 
+.qab-brand__btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.qab-brand__btn:hover .qab-brand__text {
+  opacity: 0.7;
+}
+
 .qab-brand__text {
   font-size: 0.6rem;
   font-weight: 800;

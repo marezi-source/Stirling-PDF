@@ -813,7 +813,9 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
     >
       {/* Brand mark */}
       <div className="qab-brand">
-        <span className="qab-brand__text">OnePDF</span>
+        <button className="qab-brand__btn" onClick={() => navigate("/")}>
+          <span className="qab-brand__text">OnePDF</span>
+        </button>
       </div>
 
       {/* Fixed header outside scrollable area */}

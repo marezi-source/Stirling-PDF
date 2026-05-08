@@ -1,7 +1,7 @@
 # OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-08 (Session 14)
-**Branch:** OnePDF-New-Main  
+**Last updated:** 2026-05-08 (Session 15)
+**Branch:** OnePDF-UI-Change  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
 
@@ -1183,3 +1183,105 @@ Added a no-op comment (`/* workspace theme refresh */`) to force Vite's file wat
 - [ ] Mobile toggle active tab shows blue gradient background with white text
 - [ ] Mobile toggle pill container has a blue-tinted border
 - [ ] Dark mode: no visual regression — all dark-mode colours unchanged
+
+---
+
+## Session 15: Workspace Dark Theme — Match Landing Page Color Palette
+
+### Goal
+
+Align the workspace's dark mode color palette with the marketing landing page (`MarketingLanding.module.css`), which uses pure blacks (`#0d0d0d`, `#141414`, `#1a1a1a`) rather than the previous slate-blue grays (`#2a2f36`, `#1f2329`). Set dark mode as the default theme for new sessions.
+
+### Landing Page Color Reference
+
+| Element | Value |
+|---|---|
+| Page background | `#0d0d0d` |
+| Card / panel background | `#141414` |
+| Elevated / hover background | `#1a1a1a` |
+| Primary text | `#fafafa` |
+| Secondary text | `#aaa` |
+| Muted text | `#666`, `#777` |
+| Subtle border | `rgba(255, 255, 255, 0.06)` |
+| Default border | `rgba(255, 255, 255, 0.1)` |
+| Active button | `#fafafa` bg, `#0a0a0a` text |
+
+### Changes
+
+#### `frontend/src/core/styles/theme.css` — Dark mode variables updated
+
+**Tailwind semantic colors:**
+
+| Variable | Before | After |
+|---|---|---|
+| `--surface` | `31 35 41` | `20 20 20` |
+| `--background` | `42 47 54` | `13 13 13` |
+| `--border` | `55 65 81` | `42 42 42` |
+
+**Semantic bg / text / border:**
+
+| Variable | Before | After |
+|---|---|---|
+| `--bg-surface` | `#2a2f36` | `#141414` |
+| `--bg-raised` | `#1f2329` | `#1a1a1a` |
+| `--bg-muted` | `#1f2329` | `#1e1e1e` |
+| `--bg-background` | `#2a2f36` | `#0d0d0d` |
+| `--bg-toolbar` | `#1f2329` | `#0d0d0d` |
+| `--bg-file-manager` | `#1f2329` | `#141414` |
+| `--bg-file-list` | `#2a2f36` | `#1a1a1a` |
+| `--text-primary` | `#f9fafb` | `#fafafa` |
+| `--text-secondary` | `#d1d5db` | `#aaa` |
+| `--text-muted` | `#9ca3af` | `#666` |
+| `--border-subtle` | `#2a2f36` | `rgba(255, 255, 255, 0.06)` |
+| `--border-default` | `#3a4047` | `rgba(255, 255, 255, 0.1)` |
+| `--border-strong` | `#4b5563` | `rgba(255, 255, 255, 0.18)` |
+| `--hover-bg` | `#374151` | `rgba(255, 255, 255, 0.06)` |
+| `--active-bg` | `#4b5563` | `rgba(255, 255, 255, 0.1)` |
+
+**Other updated dark-mode variables:**
+
+| Area | Variable | Before | After |
+|---|---|---|---|
+| Icons | `--icon-*-bg` | `#2a2f36` / `#4b525a` | `#1a1a1a` / `#1e1e1e` |
+| Nav buttons | `--nav-btn-active-bg` | `#e2e8f0` | `#fafafa` |
+| Nav buttons | `--nav-btn-inactive-color` | `#9ca3af` | `#777` |
+| Nav buttons | `--nav-btn-hover-bg` | `rgba(226,232,240,0.1)` | `rgba(255,255,255,0.06)` |
+| Right rail | `--right-rail-bg` | `#1f2329` | `#141414` |
+| Right rail | `--right-rail-foreground` | `#2a2f36` | `#1a1a1a` |
+| Tooltips | `--tooltip-title-bg` | `#4b525a` | `#1e1e1e` |
+| Tooltips | `--tooltip-header-bg` | `var(--bg-raised)` | `#141414` |
+| Tool headers | `--tool-header-bg` | `#2a2f36` | `rgba(255, 255, 255, 0.04)` |
+| Tool headers | `--tool-header-text` | `#d0d6dc` | `#aaa` |
+| File cards | `--file-card-bg` | `#1f2329` | `#141414` |
+| Accordion | `--accordion-item-bg` | `#373d45` | `#1e1e1e` |
+| Modals | `--modal-nav-bg` | `#1f2329` | `#141414` |
+| Modals | `--modal-content-bg` | `#2a2f36` | `#1a1a1a` |
+| Bulk panel | `--bulk-panel-bg` / `--bulk-card-bg` | CSS var refs | `#141414` |
+| API keys | `--api-keys-card-bg` | `#2a2f36` | `#141414` |
+| Input | `--input-bg` | `#4b525a` | `#1a1a1a` |
+| Dropdowns | `--dropdown-trigger-bg` | Mantine dark vars | `#141414` |
+| Dropdowns | `--dropdown-panel-bg` | Mantine dark vars | `#1a1a1a` |
+| Search | `--tool-panel-search-bg` | `#1f2329` | `#1a1a1a` |
+| Landing container | `--landing-paper-bg` | `#171a1f` | `#141414` |
+| Landing container | `--landing-inner-paper-bg` | `var(--bg-raised)` | `#1a1a1a` |
+
+#### `frontend/src/core/services/preferencesService.ts`
+
+| Change | Before | After |
+|---|---|---|
+| Default theme | `getSystemTheme()` (follows OS) | `"dark"` (always dark for new sessions) |
+
+> Existing sessions with a stored `"light"` preference in localStorage are unaffected until the user toggles or clears storage.
+
+---
+
+### Session 15 — Test Checklist
+
+- [ ] New session (private window / cleared localStorage) defaults to dark mode
+- [ ] Workspace background is `#0d0d0d` (pure black, matching landing page) in dark mode
+- [ ] Tool panel / sidebar cards are `#141414` (matching landing page tool cards)
+- [ ] Elevated panels (modals, dropdowns, tooltips) are `#1a1a1a`
+- [ ] Borders are subtle white (`rgba(255,255,255,0.06/0.1)`) instead of slate grays
+- [ ] Primary text is `#fafafa`, secondary `#aaa`, muted `#666`
+- [ ] Nav buttons: active = white pill (`#fafafa` bg, `#0a0a0a` text)
+- [ ] Light mode: no visual regression — light mode colors unchanged

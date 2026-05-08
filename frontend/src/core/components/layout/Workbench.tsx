@@ -108,17 +108,33 @@ export default function Workbench() {
     }
   };
 
+  const activeCustomView = !isBaseWorkbench(currentView)
+    ? (customWorkbenchViews.find(
+        (view) => view.workbenchId === currentView && view.data != null,
+      ) ?? null)
+    : null;
+
   const renderMainContent = () => {
     // Check if we're showing a custom workbench first
     // Custom workbenches may not require files in FileContext (e.g., sign request workbench)
-    if (!isBaseWorkbench(currentView)) {
-      const customView = customWorkbenchViews.find(
-        (view) => view.workbenchId === currentView && view.data != null,
-      );
-      if (customView) {
-        const CustomComponent = customView.component;
-        return <CustomComponent data={customView.data} />;
+    if (activeCustomView) {
+      const CustomComponent = activeCustomView.component;
+      if (activeCustomView.fillContainer) {
+        return (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            <CustomComponent data={activeCustomView.data} />
+          </div>
+        );
       }
+      return <CustomComponent data={activeCustomView.data} />;
     }
 
     if (activeFiles.length === 0) {
@@ -236,7 +252,7 @@ export default function Workbench() {
 
       {/* Main content area */}
       <Box
-        className={`flex-1 min-h-0 z-10 ${currentView === "pageEditor" ? "relative flex flex-col" : `relative ${styles.workbenchScrollable}`}`}
+        className={`flex-1 min-h-0 z-10 ${currentView === "pageEditor" || activeCustomView?.fillContainer ? "relative flex flex-col" : `relative ${styles.workbenchScrollable}`}`}
         style={{
           transition: "opacity 0.15s ease-in-out",
           ...(currentView === "pageEditor" && { height: 0 }),

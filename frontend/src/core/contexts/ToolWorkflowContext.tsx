@@ -51,6 +51,7 @@ export interface CustomWorkbenchViewRegistration {
   component: React.ComponentType<{ data: any }>;
   hideTopControls?: boolean;
   hideToolPanel?: boolean;
+  fillContainer?: boolean;
 }
 
 export interface CustomWorkbenchViewInstance extends CustomWorkbenchViewRegistration {

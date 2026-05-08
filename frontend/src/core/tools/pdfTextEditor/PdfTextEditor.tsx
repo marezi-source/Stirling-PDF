@@ -1970,6 +1970,7 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
       label: viewLabel,
       icon: <DescriptionIcon fontSize="small" />,
       component: PdfTextEditorView,
+      fillContainer: true,
     });
     setLeftPanelView("toolContent");
     setCustomWorkbenchViewData(WORKBENCH_VIEW_ID, latestViewDataRef.current);

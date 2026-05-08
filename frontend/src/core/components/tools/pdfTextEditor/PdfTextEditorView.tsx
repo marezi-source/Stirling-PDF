@@ -1633,11 +1633,11 @@ const PdfTextEditorView = ({ data }: PdfTextEditorViewProps) => {
   return (
     <Stack
       gap="xl"
-      className="h-full"
       style={{
+        flex: 1,
+        minHeight: 0,
         padding: "1.5rem",
         overflow: "hidden",
-        height: "100%",
         display: "flex",
         flexDirection: "column",
       }}

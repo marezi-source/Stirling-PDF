@@ -1,6 +1,6 @@
 # My PDF — Project Checkpoint
 
-**Last updated:** 2026-05-07 (Session 9)
+**Last updated:** 2026-05-08 (Session 10)
 **Branch:** main  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -786,3 +786,91 @@ This tells Vite to replace all references to `global` with `globalThis` at build
 - [ ] Page thumbnails appear in the left panel after upload
 - [ ] Drop zone shows before any file is uploaded
 - [ ] Error message appears (red alert) if conversion fails
+
+---
+
+## Session 10: Blank Canvas Fix — `/pdf-text-editor` Route
+
+### Bug: PDF Text Editor shows blank white canvas after uploading a PDF
+
+**Symptom:** On `/pdf-text-editor`, uploading a PDF showed a blank white right panel. The left sidebar correctly showed the document was loaded (fonts section with "PERFECT" badges visible), but the Workbench canvas area was completely empty.
+
+**Not affected:** `/app/edit-pdf` — already fixed in Session 9 by rendering `<PdfTextEditorView>` directly.
+
+---
+
+### Root Cause Analysis
+
+The PDF Text Editor registers itself as a "custom workbench view" via `registerCustomWorkbenchView`. The Workbench renders these inside a content Box with `className={..workbenchScrollable..}` (i.e., `overflow-y: auto`).
+
+Inside `PdfTextEditorView`, the canvas section (when `hasDocument && !isConverting`) contains:
+- Outer Stack: `flex: 1, overflow: hidden`
+- Inner canvas Stack: `flex: 1, overflow: hidden`
+- Card: `flex: 1` (flex-basis: 0%)
+
+In a flex column container that has **no definite height** (auto-sized scroll container), `flex: 1` items with `flex-basis: 0%` get height 0. Combined with `overflow: hidden` at every level, all canvas content is clipped to 0px — producing a blank white area. The sidebar still works because `PdfTextEditorSidebar` renders in the ToolPanel (a completely separate DOM branch), not in the Workbench.
+
+---
+
+### Fix Attempted in Session 9 (incomplete)
+
+Added a `fillContainer?: boolean` flag to `CustomWorkbenchViewRegistration` and made the content Box switch from `workbenchScrollable` to `flex flex-col` when the flag was set. Also changed PdfTextEditorView's outer Stack from `height: 100%` to `flex: 1`.
+
+This did not fully fix the issue — the canvas remained blank. Further investigation showed the flex chain still wasn't giving the inner `flex: 1` cards a definite height, because even within a `flex flex-col` container, intermediate `flex-basis: 0%` children with `overflow: hidden` can collapse to 0 height if any ancestor in the chain doesn't provide a properly constrained height.
+
+---
+
+### Final Fix (Session 10)
+
+**Strategy:** Instead of relying on the flex chain to propagate height downward, wrap `fillContainer` custom views in an absolutely-positioned div that fills the content Box directly. This bypasses any flex-chain height ambiguity entirely.
+
+**`frontend/src/core/components/layout/Workbench.tsx`** — `renderMainContent()`:
+
+```tsx
+// Before:
+if (activeCustomView) {
+  const CustomComponent = activeCustomView.component;
+  return <CustomComponent data={activeCustomView.data} />;
+}
+
+// After:
+if (activeCustomView) {
+  const CustomComponent = activeCustomView.component;
+  if (activeCustomView.fillContainer) {
+    return (
+      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <CustomComponent data={activeCustomView.data} />
+      </div>
+    );
+  }
+  return <CustomComponent data={activeCustomView.data} />;
+}
+```
+
+**Why this works:**
+- The content Box always has `position: relative` (from its className) and a flex-determined height (from `flex-1` in the outer Box, which has `h-full` = 100vh chain from the root `h-screen` div)
+- `position: absolute; inset: 0` fills the content Box's exact dimensions regardless of any intermediate flex-chain issues
+- `display: flex; flex-direction: column` inside the absolute div lets PdfTextEditorView's `flex: 1` outer Stack take the full height
+- All other custom views (Compare, GetPdfInfo, etc.) are unaffected — they don't set `fillContainer: true`
+
+**Retained changes from Session 9 (all still in place):**
+
+| File | Change |
+|---|---|
+| `frontend/src/core/contexts/ToolWorkflowContext.tsx` | Added `fillContainer?: boolean` to `CustomWorkbenchViewRegistration` interface |
+| `frontend/src/core/components/layout/Workbench.tsx` | Extracted `activeCustomView` before `renderMainContent`; content Box gets `flex flex-col` class when `activeCustomView?.fillContainer` is true; absolute-positioned wrapper added for fillContainer views |
+| `frontend/src/core/tools/pdfTextEditor/PdfTextEditor.tsx` | `registerCustomWorkbenchView` call includes `fillContainer: true` |
+| `frontend/src/core/components/tools/pdfTextEditor/PdfTextEditorView.tsx` | Outer Stack changed from `height: 100%` / `h-full` to `flex: 1` / `minHeight: 0` |
+
+---
+
+### Session 10 — Test Checklist
+
+- [ ] `/pdf-text-editor` — blank right panel is gone after uploading a PDF
+- [ ] Gray background (`#f3f4f6`) and white PDF page visible in the canvas area
+- [ ] PDF content (text elements) renderable and editable
+- [ ] ScrollArea scrolls vertically for tall pages
+- [ ] Dropzone visible before any file is uploaded
+- [ ] Conversion progress bar shows while PDF is being processed
+- [ ] `/app/edit-pdf` continues to work (unchanged — renders PdfTextEditorView directly)
+- [ ] Other custom workbench views (Compare, GetPdfInfo, etc.) unaffected

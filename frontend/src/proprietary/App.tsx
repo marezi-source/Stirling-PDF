@@ -1,21 +1,23 @@
-import { Suspense } from "react";
+import { Suspense, lazy } from "react";
 import { Routes, Route, useParams } from "react-router-dom";
 import { AppProviders } from "@app/components/AppProviders";
 import { AppLayout } from "@app/components/AppLayout";
 import { LoadingFallback } from "@app/components/shared/LoadingFallback";
 import { PreferencesProvider } from "@app/contexts/PreferencesContext";
 import { RainbowThemeProvider } from "@app/components/shared/RainbowThemeProvider";
-import Landing from "@app/routes/Landing";
-import MarketingLanding from "@app/routes/MarketingLanding";
-import Login from "@app/routes/Login";
-import Signup from "@app/routes/Signup";
-import AuthCallback from "@app/routes/AuthCallback";
-import InviteAccept from "@app/routes/InviteAccept";
-import ShareLinkPage from "@app/routes/ShareLinkPage";
-import ParticipantView from "@app/components/workflow/ParticipantView";
-import MobileScannerPage from "@app/pages/MobileScannerPage";
-import Onboarding from "@app/components/onboarding/Onboarding";
-import HelpPage from "@app/pages/HelpPage";
+
+// Route-level code splitting — each route is a separate chunk loaded on demand
+const Landing = lazy(() => import("@app/routes/Landing"));
+const MarketingLanding = lazy(() => import("@app/routes/MarketingLanding"));
+const Login = lazy(() => import("@app/routes/Login"));
+const Signup = lazy(() => import("@app/routes/Signup"));
+const AuthCallback = lazy(() => import("@app/routes/AuthCallback"));
+const InviteAccept = lazy(() => import("@app/routes/InviteAccept"));
+const ShareLinkPage = lazy(() => import("@app/routes/ShareLinkPage"));
+const ParticipantView = lazy(() => import("@app/components/workflow/ParticipantView"));
+const MobileScannerPage = lazy(() => import("@app/pages/MobileScannerPage"));
+const Onboarding = lazy(() => import("@app/components/onboarding/Onboarding"));
+const HelpPage = lazy(() => import("@app/pages/HelpPage"));
 
 // Import global styles
 import "@app/styles/tailwind.css";

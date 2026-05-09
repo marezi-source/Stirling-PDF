@@ -5,7 +5,6 @@ import { useAuth } from "@app/auth/UseSession";
 import { useToolWorkflow } from "@app/contexts/ToolWorkflowContext";
 import { ToolId } from "@app/types/toolId";
 import { LandingWebGLBackground } from "@app/components/shared/LandingWebGLBackground";
-import { useRainbowThemeContext } from "@app/components/shared/RainbowThemeProvider";
 import { useFileHandler } from "@app/hooks/useFileHandler";
 import { useGoogleDrivePicker } from "@app/hooks/useGoogleDrivePicker";
 import { openFilesFromDisk } from "@app/services/openFilesFromDisk";
@@ -211,7 +210,7 @@ export default function MarketingLanding() {
   const navigate = useNavigate();
   const { session } = useAuth();
   const { handleToolSelect } = useToolWorkflow();
-  const { toggleTheme, themeMode } = useRainbowThemeContext();
+  const [isUploadHovered, setIsUploadHovered] = useState(false);
   const logoSrc = `${BASE_PATH}/images/OnePDF_Logo.png`;
   const [convertOpen, setConvertOpen] = useState(false);
   const convertRef = useRef<HTMLDivElement>(null);
@@ -232,7 +231,6 @@ export default function MarketingLanding() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [convertOpen]);
 
-  const goToApp = () => navigate(session ? "/app" : "/login");
   const goToTool = (path: string) => {
     if (session) {
       const toolId = PATH_TO_TOOL_ID[path];
@@ -301,8 +299,8 @@ export default function MarketingLanding() {
   };
 
   return (
-    <div className={styles.page} data-theme={themeMode}>
-      <LandingWebGLBackground />
+    <div className={`${styles.page}${isUploadHovered ? ` ${styles.uploadHovered}` : ""}`} data-theme="dark">
+      <LandingWebGLBackground blurred={isUploadHovered} />
 
       {/* ── Navigation ── */}
       <nav className={styles.nav}>
@@ -357,29 +355,6 @@ export default function MarketingLanding() {
         </div>
 
         <div className={styles.navActions}>
-          <button
-            className={styles.themeToggleBtn}
-            onClick={toggleTheme}
-            aria-label={themeMode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          >
-            {themeMode === "dark" ? (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="5" />
-                <line x1="12" y1="1" x2="12" y2="3" />
-                <line x1="12" y1="21" x2="12" y2="23" />
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                <line x1="1" y1="12" x2="3" y2="12" />
-                <line x1="21" y1="12" x2="23" y2="12" />
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-              </svg>
-            ) : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-              </svg>
-            )}
-          </button>
           <button className={styles.loginBtn} onClick={() => navigate("/login")}>
             Login
           </button>
@@ -442,6 +417,8 @@ export default function MarketingLanding() {
 
             <div
               className={`${styles.uploadZone} ${styles.uploadZoneInline}${isDragging ? ` ${styles.uploadZoneDragging}` : ""}${isUploading ? ` ${styles.uploadZoneLoading}` : ""}`}
+              onMouseEnter={() => setIsUploadHovered(true)}
+              onMouseLeave={() => setIsUploadHovered(false)}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={(e) => void handleDrop(e)}

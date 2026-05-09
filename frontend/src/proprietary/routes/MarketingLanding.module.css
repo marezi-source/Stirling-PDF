@@ -42,40 +42,16 @@
   transition: background 0.25s, color 0.25s;
 }
 
-/* ── Light mode token overrides ── */
-.page[data-theme="light"] {
-  --c-bg:            #f5f7ff;
-  --c-bg-features:   #eef1fb;
-  --c-nav-bg:        rgba(245, 247, 255, 0.92);
-  --c-text-primary:  #0a0a0a;
-  --c-text-secondary:#444;
-  --c-text-muted:    #555;
-  --c-text-dim:      #666;
-  --c-text-label:    #888;
-  --c-text-item:     #444;
-  --c-text-feature:  #222;
-  --c-border-subtle: rgba(0, 0, 0, 0.06);
-  --c-border:        rgba(0, 0, 0, 0.07);
-  --c-border-ui:     rgba(0, 0, 0, 0.1);
-  --c-border-btn:    rgba(0, 0, 0, 0.14);
-  --c-border-hover:  rgba(0, 0, 0, 0.28);
-  --c-surface:       #ffffff;
-  --c-surface-raised:#f0f2ff;
-  --c-surface-icon:  #e8ecff;
-  --c-hover-overlay: rgba(0, 0, 0, 0.05);
-  --c-press-overlay: rgba(0, 0, 0, 0.03);
-  --c-dropdown-shadow: rgba(0, 0, 0, 0.14);
-  --c-card-shadow:   rgba(0, 0, 0, 0.1);
-  --c-pdfcorner:     #dde1f8;
-  --c-pdfline:       rgba(0, 0, 0, 0.1);
-  --c-action-bg:     #0a0a0a;
-  --c-action-fg:     #fafafa;
-  --c-action-hover:  #222222;
-  --c-signup-bg:     #0a0a0a;
-  --c-signup-fg:     #fafafa;
-  --c-signup-hover:  #222222;
-  --c-icon-color:    #555;
-  --c-float-color:   #555;
+/* ── Upload zone hover: blur + dim everything else ── */
+.nav,
+.heroLeft {
+  transition: filter 0.4s ease, opacity 0.4s ease;
+}
+
+.uploadHovered .nav,
+.uploadHovered .heroLeft {
+  filter: blur(6px);
+  opacity: 0.25;
 }
 
 /* ── Navigation ── */
@@ -221,27 +197,6 @@
   align-items: center;
   gap: 0.625rem;
   flex-shrink: 0;
-}
-
-.themeToggleBtn {
-  background: none;
-  border: 1px solid var(--c-border-btn);
-  color: var(--c-text-secondary);
-  width: 2.125rem;
-  height: 2.125rem;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: border-color 0.15s, background 0.15s, color 0.15s;
-  flex-shrink: 0;
-}
-
-.themeToggleBtn:hover {
-  border-color: var(--c-border-hover);
-  color: var(--c-text-primary);
-  background: var(--c-press-overlay);
 }
 
 .loginBtn {

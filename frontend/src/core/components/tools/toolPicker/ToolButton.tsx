@@ -19,6 +19,7 @@ import {
 import { useAppConfig } from "@app/contexts/AppConfigContext";
 import { CloudBadge } from "@app/components/shared/CloudBadge";
 import { useWillUseCloud } from "@app/hooks/useWillUseCloud";
+import { alert } from "@app/components/toast";
 
 interface ToolButtonProps {
   id: ToolId;
@@ -75,6 +76,15 @@ const ToolButton: React.FC<ToolButtonProps> = ({
 
   const handleClick = (id: ToolId) => {
     if (isUnavailable) {
+      if (disabledReason === "comingSoon" && !onUnavailableClick) {
+        alert({
+          alertType: "neutral",
+          title: t("toolPanel.comingSoonNotice", "Coming Soon"),
+          expandable: false,
+          durationMs: 2500,
+        });
+        return;
+      }
       onUnavailableClick?.();
       return;
     }

@@ -1,7 +1,11 @@
 import { useEffect, useRef } from "react";
 import { useMantineColorScheme } from "@mantine/core";
 
-export function LandingWebGLBackground() {
+interface LandingWebGLBackgroundProps {
+  blurred?: boolean;
+}
+
+export function LandingWebGLBackground({ blurred }: LandingWebGLBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { colorScheme } = useMantineColorScheme();
   const schemeRef = useRef(colorScheme);
@@ -137,6 +141,8 @@ export function LandingWebGLBackground() {
         zIndex: 0,
         display: "block",
         pointerEvents: "none",
+        filter: blurred ? "blur(8px) brightness(0.5)" : "none",
+        transition: "filter 0.4s ease",
       }}
     />
   );

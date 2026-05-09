@@ -566,6 +566,9 @@
   --nav-btn-inactive-color: #777;
   --nav-btn-hover-bg: rgba(255, 255, 255, 0.06);
 
+  /* Top tab bar — active label text must be dark on the white indicator */
+  --sc-label-active-color: var(--nav-btn-active-color);
+
   /* RightRail (dark) */
   --right-rail-bg: #141414;
   --right-rail-foreground: #1a1a1a;
@@ -732,6 +735,14 @@
   --dropdown-panel-bg: #1a1a1a;
   --dropdown-panel-border: rgba(255, 255, 255, 0.1);
   --dropdown-group-label: #666;
+}
+
+/* Top workspace tab bar — fix white-on-white in dark mode.
+   The active indicator is #fafafa but Mantine defaults labels to white,
+   so we force the active label (and its children) to the dark token. */
+[data-mantine-color-scheme="dark"] [data-tour="view-switcher"] label[data-active],
+[data-mantine-color-scheme="dark"] [data-tour="view-switcher"] label[data-active] * {
+  color: var(--nav-btn-active-color) !important;
 }
 
 /* Dropzone drop state styling */

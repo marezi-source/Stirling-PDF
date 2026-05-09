@@ -7,7 +7,7 @@ import React, {
   useCallback,
 } from "react";
 import { createPortal } from "react-dom";
-import { Stack, Divider, Menu, Indicator } from "@mantine/core";
+import { Stack, Divider, Menu, Indicator, Modal, Text, Button, Group } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useLocation } from "react-router-dom";
 import LocalIcon from "@app/components/shared/LocalIcon";
@@ -54,6 +54,7 @@ import {
 import { Z_INDEX_OVER_FULLSCREEN_SURFACE } from "@app/styles/zIndex";
 import { QuickAccessBarFooterExtensions } from "@app/components/quickAccessBar/QuickAccessBarFooterExtensions";
 import { useConfigButtonIcon } from "@app/hooks/useConfigButtonIcon";
+import { useAuth } from "@app/auth/UseSession";
 
 const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
   const { t } = useTranslation();
@@ -157,6 +158,9 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
   }, [signMenuOpen, groupSigningEnabled]);
 
   const configButtonIcon = useConfigButtonIcon();
+  const { session } = useAuth();
+  const [loginGateOpen, setLoginGateOpen] = useState(false);
+  const [comingSoonOpen, setComingSoonOpen] = useState(false);
 
   const isRTL =
     typeof document !== "undefined" && document.documentElement.dir === "rtl";
@@ -580,6 +584,10 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
   }, [leftPanelView, selectedToolKey, toolRegistry, readerMode]);
 
   const handleFilesButtonClick = () => {
+    if (!session) {
+      setLoginGateOpen(true);
+      return;
+    }
     openFilesModal();
   };
 
@@ -738,6 +746,17 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
       type: "modal",
       onClick: handleFilesButtonClick,
     },
+    {
+      id: "api",
+      name: t("quickAccess.api", "API"),
+      icon: (
+        <LocalIcon icon="api-rounded" width="1.25rem" height="1.25rem" />
+      ),
+      isRound: true,
+      size: "md" as const,
+      type: "action" as const,
+      onClick: () => setComingSoonOpen(true),
+    },
   ];
   //TODO: Activity
   //{
@@ -849,7 +868,7 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
                     {renderNavButton(config, index)}
                   </React.Fragment>
                 ))}
-                {hasSelectedFiles && sharingEnabled && (
+                {(!session || (hasSelectedFiles && sharingEnabled)) && (
                   <div ref={accessButtonRef}>
                     <QuickAccessButton
                       icon={
@@ -859,17 +878,21 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
                           height="1.25rem"
                         />
                       }
-                      label={t("quickAccess.access", "Access")}
+                      label={t("quickAccess.access", "Collaborate")}
                       isActive={!isSignWorkbenchActive && accessMenuOpen}
                       onClick={() => {
+                        if (!session) {
+                          setLoginGateOpen(true);
+                          return;
+                        }
                         setAccessMenuOpen((prev) => !prev);
                       }}
-                      ariaLabel={t("quickAccess.access", "Access")}
+                      ariaLabel={t("quickAccess.access", "Collaborate")}
                       dataTestId="access-button"
                     />
                   </div>
                 )}
-                {groupSigningEnabled && (
+                {(!session || groupSigningEnabled) && (
                   <div
                     ref={signButtonRef}
                     style={{ display: "flex", justifyContent: "center" }}
@@ -893,7 +916,10 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
                           }
                           label={t("quickAccess.sign", "Sign")}
                           isActive={signMenuOpen || isSignWorkbenchActive}
-                          onClick={() => setSignMenuOpen((prev) => !prev)}
+                          onClick={() => {
+                            if (!session) { setLoginGateOpen(true); return; }
+                            setSignMenuOpen((prev) => !prev);
+                          }}
                           ariaLabel={t("quickAccess.sign", "Sign")}
                           dataTestId="sign-button"
                         />
@@ -909,7 +935,10 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
                         }
                         label={t("quickAccess.sign", "Sign")}
                         isActive={signMenuOpen || isSignWorkbenchActive}
-                        onClick={() => setSignMenuOpen((prev) => !prev)}
+                        onClick={() => {
+                          if (!session) { setLoginGateOpen(true); return; }
+                          setSignMenuOpen((prev) => !prev);
+                        }}
                         ariaLabel={t("quickAccess.sign", "Sign")}
                         dataTestId="sign-button"
                       />
@@ -1291,6 +1320,43 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
         isRTL={isRTL}
         groupSigningEnabled={groupSigningEnabled}
       />
+
+      <Modal
+        opened={loginGateOpen}
+        onClose={() => setLoginGateOpen(false)}
+        title="Login to have access"
+        centered
+        size="sm"
+      >
+        <Text size="sm" c="dimmed" mb="lg">
+          Please log in to use this feature.
+        </Text>
+        <Group justify="flex-end">
+          <Button variant="subtle" onClick={() => setLoginGateOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={() => { setLoginGateOpen(false); navigate("/login"); }}>
+            Login
+          </Button>
+        </Group>
+      </Modal>
+
+      <Modal
+        opened={comingSoonOpen}
+        onClose={() => setComingSoonOpen(false)}
+        title="Coming Soon"
+        centered
+        size="sm"
+      >
+        <Text size="sm" c="dimmed" mb="lg">
+          This feature is coming soon. Stay tuned!
+        </Text>
+        <Group justify="flex-end">
+          <Button onClick={() => setComingSoonOpen(false)}>
+            Got it
+          </Button>
+        </Group>
+      </Modal>
     </div>
   );
 });

@@ -124,5 +124,28 @@ export default defineConfig(async ({ mode }) => {
     define: {
       global: "globalThis",
     },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes("node_modules")) return;
+            // Mantine UI — large, changes rarely, benefits most from isolated caching
+            if (id.includes("@mantine")) return "vendor-mantine";
+            // React core — tiny but very stable; keep separate from app code
+            if (
+              id.includes("/react/") ||
+              id.includes("/react-dom/") ||
+              id.includes("/scheduler/") ||
+              id.includes("react-router")
+            )
+              return "vendor-react";
+            // Analytics — optional, never on the critical path
+            if (id.includes("posthog")) return "vendor-analytics";
+            // MUI icons — tree-shaken but still worth isolating
+            if (id.includes("@mui")) return "vendor-mui";
+          },
+        },
+      },
+    },
   };
 });

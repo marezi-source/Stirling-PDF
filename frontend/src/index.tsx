@@ -17,19 +17,26 @@ import { ColorSchemeScript } from "@mantine/core";
 import { BrowserRouter } from "react-router-dom";
 import App from "@app/App";
 import "@app/i18n"; // Initialize i18next
-import posthog from "posthog-js";
 import { PostHogProvider } from "@posthog/react";
 import { BASE_PATH } from "@app/constants/app";
 
-posthog.init(import.meta.env.VITE_PUBLIC_POSTHOG_KEY, {
-  api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
-  defaults: "2025-05-24",
-  capture_exceptions: true, // This enables capturing exceptions using Error Tracking, set to false if you don't want this
-  debug: false,
-  opt_out_capturing_by_default: true, // Opt-out by default, controlled by cookie consent
-  persistence: "memory", // No cookies/localStorage written until user opts in
-  cross_subdomain_cookie: false,
-});
+// PostHog is initialized lazily after first render — it must never block the
+// critical paint path. The client object is created empty here so the provider
+// can wrap the tree synchronously; the actual init (network + JS eval) fires
+// in an idle callback once the page is already interactive.
+import posthog from "posthog-js";
+
+function initPostHog() {
+  posthog.init(import.meta.env.VITE_PUBLIC_POSTHOG_KEY, {
+    api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+    defaults: "2025-05-24",
+    capture_exceptions: true,
+    debug: false,
+    opt_out_capturing_by_default: true,
+    persistence: "memory",
+    cross_subdomain_cookie: false,
+  });
+}
 
 function updatePosthogConsent() {
   if (!posthog.__loaded) return;
@@ -43,7 +50,6 @@ function updatePosthogConsent() {
     posthog.opt_out_capturing();
     posthog.set_config({ persistence: "memory" });
   }
-  console.log("Updated PostHog consent: ", optIn ? "opted in" : "opted out");
 }
 
 window.addEventListener("cc:onConsent", updatePosthogConsent);
@@ -54,7 +60,7 @@ if (!container) {
   throw new Error("Root container missing in index.html");
 }
 
-const root = ReactDOM.createRoot(container); // Finds the root DOM element
+const root = ReactDOM.createRoot(container);
 root.render(
   <React.StrictMode>
     <ColorSchemeScript />
@@ -65,3 +71,12 @@ root.render(
     </PostHogProvider>
   </React.StrictMode>,
 );
+
+// Fire PostHog init after the browser has painted and is idle — completely
+// off the critical path. Falls back to a short timeout in browsers that
+// don't support requestIdleCallback (e.g. Safari < 16).
+if ("requestIdleCallback" in window) {
+  requestIdleCallback(initPostHog, { timeout: 3000 });
+} else {
+  setTimeout(initPostHog, 500);
+}

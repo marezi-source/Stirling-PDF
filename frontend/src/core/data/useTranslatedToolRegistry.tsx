@@ -1,7 +1,6 @@
 import { lazy, useMemo } from "react";
 import LocalIcon from "@app/components/shared/LocalIcon";
 import { useTranslation } from "react-i18next";
-import { devApiLink } from "@app/constants/links";
 import { reorganizePagesOperationConfig } from "@app/hooks/tools/reorganizePages/useReorganizePagesOperation";
 import {
   SubcategoryId,
@@ -931,7 +930,7 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
       devApi: {
         icon: (
           <LocalIcon
-            icon="open-in-new-rounded"
+            icon="api-rounded"
             width="1.5rem"
             height="1.5rem"
             style={{ color: "#2F7BF6" }}
@@ -939,10 +938,9 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         ),
         name: t("home.devApi.title", "API"),
         component: null,
-        description: t("home.devApi.desc", "Link to API documentation"),
+        description: t("home.devApi.desc", "Coming soon"),
         categoryId: ToolCategoryId.ADVANCED_TOOLS,
         subcategoryId: SubcategoryId.DEVELOPER_TOOLS,
-        link: devApiLink,
         endpoints: ["dev-api-docs"],
         synonyms: getSynonyms(t, "devApi"),
         supportsAutomate: false,

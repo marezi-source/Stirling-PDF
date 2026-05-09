@@ -1894,3 +1894,94 @@ export function CollabPresence({ participants = [], currentUsername, connected }
 - [ ] Valid submission shows 800ms loading state then success screen
 - [ ] Success screen shows user's submitted email address
 - [ ] "Go back" on success screen returns to previous page
+
+---
+
+## Session 23: Login Gate, Coming Soon Popups, Scrollable Sidebar + Database Info
+
+### Login Gate — Auth-Required Features
+
+Features that need a user account now show a "Login to have access" modal popup when clicked by an unauthenticated user, instead of opening directly.
+
+**`frontend/src/core/components/shared/QuickAccessBar.tsx`** — Modified:
+
+- Imported `useAuth` from `@app/auth/UseSession` and `Modal`, `Text`, `Button`, `Group` from `@mantine/core`
+- Added `const { session } = useAuth()` and two modal state booleans: `loginGateOpen`, `comingSoonOpen`
+- **Files button** (`handleFilesButtonClick`): Added `if (!session) { setLoginGateOpen(true); return; }` guard before calling `openFilesModal()`
+- **Collaborate button** (formerly "Access"): Changed render condition from `hasSelectedFiles && sharingEnabled` → `!session || (hasSelectedFiles && sharingEnabled)`, so non-logged-in users always see the button. Renamed label to "Collaborate". Added auth check in `onClick` — non-logged-in users get the login gate popup
+- **Sign button**: Changed render condition from `groupSigningEnabled` → `!session || groupSigningEnabled`, so non-logged-in users always see the button. Added auth check in both the indicator and non-indicator variants
+- Added **API button** to `middleButtons` — always visible, always fires `setComingSoonOpen(true)` (no auth check needed)
+- Rendered two Mantine `Modal` components at end of JSX:
+  - **"Login to have access"** modal: Cancel button dismisses, Login button navigates to `/login`
+  - **"Coming Soon"** modal: Got it button dismisses
+
+### Coming Soon — API in Tool Picker
+
+**`frontend/src/core/data/useTranslatedToolRegistry.tsx`** — Modified:
+
+- Removed `import { devApiLink } from "@app/constants/links"` (no longer needed)
+- `devApi` entry: removed `link: devApiLink` — without a `link` or `component`, `getToolDisabledReason` automatically returns `"comingSoon"`, so the tool button appears grayed-out with a "Coming soon" tooltip in the tool picker
+
+**`frontend/src/core/components/tools/toolPicker/ToolButton.tsx`** — Modified:
+
+- Imported `alert` from `@app/components/toast`
+- In `handleClick`: added a branch for `disabledReason === "comingSoon" && !onUnavailableClick` — fires a `"neutral"` toast with title **"Coming Soon"** instead of doing nothing (previous silent behavior)
+
+### Scrollable Left Sidebar
+
+**`frontend/src/core/components/shared/quickAccessBar/QuickAccessBar.css`** — Modified:
+
+- `.quick-access-bar`: changed `overflow-y: hidden` → `overflow-y: auto` — enables vertical scrolling when buttons overflow the viewport
+- `.scrollable-content`: removed `height: 100%`, kept `min-height: 100%` — allows content to grow beyond container height and trigger the scrollbar while still pushing bottom buttons to the bottom when content is short
+
+### Database — User Login / Signup Storage
+
+**`app/core/src/main/resources/application.properties`** — Modified:
+
+- Enabled the H2 web console: `spring.h2.console.enabled=true`, path `/h2-console`
+- `web-allow-others=false` keeps it local-only (localhost connections only)
+
+**Database details:**
+
+| Property | Value |
+|---|---|
+| Type | H2 (embedded, file-based) |
+| File path | `./configs/stirling-pdf-DB-2.3.232` |
+| JDBC URL | `jdbc:h2:file:./configs/stirling-pdf-DB-2.3.232;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL` |
+| Username | `sa` |
+| Password | *(empty)* |
+| Web console URL | `http://localhost:8080/h2-console` |
+
+**Accessing the console:**
+
+- Run the backend (`task backend:dev`) with security **disabled** (`DOCKER_ENABLE_SECURITY=false`) — all routes are permitted, including `/h2-console`
+- Or run with security enabled, log in as admin, then navigate to `http://localhost:8080/h2-console`
+- In the H2 console login form enter the JDBC URL above with username `sa` and blank password
+
+**Key tables for login/signup data:** `USER_TABLE` (or `USERS`) stores registered accounts — visible once connected via the console.
+
+---
+
+### Session 23 — Test Checklist
+
+#### Login Gate
+- [ ] Clicking "Files" when not logged in shows "Login to have access" modal
+- [ ] Modal "Login" button navigates to `/login`
+- [ ] Modal "Cancel" closes the modal
+- [ ] Clicking "Collaborate" when not logged in shows "Login to have access" modal
+- [ ] Clicking "Sign" when not logged in shows "Login to have access" modal
+- [ ] "Collaborate" and "Sign" buttons are visible even when not logged in
+- [ ] When logged in, Files/Collaborate/Sign work as before
+
+#### Coming Soon — API
+- [ ] "API" button in sidebar shows "Coming Soon" popup (modal) regardless of login state
+- [ ] "API" tile in the tool picker is grayed out
+- [ ] Clicking the grayed-out "API" tile in the tool picker shows a "Coming Soon" toast notification
+- [ ] API tile tooltip shows "Coming soon" label on hover
+- [ ] No external Swagger URL is opened from anywhere in the workspace
+
+#### Scrollable Sidebar
+- [ ] Left sidebar scrolls vertically when buttons overflow the viewport height
+- [ ] Scrollbar is hidden by default, appears on hover
+- [ ] Bottom buttons (Help, Settings) remain anchored to the bottom when content fits
+- [ ] Bottom buttons scroll naturally when content overflows

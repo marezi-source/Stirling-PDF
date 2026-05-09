@@ -4,6 +4,7 @@ import { BASE_PATH } from "@app/constants/app";
 import { useAuth } from "@app/auth/UseSession";
 import { useToolWorkflow } from "@app/contexts/ToolWorkflowContext";
 import { ToolId } from "@app/types/toolId";
+import { LandingWebGLBackground } from "@app/components/shared/LandingWebGLBackground";
 import styles from "./MarketingLanding.module.css";
 
 const PATH_TO_TOOL_ID: Record<string, ToolId> = {
@@ -226,6 +227,8 @@ export default function MarketingLanding() {
 
   return (
     <div className={styles.page}>
+      <LandingWebGLBackground />
+
       {/* ── Navigation ── */}
       <nav className={styles.nav}>
         <div className={styles.navLogo}>

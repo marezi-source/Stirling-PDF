@@ -1,6 +1,6 @@
 # OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-08 (Session 17)
+**Last updated:** 2026-05-09 (Session 18)
 **Branch:** OnePDF-UI-Change  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -1390,3 +1390,87 @@ fontFamilyMonospace:
 - [ ] Font renders at all four weights: regular (400), medium (500), semibold (600), bold (700)
 - [ ] No visual regression in dark or light mode
 - [ ] Font consistent between landing page text and workspace UI
+
+---
+
+## Session 18: WebGL Cursor-Reactive Background — Marketing Landing Page
+
+### Goal
+
+Replicate the Unicorn Studio-style cursor-reactive animated background (as seen on stirling.com) on the OnePDF marketing landing page (`/`).
+
+### How Unicorn Studio Works (Research)
+
+Inspecting stirling.com via DevTools revealed a single `mousemove` handler pointing to `unicornStudio.umd.js`. Unicorn Studio is a no-code WebGL animation tool — its player feeds `clientX`/`clientY` into a WebGL scene as shader uniforms. The "movement" is a GLSL shader reacting to the mouse uniform, not CSS.
+
+### Implementation
+
+Built an equivalent from scratch using raw WebGL — no external library, no npm dependency.
+
+#### New File: `frontend/src/core/components/shared/LandingWebGLBackground.tsx`
+
+A self-contained React component that:
+
+- Creates a `<canvas>` element and initialises a WebGL context
+- Compiles a vertex + fragment shader pair at mount time
+- Renders a full-screen quad (`TRIANGLE_STRIP`) every frame via `requestAnimationFrame`
+- Tracks mouse position via a `window mousemove` listener; lerps the actual position toward the target at 6% per frame for fluid easing
+- Handles canvas resize via `ResizeObserver`
+- Cleans up RAF, listener, and GL resources on unmount
+
+**Fragment shader design:**
+
+Four soft Gaussian colour blobs sit at anchor positions that drift slowly with `sin`/`cos` of time and shift in response to mouse position (parallax — blobs move toward or away from the cursor at different rates). Blobs use OnePDF brand colours:
+
+| Blob | Colour | Hex |
+|---|---|---|
+| 1 | Brand blue | `#4c8bf5` |
+| 2 | Deeper blue | `#3a7be8` |
+| 3 | Purple accent | `#5929BF` |
+| 4 | Indigo | `#1757D1` |
+
+A radial vignette darkens the edges. Base background is `#060609` (near-black). Blob brightness multiplier: `0.75`; falloff radii: `1.6 / 1.5 / 2.0 / 2.8` (wide, visible blobs).
+
+#### `frontend/src/proprietary/routes/MarketingLanding.tsx`
+
+- Added `import { LandingWebGLBackground }`
+- Rendered `<LandingWebGLBackground />` as the first child of `<div className={styles.page}>` — before the nav, hero, and features sections
+
+#### `frontend/src/proprietary/routes/MarketingLanding.module.css`
+
+| Rule | Change | Reason |
+|---|---|---|
+| `.page` | Added `position: relative` | Makes `.page` the containing block for the absolutely-positioned canvas |
+| `.hero` | Added `position: relative; z-index: 1` | Paints hero content above the canvas (z-index: 0) |
+| `.features` | Added `position: relative; z-index: 1` | Same — features section above canvas |
+
+Nav already had `position: sticky; z-index: 50` so no change needed there.
+
+### Stacking Order
+
+```
+.page (position: relative, background: #0d0d0d)
+  canvas (position: absolute; inset: 0; z-index: 0)  ← WebGL, covers page bg
+  nav   (position: sticky; z-index: 50)               ← above canvas
+  .hero (position: relative; z-index: 1)              ← above canvas
+  .features (position: relative; z-index: 1)          ← above canvas
+```
+
+### Debugging Notes
+
+- Initially placed the canvas in the workspace `LandingPage.tsx` (the drop-zone screen) by mistake — the user clarified the target was the marketing page at `/`
+- First attempt used `height: 100%` on a wrapper div inside the workspace's `overflow-y: auto` scroll container — canvas had 0×0 dimensions because `height: 100%` doesn't resolve inside a scroll container without explicit parent height
+- Fix was `position: absolute; inset: 0` on the wrapper, anchoring to the scroll container's `position: relative` box
+- For the marketing page the canvas is straightforward: `position: absolute; inset: 0` within `.page` which has a definite `min-height: 100vh`
+
+---
+
+### Session 18 — Test Checklist
+
+- [ ] Navigate to `/` — background shows dark canvas with blue/purple glow blobs
+- [ ] Moving the cursor causes blobs to shift (upper-left follows cursor, lower-right moves away)
+- [ ] Movement is smooth (lerped, not instant)
+- [ ] Blobs drift slowly even without mouse movement (time-based animation)
+- [ ] Nav, hero text, buttons, and feature cards all render above the canvas
+- [ ] Workspace drop-zone screen (`/app`) unchanged — no WebGL background there
+- [ ] No console errors on mount or unmount

@@ -1,65 +1,12 @@
 import { useEffect, useRef } from "react";
 
-const VERT = `
-  attribute vec2 a_pos;
-  void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }
-`;
-
-// Four soft Gaussian blobs that drift with time and shift with mouse position.
-// Each blob is a weighted colour; they blend over a near-black base.
-const FRAG = `
-  precision mediump float;
-  uniform vec2  u_res;
-  uniform vec2  u_mouse;
-  uniform float u_time;
-
-  void main() {
-    vec2  uv  = gl_FragCoord.xy / u_res;
-    float asp = u_res.x / u_res.y;
-    vec2  p   = vec2(uv.x * asp, uv.y);
-    float t   = u_time * 0.32;
-
-    // Mouse offset from centre, aspect-corrected
-    vec2 m = vec2((u_mouse.x - 0.5) * asp, u_mouse.y - 0.5);
-
-    // Blob positions: static anchor + slow drift + mouse parallax
-    vec2 b1 = vec2((0.25 + sin(t*0.71)*0.09 + m.x*0.20) * asp,
-                    0.30 + cos(t*0.53)*0.07 + m.y*0.15);
-    vec2 b2 = vec2((0.75 + cos(t*0.67)*0.08 - m.x*0.15) * asp,
-                    0.62 + sin(t*0.59)*0.08 - m.y*0.12);
-    vec2 b3 = vec2((0.50 + sin(t*0.43)*0.06 + m.x*0.05) * asp,
-                    0.80 + cos(t*0.37)*0.05 + m.y*0.08);
-    vec2 b4 = vec2((0.85 + cos(t*0.89)*0.04 + m.x*0.10) * asp,
-                    0.18 + sin(t*0.47)*0.06 - m.y*0.08);
-
-    // Gaussian falloff — lower multiplier = wider, more visible blob
-    float w1 = exp(-length(p - b1) * 1.6);
-    float w2 = exp(-length(p - b2) * 1.5);
-    float w3 = exp(-length(p - b3) * 2.0);
-    float w4 = exp(-length(p - b4) * 2.8);
-
-    // OnePDF brand palette
-    vec3 bg = vec3(0.024, 0.024, 0.033);   // #060609 near-black
-    vec3 c1 = vec3(0.298, 0.545, 0.961);   // #4c8bf5 brand blue
-    vec3 c2 = vec3(0.227, 0.482, 0.910);   // #3a7be8 deeper blue
-    vec3 c3 = vec3(0.350, 0.170, 0.750);   // #5929BF purple accent
-    vec3 c4 = vec3(0.090, 0.340, 0.820);   // #1757D1 indigo
-
-    vec3 color = bg + (c1*w1 + c2*w2 + c3*w3 + c4*w4) * 0.75;
-
-    // Light vignette — just enough to ground the edges
-    float vig = 1.0 - smoothstep(0.5, 1.6, length(vec2(uv.x - 0.5, (uv.y - 0.5) * 0.8)));
-    color *= mix(0.72, 1.0, vig);
-
-    gl_FragColor = vec4(color, 1.0);
-  }
-`;
-
-function compileShader(gl: WebGLRenderingContext, type: number, src: string) {
-  const shader = gl.createShader(type)!;
-  gl.shaderSource(shader, src);
-  gl.compileShader(shader);
-  return shader;
+interface Wave {
+  x: number;
+  y: number;
+  radius: number;
+  speed: number;
+  life: number;   // 1 → 0
+  delay: number;  // seconds before this ring starts expanding
 }
 
 export function LandingWebGLBackground() {
@@ -68,75 +15,105 @@ export function LandingWebGLBackground() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-    const gl = canvas.getContext("webgl");
-    if (!gl) return;
-
-    const prog = gl.createProgram()!;
-    gl.attachShader(prog, compileShader(gl, gl.VERTEX_SHADER, VERT));
-    gl.attachShader(prog, compileShader(gl, gl.FRAGMENT_SHADER, FRAG));
-    gl.linkProgram(prog);
-    gl.useProgram(prog);
-
-    // Full-screen triangle strip
-    const buf = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
-      gl.STATIC_DRAW,
-    );
-    const aPos = gl.getAttribLocation(prog, "a_pos");
-    gl.enableVertexAttribArray(aPos);
-    gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
-
-    const uRes   = gl.getUniformLocation(prog, "u_res");
-    const uMouse = gl.getUniformLocation(prog, "u_mouse");
-    const uTime  = gl.getUniformLocation(prog, "u_time");
-
-    // Mouse position with lerp smoothing
-    const mouse  = { x: 0.5, y: 0.5 };
-    const target = { x: 0.5, y: 0.5 };
-
-    function onMouseMove(e: MouseEvent) {
-      const r = canvas!.getBoundingClientRect();
-      target.x = (e.clientX - r.left) / r.width;
-      target.y = 1.0 - (e.clientY - r.top) / r.height; // flip Y for WebGL
-    }
-    window.addEventListener("mousemove", onMouseMove);
+    let animFrame: number;
+    let lastTime = performance.now();
+    const waves: Wave[] = [];
 
     function resize() {
-      canvas!.width  = canvas!.offsetWidth;
-      canvas!.height = canvas!.offsetHeight;
-      gl!.viewport(0, 0, canvas!.width, canvas!.height);
+      canvas!.width  = window.innerWidth;
+      canvas!.height = window.innerHeight;
     }
-    const ro = new ResizeObserver(resize);
-    ro.observe(canvas);
-    resize();
 
-    const start = performance.now();
-    let raf: number;
+    function onClick(e: MouseEvent) {
+      const x = e.clientX;
+      const y = e.clientY;
+
+      // Three concentric rings per click — main shockwave + two echoes
+      waves.push({ x, y, radius: 0, speed: 420, life: 1, delay: 0.00 });
+      waves.push({ x, y, radius: 0, speed: 340, life: 1, delay: 0.06 });
+      waves.push({ x, y, radius: 0, speed: 260, life: 1, delay: 0.14 });
+    }
 
     function render() {
-      // Ease mouse toward cursor (lerp factor 0.06 = fluid, not instant)
-      mouse.x += (target.x - mouse.x) * 0.06;
-      mouse.y += (target.y - mouse.y) * 0.06;
+      const now = performance.now();
+      const dt  = Math.min((now - lastTime) / 1000, 0.05);
+      lastTime  = now;
 
-      gl!.uniform2f(uRes,   canvas!.width, canvas!.height);
-      gl!.uniform2f(uMouse, mouse.x, mouse.y);
-      gl!.uniform1f(uTime,  (performance.now() - start) / 1000);
-      gl!.drawArrays(gl!.TRIANGLE_STRIP, 0, 4);
+      ctx!.fillStyle = "#08080c";
+      ctx!.fillRect(0, 0, canvas!.width, canvas!.height);
 
-      raf = requestAnimationFrame(render);
+      for (let i = waves.length - 1; i >= 0; i--) {
+        const w = waves[i];
+
+        if (w.delay > 0) { w.delay -= dt; continue; }
+
+        // Shockwave decelerates — energy dissipating through air
+        w.radius += w.speed * dt;
+        w.speed  *= Math.pow(0.88, dt * 60);
+
+        // Life tied to speed: wave dies when it has almost stopped
+        w.life = Math.min(w.life, w.speed / 420);
+
+        if (w.life <= 0.005 || w.radius > 1800) {
+          waves.splice(i, 1);
+          continue;
+        }
+
+        const a = w.life;
+        const r = w.radius;
+
+        ctx!.save();
+
+        // Outer soft glow ring
+        ctx!.beginPath();
+        ctx!.arc(w.x, w.y, r, 0, Math.PI * 2);
+        ctx!.strokeStyle = `rgba(200,215,255,${(a * 0.06).toFixed(3)})`;
+        ctx!.lineWidth   = 6;
+        ctx!.shadowBlur  = 12;
+        ctx!.shadowColor = `rgba(180,200,255,${(a * 0.08).toFixed(3)})`;
+        ctx!.stroke();
+
+        // Sharp core ring
+        ctx!.beginPath();
+        ctx!.arc(w.x, w.y, r, 0, Math.PI * 2);
+        ctx!.strokeStyle = `rgba(230,238,255,${(a * 0.10).toFixed(3)})`;
+        ctx!.lineWidth   = 1;
+        ctx!.shadowBlur  = 0;
+        ctx!.stroke();
+
+        // Inner pressure fill — visible only when ring is small and fresh
+        if (r < 80) {
+          const fillAlpha = a * (1 - r / 80) * 0.04;
+          const grd = ctx!.createRadialGradient(w.x, w.y, 0, w.x, w.y, r);
+          grd.addColorStop(0,   `rgba(200,215,255,0)`);
+          grd.addColorStop(0.7, `rgba(200,215,255,0)`);
+          grd.addColorStop(1,   `rgba(200,215,255,${fillAlpha.toFixed(3)})`);
+          ctx!.fillStyle = grd;
+          ctx!.beginPath();
+          ctx!.arc(w.x, w.y, r, 0, Math.PI * 2);
+          ctx!.fill();
+        }
+
+        ctx!.restore();
+      }
+
+      animFrame = requestAnimationFrame(render);
     }
-    raf = requestAnimationFrame(render);
+
+    window.addEventListener("click", onClick);
+    window.addEventListener("resize", resize);
+    resize();
+    ctx.fillStyle = "#08080c";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    animFrame = requestAnimationFrame(render);
 
     return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("mousemove", onMouseMove);
-      ro.disconnect();
-      gl.deleteProgram(prog);
-      gl.deleteBuffer(buf);
+      cancelAnimationFrame(animFrame);
+      window.removeEventListener("click", onClick);
+      window.removeEventListener("resize", resize);
     };
   }, []);
 
@@ -145,12 +122,13 @@ export function LandingWebGLBackground() {
       ref={canvasRef}
       aria-hidden="true"
       style={{
-        position: "absolute",
+        position: "fixed",
         inset: 0,
         width: "100%",
         height: "100%",
         zIndex: 0,
         display: "block",
+        pointerEvents: "none",
       }}
     />
   );

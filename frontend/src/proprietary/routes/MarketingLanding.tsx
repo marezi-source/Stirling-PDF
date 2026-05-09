@@ -376,26 +376,6 @@ export default function MarketingLanding() {
         </div>
       </section>
 
-      {/* ── Tool cards ── */}
-      <section className={styles.features} id="features">
-        <h2 className={styles.featuresTitle}>Powerful tools. Easy to use.</h2>
-        <p className={styles.featuresSubtitle}>
-          Everything you need to work with PDFs in one place.
-        </p>
-        <div className={styles.toolGrid} id="tools">
-          {TOOLS.map(({ name, desc, Icon, path }) => (
-            <div key={name} className={styles.toolCard} onClick={() => goToTool(path)}>
-              <div className={styles.toolIcon}>
-                <Icon />
-              </div>
-              <div>
-                <div className={styles.toolName}>{name}</div>
-                <div className={styles.toolDesc}>{desc}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 # OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-09 (Session 18)
+**Last updated:** 2026-05-09 (Session 19)
 **Branch:** OnePDF-UI-Change  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -1474,3 +1474,85 @@ Nav already had `position: sticky; z-index: 50` so no change needed there.
 - [ ] Nav, hero text, buttons, and feature cards all render above the canvas
 - [ ] Workspace drop-zone screen (`/app`) unchanged — no WebGL background there
 - [ ] No console errors on mount or unmount
+
+---
+
+## Session 19: Background Effect Iteration + Login/Signup Effect Parity + "Powerful Tools" Section Removed
+
+### Goal
+
+Iterate the cursor-reactive background on the marketing landing page (`/`) through a series of visual effects, land on a final aesthetic, and apply the same effect to the login and signup pages.
+
+---
+
+### Background Effect — Evolution
+
+The WebGL shader approach from Session 18 was replaced in favour of Canvas 2D throughout this session (WebGL silently failed to update uniforms, producing a static frame).
+
+All iterations live in `frontend/src/core/components/shared/LandingWebGLBackground.tsx`.
+
+| Iteration | Effect | Key detail |
+|---|---|---|
+| 1 | Soft radial blobs (Canvas 2D) | Replaced WebGL; 4 circular radial washes, mouse lerp 0.06 |
+| 2 | Wind streaks | Elliptical gradients via `ctx.scale`, 4 wide flat bands with slow angle oscillation and blush/rose colour |
+| 3 | Art brush + wind | Multi-bristle strokes (14 lines per segment) on offscreen canvas; particles drift in a rotating wind direction; offscreen canvas fades at 0.6%/frame |
+| 4 | Charcoal smear | 18 bristles, grain dust particles, chalk highlight lines, smudge halo; slow paint-to-dark fade |
+| 5 | Smoke / fog | Particle puffs with curl-noise turbulence field; puffs grow from ~20px → 100–220px; dark charcoal-blue colour (`rgb(32,34,45)`) |
+| 6 | Heat shimmer | Rising wavy bands from cursor trail; two-layer stroke (cool blue-white glow + warm amber core); source glow at each heat point |
+| **7 (final)** | **Pressure wave** | **Click-triggered; 3 concentric rings per click with staggered delays (0 / 60 / 140 ms); rings decelerate (speed × 0.88^(dt×60)); life tied to speed; inner pressure fill for small young rings** |
+
+#### Final Effect Details — Pressure Wave
+
+**`frontend/src/core/components/shared/LandingWebGLBackground.tsx`** — complete rewrite:
+
+```
+Interface: Wave { x, y, radius, speed, life, delay }
+Listener: window "click" (not mousemove)
+Per click: 3 rings — speeds 420 / 340 / 260 px/s, delays 0 / 60 / 140 ms
+Per frame: speed *= 0.88^(dt*60), radius += speed*dt, life = min(life, speed/420)
+Ring render: outer glow (6px, rgba 200,215,255 × 0.06) + sharp core (1px × 0.10)
+Young rings (r < 80): inner pressure fill gradient at ring edge
+Canvas: position: fixed (viewport-anchored); pointerEvents: none
+```
+
+---
+
+### "Powerful Tools" Section Removed
+
+**`frontend/src/proprietary/routes/MarketingLanding.tsx`** — deleted the entire `<section className={styles.features}>` block ("Powerful tools. Easy to use." heading + 6 tool cards grid).
+
+The `TOOLS` constant and related CSS classes remain in the file but are inert.
+
+---
+
+### Login & Signup — Same Background Effect Applied
+
+Both pages share `AuthLayout` so one change covers both.
+
+**`frontend/src/proprietary/routes/authShared/AuthLayout.tsx`:**
+- Added `import { LandingWebGLBackground } from "@app/components/shared/LandingWebGLBackground"`
+- Rendered `<LandingWebGLBackground />` as first child of `<div className={styles.page}>`
+
+**`frontend/src/proprietary/routes/authShared/AuthLayout.module.css`:**
+
+| Rule | Change |
+|---|---|
+| `.page` background | `#e8e8e8` → `#060609` (near-black, matches marketing page) |
+| `.page` | Added `position: relative` (containing block for fixed canvas) |
+| `.card` box-shadow | `0 4px 32px rgba(0,0,0,0.09)` → `0 8px 48px rgba(0,0,0,0.5)` (stronger lift on dark bg) |
+| `.card` | Added `position: relative; z-index: 1` (above canvas) |
+
+---
+
+### Session 19 — Test Checklist
+
+- [ ] Click anywhere on `/` — three concentric rings expand and decelerate outward from click point
+- [ ] Second and third rings are delayed slightly (60ms / 140ms)
+- [ ] Rings fade as they slow, disappear when speed is spent
+- [ ] Inner pressure fill visible on fresh young rings before they expand past 80px
+- [ ] Clicking page content (buttons, nav) still works — canvas is `pointerEvents: none`
+- [ ] Login page (`/login`) has near-black background with click-triggered pressure wave effect
+- [ ] Signup page (`/signup`) has the same dark background + effect
+- [ ] White auth card floats visibly above the dark background (strong drop shadow)
+- [ ] "Powerful tools. Easy to use." section no longer appears on the marketing landing page
+- [ ] Nav, hero, and rest of landing page layout unchanged

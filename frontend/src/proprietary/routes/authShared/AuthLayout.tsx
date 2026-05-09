@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BASE_PATH } from "@app/constants/app";
+import { LandingWebGLBackground } from "@app/components/shared/LandingWebGLBackground";
 import styles from "@app/routes/authShared/AuthLayout.module.css";
 
 interface AuthLayoutProps {
@@ -57,6 +58,7 @@ export default function AuthLayout({ children, title, subtitle }: AuthLayoutProp
 
   return (
     <div className={styles.page}>
+      <LandingWebGLBackground />
       <div className={styles.card}>
         {/* ── Left branding panel ── */}
         <div className={styles.leftPanel}>

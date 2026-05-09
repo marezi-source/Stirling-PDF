@@ -1,6 +1,6 @@
 # OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-09 (Session 21)
+**Last updated:** 2026-05-09 (Session 22)
 **Branch:** OnePDF-UI-Change  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -1754,3 +1754,143 @@ All rule bodies (`background`, `color`, `border-color`, `box-shadow`) reference 
 - [ ] All color transitions animate over 0.25s (no hard flash)
 - [ ] Preference persists — toggling then navigating to `/login` keeps selected theme
 - [ ] Dark mode: no visual regression — all existing dark colors intact
+
+---
+
+## Session 22: Edit PDF Upload Zone + UI Cleanup + CollabPresence Fix + Help Page
+
+### Edit PDF Upload Zone — Marketing Landing Page Hero Right
+
+Replaced the static decorative PDF illustration (floating icon cards + dashed PDF document mock) on the hero right column with an interactive drag-and-drop upload card. The floating tool icon cards are retained and orbit the central upload zone.
+
+**`frontend/src/proprietary/routes/MarketingLanding.tsx`** — Modified:
+
+- Added hook calls: `useFileHandler` → `addFiles`, `useGoogleDrivePicker` → `isGoogleDriveEnabled` + `openGoogleDrivePicker`
+- Added `fileInputRef`, `isDragging`, `isUploading` state
+- Added handlers: `handleFilesSelected`, `handleLocalUpload`, `handleGoogleDriveUpload`, `handleDragOver`, `handleDragLeave`, `handleDrop`, `handleFileInputChange`
+- Added `DriveIcon` inline SVG component (cloud outline)
+- Replaced `.heroRight` / `.illustration` / `.pdfDoc` JSX with `.illustration` container holding:
+  - Five floating tool icon cards at their original positions (pencil, convert, merge, download, sign)
+  - Central `.uploadZone.uploadZoneInline` card with: upload icon, "Drop a PDF" title, "or choose from" subtitle, "Your device" button, conditional "Google Drive" button, hidden `<input type="file">`
+- Removed `"Edit PDF"` from the nav tool links (redundant with hero upload zone)
+- Removed `heroCtas` block ("Get Started →" and "Sign In" buttons) — redundant with nav Login/Sign up and the upload zone as primary CTA
+
+**Flow:**
+| User state | Action | Result |
+|---|---|---|
+| Logged in | Selects/drops PDF | `addFiles()` → `handleToolSelect("pdfTextEditor")` → `navigate("/app")` |
+| Unauthenticated | Any interaction | `navigate("/login?from=/pdf-text-editor")` |
+
+Google Drive button only appears when Drive is configured (`isGoogleDriveEnabled`). Drag-and-drop filters to PDF MIME type only.
+
+**`frontend/src/proprietary/routes/MarketingLanding.module.css`** — Modified:
+
+- Added `.uploadZone` (standalone card, `width: 22rem`) and `.uploadZoneInline` (embedded override, `width: 17rem`, compact padding, `z-index: 2`)
+- Added `.uploadZoneDragging` (border highlight on drag-over), `.uploadZoneLoading` (opacity + pointer-events disabled)
+- Added `.uploadZoneLabel`, `.uploadZoneIcon`, `.uploadZoneTitle`, `.uploadZoneSubtitle`, `.uploadZoneButtons`, `.uploadLocalBtn`, `.uploadDriveBtn`, `.uploadZoneNote`
+- Illustration size increased: `24rem × 24rem` → `30rem × 30rem` (more space around the upload card)
+- `.uploadZoneInline .uploadZoneSubtitle` margin reduced for compact spacing
+- `.heroRight` gets `margin-top: -4rem` to shift the whole illustration upward relative to the hero's vertical center
+- Removed `.heroCtas`, `.getStartedBtn`, `.signInBtn` CSS (those elements removed from JSX)
+- `heroSubtitle` bottom margin reduced from `2.5rem` to `2rem` (no longer leads into CTA buttons)
+- Mobile responsive: `.heroRight` margin-top reset to `0`; illustration scales to `max-width: 26rem; height: 26rem`; `.uploadZoneInline` width reduced to `14rem`
+
+---
+
+### CollabPresence Bug Fix
+
+**Error:** `TypeError: Cannot read properties of undefined (reading 'slice')` at `CollabPresence.tsx:22`.
+
+**Root cause:** The `participants` prop was `undefined` at runtime (caller not passing the prop), but the component called `.slice()` on it directly without a guard.
+
+**Fix:** Added a default parameter `= []` in the destructuring:
+
+```tsx
+// Before:
+export function CollabPresence({ participants, currentUsername, connected }: CollabPresenceProps) {
+
+// After:
+export function CollabPresence({ participants = [], currentUsername, connected }: CollabPresenceProps) {
+```
+
+**`frontend/src/core/components/collab/CollabPresence.tsx`** — one-line fix.
+
+---
+
+### Tours → Help Button + Help Page
+
+#### QuickAccessBar — Tours renamed to Help
+
+**`frontend/src/core/components/shared/QuickAccessBar.tsx`** — Modified:
+
+- Removed `requestStartTour` import from `@app/constants/events`
+- Removed `useToursTooltip` import and its hook call (removed `tooltipOpen`, `manualCloseOnly`, `showCloseButton`, `toursMenuOpen`, `setToursMenuOpen`, `handleTooltipOpenChange`)
+- Removed `Tooltip` import (was only used for the tour tooltip wrapper)
+- `bottomButtons` help entry:
+  - `name`: `t("quickAccess.tours", "Tours")` → `t("quickAccess.help", "Help")`
+  - `icon`: `explore-rounded` → `help-rounded`
+  - `onClick`: `() => {}` → `() => navigate("/help")`
+- Replaced the entire complex `if (buttonConfig.id === "help")` rendering block (Mantine `Menu` with tour items + `Tooltip` wrapper) with a simple passthrough:
+  ```tsx
+  if (buttonConfig.id === "help") {
+    return (
+      <React.Fragment key={buttonConfig.id}>
+        <div data-tour="help-button">
+          {renderNavButton(buttonConfig, index)}
+        </div>
+      </React.Fragment>
+    );
+  }
+  ```
+
+#### New Help Page
+
+**`frontend/src/core/pages/HelpPage.tsx`** — New file:
+
+- Full-page layout at `/help` within `AppProviders` context (no workspace layout)
+- Back button → `navigate(-1)`
+- Form fields: **Name** (required, min 2 chars), **Email** (required, valid email format), **Message** (required, min 10 chars)
+  - Subject field was initially added then removed per user request
+- Client-side validation with per-field error messages
+- Submit: 800ms simulated loading state → success confirmation screen
+- Success screen: checkmark icon, confirmation message with user's email, "Go back" button
+- Footer note: "You can also email us at feedback@onepdf.app"
+- Uses Mantine `TextInput`, `Textarea`, `Button`, `Paper`, `Stack` components — inherits active theme
+
+**`frontend/src/proprietary/App.tsx`** — Modified:
+
+- Added `import HelpPage from "@app/pages/HelpPage"`
+- Added `<Route path="/help" element={<HelpPage />} />` before the `/*` catch-all (inside `AppProviders`)
+
+---
+
+### Session 22 — Test Checklist
+
+#### Upload Zone
+- [ ] Marketing landing page hero right shows floating icon cards around a central upload card
+- [ ] Upload card shows "Drop a PDF" title and "or choose from" subtitle
+- [ ] "Your device" button opens native file picker (PDF only)
+- [ ] Dragging a PDF onto the card highlights the border and shows "Drop to edit" text
+- [ ] Dropping a PDF navigates logged-in user to `/app` with pdf-text-editor active
+- [ ] Unauthenticated user clicking any button redirects to `/login`
+- [ ] "Google Drive" button only appears when Drive is configured in settings
+- [ ] "Edit PDF" link no longer appears in the nav tool links
+- [ ] "Get Started →" and "Sign In" buttons no longer appear in the hero body
+- [ ] Upload zone shifted upward relative to hero left column (not baseline-aligned)
+- [ ] Light mode: upload card uses white background, dark border dashes
+- [ ] Dark mode: upload card uses `#141414` background, white-tinted dashes
+
+#### CollabPresence
+- [ ] Clicking "Collaborate" button in the workspace no longer crashes with `TypeError: Cannot read properties of undefined (reading 'slice')`
+- [ ] CollabPresence renders an empty presence list when `participants` is not provided
+
+#### Help Page
+- [ ] Left sidebar "Tours" button is now labelled "Help" with a help icon
+- [ ] Clicking "Help" navigates to `/help` (full-page form, no workspace layout)
+- [ ] Back button returns to previous page
+- [ ] Submitting empty form shows per-field validation errors
+- [ ] Invalid email format triggers email error message
+- [ ] Short message (< 10 chars) triggers message error
+- [ ] Valid submission shows 800ms loading state then success screen
+- [ ] Success screen shows user's submitted email address
+- [ ] "Go back" on success screen returns to previous page

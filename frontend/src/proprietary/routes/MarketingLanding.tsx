@@ -6,6 +6,9 @@ import { useToolWorkflow } from "@app/contexts/ToolWorkflowContext";
 import { ToolId } from "@app/types/toolId";
 import { LandingWebGLBackground } from "@app/components/shared/LandingWebGLBackground";
 import { useRainbowThemeContext } from "@app/components/shared/RainbowThemeProvider";
+import { useFileHandler } from "@app/hooks/useFileHandler";
+import { useGoogleDrivePicker } from "@app/hooks/useGoogleDrivePicker";
+import { openFilesFromDisk } from "@app/services/openFilesFromDisk";
 import styles from "./MarketingLanding.module.css";
 
 const PATH_TO_TOOL_ID: Record<string, ToolId> = {
@@ -108,6 +111,14 @@ function DownloadIcon() {
   );
 }
 
+function DriveIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" />
+    </svg>
+  );
+}
+
 function ShieldIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -204,6 +215,11 @@ export default function MarketingLanding() {
   const logoSrc = `${BASE_PATH}/images/OnePDF_Logo.png`;
   const [convertOpen, setConvertOpen] = useState(false);
   const convertRef = useRef<HTMLDivElement>(null);
+  const { addFiles } = useFileHandler();
+  const { isEnabled: isGoogleDriveEnabled, openPicker: openGoogleDrivePicker } = useGoogleDrivePicker();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (!convertOpen) return;
@@ -227,6 +243,63 @@ export default function MarketingLanding() {
     }
   };
 
+  const handleFilesSelected = async (files: File[]) => {
+    if (files.length === 0) return;
+    if (!session) {
+      navigate(`/login?from=${encodeURIComponent("/pdf-text-editor")}`);
+      return;
+    }
+    setIsUploading(true);
+    try {
+      await addFiles(files);
+      handleToolSelect("pdfTextEditor");
+      navigate("/app");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleLocalUpload = async () => {
+    if (!session) {
+      navigate(`/login?from=${encodeURIComponent("/pdf-text-editor")}`);
+      return;
+    }
+    const files = await openFilesFromDisk({
+      multiple: false,
+      onFallbackOpen: () => fileInputRef.current?.click(),
+    });
+    if (files.length > 0) await handleFilesSelected(files);
+  };
+
+  const handleGoogleDriveUpload = async () => {
+    if (!session) {
+      navigate(`/login?from=${encodeURIComponent("/pdf-text-editor")}`);
+      return;
+    }
+    const files = await openGoogleDrivePicker({ multiple: false, mimeTypes: "application/pdf" });
+    if (files.length > 0) await handleFilesSelected(files);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => setIsDragging(false);
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files).filter((f) => f.type === "application/pdf");
+    if (files.length > 0) await handleFilesSelected(files);
+  };
+
+  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = "";
+    if (files.length > 0) await handleFilesSelected(files);
+  };
+
   return (
     <div className={styles.page} data-theme={themeMode}>
       <LandingWebGLBackground />
@@ -239,8 +312,6 @@ export default function MarketingLanding() {
         </div>
 
         <div className={styles.navToolLinks}>
-          <button className={styles.navToolLink} onClick={() => goToTool("/pdf-text-editor")}>Edit PDF</button>
-
           {/* Convert dropdown */}
           <div className={styles.convertWrapper} ref={convertRef}>
             <button
@@ -328,17 +399,6 @@ export default function MarketingLanding() {
             Edit, convert, merge, split, compress, sign,<br />
             and collaborate on PDFs — all in one place.
           </p>
-          <div className={styles.heroCtas}>
-            <button
-              className={styles.getStartedBtn}
-              onClick={() => navigate(session ? "/app" : "/login")}
-            >
-              Get Started →
-            </button>
-            <button className={styles.signInBtn} onClick={() => navigate("/login")}>
-              Sign In
-            </button>
-          </div>
           <div className={styles.featureStrip}>
             <div className={styles.featureItem}>
               <div className={styles.featureIcon}><ShieldIcon /></div>
@@ -371,31 +431,51 @@ export default function MarketingLanding() {
           </div>
         </div>
 
-        {/* ── PDF illustration ── */}
+        {/* ── Edit PDF upload zone with floating tool cards ── */}
         <div className={styles.heroRight}>
           <div className={styles.illustration}>
-            <div className={`${styles.floatCard} ${styles.floatTopLeft}`}>
-              <PencilIcon />
-            </div>
-            <div className={`${styles.floatCard} ${styles.floatTopRight}`}>
-              <ConvertIcon />
-            </div>
-            <div className={`${styles.floatCard} ${styles.floatMidLeft}`}>
-              <MergeIcon />
-            </div>
-            <div className={`${styles.floatCard} ${styles.floatMidRight}`}>
-              <DownloadIcon />
-            </div>
-            <div className={`${styles.floatCard} ${styles.floatBottom}`}>
-              <SignIcon />
-            </div>
+            <div className={`${styles.floatCard} ${styles.floatTopLeft}`}><PencilIcon /></div>
+            <div className={`${styles.floatCard} ${styles.floatTopRight}`}><ConvertIcon /></div>
+            <div className={`${styles.floatCard} ${styles.floatMidLeft}`}><MergeIcon /></div>
+            <div className={`${styles.floatCard} ${styles.floatMidRight}`}><DownloadIcon /></div>
+            <div className={`${styles.floatCard} ${styles.floatBottom}`}><SignIcon /></div>
 
-            <div className={styles.pdfDoc}>
-              <div className={styles.pdfDocCorner} />
-              <div className={styles.pdfLine} />
-              <div className={`${styles.pdfLine} ${styles.pdfLineShort}`} />
-              <div className={styles.pdfLine} />
-              <div className={`${styles.pdfLine} ${styles.pdfLineShort}`} />
+            <div
+              className={`${styles.uploadZone} ${styles.uploadZoneInline}${isDragging ? ` ${styles.uploadZoneDragging}` : ""}${isUploading ? ` ${styles.uploadZoneLoading}` : ""}`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => void handleDrop(e)}
+            >
+              <div className={styles.uploadZoneIcon}><UploadIcon /></div>
+              <p className={styles.uploadZoneTitle}>
+                {isDragging ? "Drop to edit" : isUploading ? "Opening…" : "Drop a PDF"}
+              </p>
+              <p className={styles.uploadZoneSubtitle}>or choose from</p>
+              <div className={styles.uploadZoneButtons}>
+                <button
+                  className={styles.uploadLocalBtn}
+                  onClick={() => void handleLocalUpload()}
+                  disabled={isUploading}
+                >
+                  <UploadIcon /> Your device
+                </button>
+                {isGoogleDriveEnabled && (
+                  <button
+                    className={styles.uploadDriveBtn}
+                    onClick={() => void handleGoogleDriveUpload()}
+                    disabled={isUploading}
+                  >
+                    <DriveIcon /> Google Drive
+                  </button>
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/pdf"
+                style={{ display: "none" }}
+                onChange={(e) => void handleFileInputChange(e)}
+              />
             </div>
           </div>
         </div>

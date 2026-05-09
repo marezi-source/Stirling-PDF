@@ -17,7 +17,7 @@ function userColor(username: string): string {
   return colors[Math.abs(hash) % colors.length];
 }
 
-export function CollabPresence({ participants, currentUsername, connected }: CollabPresenceProps) {
+export function CollabPresence({ participants = [], currentUsername, connected }: CollabPresenceProps) {
   const visible = participants.slice(0, 5);
   const overflow = participants.length - visible.length;
 

@@ -318,65 +318,13 @@
   font-size: 1.0625rem;
   font-weight: 400;
   color: var(--c-text-muted);
-  margin: 0 0 2.5rem;
+  margin: 0 0 2rem;
   line-height: 1.65;
   transition: color 0.25s;
 }
 
 .heroDesc {
   display: none;
-}
-
-/* ── Hero CTAs ── */
-.heroCtas {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 3.5rem;
-}
-
-.getStartedBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  background: var(--c-action-bg);
-  color: var(--c-action-fg);
-  border: none;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background 0.15s, color 0.15s;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-}
-
-.getStartedBtn:hover {
-  background: var(--c-action-hover);
-}
-
-.signInBtn {
-  display: inline-flex;
-  align-items: center;
-  background: none;
-  border: 1px solid var(--c-border-btn);
-  color: var(--c-text-muted);
-  font-size: 0.9375rem;
-  font-weight: 500;
-  padding: 0.75rem 1.375rem;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-family: inherit;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
-  white-space: nowrap;
-}
-
-.signInBtn:hover {
-  border-color: var(--c-border-hover);
-  color: var(--c-text-primary);
-  background: var(--c-press-overlay);
 }
 
 /* keep old classes hidden so nothing breaks */
@@ -434,12 +382,13 @@
 /* ── PDF illustration ── */
 .heroRight {
   flex: 0 0 auto;
+  margin-top: -4rem;
 }
 
 .illustration {
   position: relative;
-  width: 24rem;
-  height: 24rem;
+  width: 30rem;
+  height: 30rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -587,6 +536,162 @@
   transition: color 0.25s;
 }
 
+/* ── Upload zone ── */
+.uploadZone {
+  width: 22rem;
+  background: var(--c-surface);
+  border: 1.5px dashed var(--c-border-btn);
+  border-radius: 1.25rem;
+  padding: 2.75rem 2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  text-align: center;
+  cursor: default;
+  transition: border-color 0.2s, background 0.2s;
+  position: relative;
+}
+
+.uploadZoneInline {
+  width: 17rem;
+  padding: 1.75rem 1.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.uploadZoneInline .uploadZoneSubtitle {
+  margin-bottom: 1rem;
+}
+
+.uploadZoneInline .uploadZoneButtons {
+  margin-bottom: 0;
+}
+
+.uploadZoneDragging {
+  border-color: var(--c-border-hover);
+  background: var(--c-hover-overlay);
+}
+
+.uploadZoneLoading {
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.uploadZoneLabel {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-text-label);
+  margin-bottom: 1.25rem;
+  transition: color 0.25s;
+}
+
+.uploadZoneIcon {
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 50%;
+  background: var(--c-surface-raised);
+  border: 1px solid var(--c-border-ui);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-float-color);
+  margin-bottom: 1rem;
+  transition: background 0.25s, border-color 0.25s, color 0.25s;
+}
+
+.uploadZoneTitle {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--c-text-primary);
+  margin: 0 0 0.375rem;
+  line-height: 1.3;
+  transition: color 0.25s;
+}
+
+.uploadZoneSubtitle {
+  font-size: 0.875rem;
+  color: var(--c-text-muted);
+  margin: 0 0 1.625rem;
+  transition: color 0.25s;
+}
+
+.uploadZoneButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  width: 100%;
+  margin-bottom: 1.25rem;
+}
+
+.uploadLocalBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  background: var(--c-action-bg);
+  color: var(--c-action-fg);
+  border: none;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.uploadLocalBtn:hover:not(:disabled) {
+  background: var(--c-action-hover);
+}
+
+.uploadLocalBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.uploadDriveBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  background: none;
+  border: 1px solid var(--c-border-btn);
+  color: var(--c-text-muted);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.uploadDriveBtn:hover:not(:disabled) {
+  border-color: var(--c-border-hover);
+  color: var(--c-text-primary);
+  background: var(--c-press-overlay);
+}
+
+.uploadDriveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.uploadZoneNote {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  color: var(--c-text-dim);
+  margin: 0;
+  transition: color 0.25s;
+}
+
 /* ── Responsive ── */
 @media (max-width: 900px) {
   .navToolLinks { display: none; }
@@ -605,8 +710,9 @@
   .heroCtas { justify-content: center; }
   .featureStrip { grid-template-columns: repeat(2, auto); justify-content: center; }
   .featureItem { text-align: left; }
-  .heroRight { order: -1; }
-  .illustration { width: 16rem; height: 16rem; }
+  .heroRight { order: -1; width: 100%; margin-top: 0; }
+  .illustration { width: 100%; max-width: 26rem; height: 26rem; margin: 0 auto; }
+  .uploadZoneInline { width: 14rem; }
   .toolGrid { grid-template-columns: repeat(2, 1fr); }
   .features { padding: 3rem 1.25rem; }
 }

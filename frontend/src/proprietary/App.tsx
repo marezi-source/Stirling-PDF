@@ -15,6 +15,7 @@ import ShareLinkPage from "@app/routes/ShareLinkPage";
 import ParticipantView from "@app/components/workflow/ParticipantView";
 import MobileScannerPage from "@app/pages/MobileScannerPage";
 import Onboarding from "@app/components/onboarding/Onboarding";
+import HelpPage from "@app/pages/HelpPage";
 
 // Import global styles
 import "@app/styles/tailwind.css";
@@ -79,6 +80,7 @@ export default function App() {
                   <Route path="/share/:token" element={<ShareLinkPage />} />
                   {/* Marketing landing — always public, no auth check */}
                   <Route path="/" element={<MarketingLanding />} />
+                  <Route path="/help" element={<HelpPage />} />
                   {/* Main app routes - Landing handles auth logic */}
                   <Route path="/*" element={<Landing />} />
                 </Routes>

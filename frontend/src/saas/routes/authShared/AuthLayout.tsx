@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import LoginRightCarousel from "@app/components/shared/LoginRightCarousel";
 import buildLoginSlides from "@app/components/shared/loginSlides";
 import styles from "@app/routes/authShared/AuthLayout.module.css";
+import { LandingWebGLBackground } from "@app/components/shared/LandingWebGLBackground";
 import { useLogoVariant } from "@app/hooks/useLogoVariant";
 import { useIsOverflowing } from "@app/hooks/useIsOverflowing";
 import Footer from "@app/components/shared/Footer";
@@ -73,6 +74,7 @@ export default function AuthLayout({
 
   return (
     <div className={styles.authContainer}>
+      <LandingWebGLBackground />
       <div className={styles.authMain}>
         <div
           ref={cardRef}

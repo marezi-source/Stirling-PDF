@@ -25,6 +25,14 @@
   color: var(--text-secondary);
 }
 
+/* ── Logo ────────────────────────────────────────────────── */
+.landing-logo {
+  width: 160px;
+  height: auto;
+  margin-bottom: 1.5rem;
+  flex-shrink: 0;
+}
+
 /* ── Document stack ──────────────────────────────────────── */
 .landing-stack {
   position: relative;

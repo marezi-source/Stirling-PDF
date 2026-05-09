@@ -1,16 +1,11 @@
 import { useEffect, useRef } from "react";
-
-interface Wave {
-  x: number;
-  y: number;
-  radius: number;
-  speed: number;
-  life: number;   // 1 → 0
-  delay: number;  // seconds before this ring starts expanding
-}
+import { useMantineColorScheme } from "@mantine/core";
 
 export function LandingWebGLBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { colorScheme } = useMantineColorScheme();
+  const schemeRef = useRef(colorScheme);
+  schemeRef.current = colorScheme;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -18,101 +13,114 @@ export function LandingWebGLBackground() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let animFrame: number;
-    let lastTime = performance.now();
-    const waves: Wave[] = [];
+    let raf: number;
+    let time = 0;
+    let lastMs = performance.now();
+
+    let mouseX = window.innerWidth  * 0.5;
+    let mouseY = window.innerHeight * 0.5;
+
+    // Three orbs: one follows the cursor, two drift autonomously
+    let o1x = mouseX,              o1y = mouseY;
+    let o2x = window.innerWidth  * 0.25, o2y = window.innerHeight * 0.65;
+    let o3x = window.innerWidth  * 0.75, o3y = window.innerHeight * 0.30;
 
     function resize() {
       canvas!.width  = window.innerWidth;
       canvas!.height = window.innerHeight;
     }
 
-    function onClick(e: MouseEvent) {
-      const x = e.clientX;
-      const y = e.clientY;
-
-      // Three concentric rings per click — main shockwave + two echoes
-      waves.push({ x, y, radius: 0, speed: 420, life: 1, delay: 0.00 });
-      waves.push({ x, y, radius: 0, speed: 340, life: 1, delay: 0.06 });
-      waves.push({ x, y, radius: 0, speed: 260, life: 1, delay: 0.14 });
+    function onMove(e: MouseEvent) {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
     }
 
     function render() {
       const now = performance.now();
-      const dt  = Math.min((now - lastTime) / 1000, 0.05);
-      lastTime  = now;
+      const dt  = Math.min((now - lastMs) / 1000, 0.05);
+      lastMs = now;
+      time  += dt;
 
-      ctx!.fillStyle = "#08080c";
-      ctx!.fillRect(0, 0, canvas!.width, canvas!.height);
+      const w = canvas!.width;
+      const h = canvas!.height;
+      const isDark = schemeRef.current === "dark";
 
-      for (let i = waves.length - 1; i >= 0; i--) {
-        const w = waves[i];
+      // Orb 1 — smooth cursor follower
+      o1x += (mouseX - o1x) * 0.05;
+      o1y += (mouseY - o1y) * 0.05;
 
-        if (w.delay > 0) { w.delay -= dt; continue; }
+      // Orb 2 — slow autonomous drift, bottom-left region
+      const t2x = w * 0.22 + Math.sin(time * 0.28) * w * 0.10;
+      const t2y = h * 0.68 + Math.cos(time * 0.20) * h * 0.10;
+      o2x += (t2x - o2x) * 0.018;
+      o2y += (t2y - o2y) * 0.018;
 
-        // Shockwave decelerates — energy dissipating through air
-        w.radius += w.speed * dt;
-        w.speed  *= Math.pow(0.88, dt * 60);
+      // Orb 3 — slow autonomous drift, top-right region, opposite phase
+      const t3x = w * 0.78 + Math.cos(time * 0.22) * w * 0.11;
+      const t3y = h * 0.28 + Math.sin(time * 0.32) * h * 0.11;
+      o3x += (t3x - o3x) * 0.018;
+      o3y += (t3y - o3y) * 0.018;
 
-        // Life tied to speed: wave dies when it has almost stopped
-        w.life = Math.min(w.life, w.speed / 420);
+      // Base fill
+      ctx!.fillStyle = isDark ? "#04040a" : "#f0f4ff";
+      ctx!.fillRect(0, 0, w, h);
 
-        if (w.life <= 0.005 || w.radius > 1800) {
-          waves.splice(i, 1);
-          continue;
-        }
-
-        const a = w.life;
-        const r = w.radius;
-
-        ctx!.save();
-
-        // Outer soft glow ring
-        ctx!.beginPath();
-        ctx!.arc(w.x, w.y, r, 0, Math.PI * 2);
-        ctx!.strokeStyle = `rgba(200,215,255,${(a * 0.06).toFixed(3)})`;
-        ctx!.lineWidth   = 6;
-        ctx!.shadowBlur  = 12;
-        ctx!.shadowColor = `rgba(180,200,255,${(a * 0.08).toFixed(3)})`;
-        ctx!.stroke();
-
-        // Sharp core ring
-        ctx!.beginPath();
-        ctx!.arc(w.x, w.y, r, 0, Math.PI * 2);
-        ctx!.strokeStyle = `rgba(230,238,255,${(a * 0.10).toFixed(3)})`;
-        ctx!.lineWidth   = 1;
-        ctx!.shadowBlur  = 0;
-        ctx!.stroke();
-
-        // Inner pressure fill — visible only when ring is small and fresh
-        if (r < 80) {
-          const fillAlpha = a * (1 - r / 80) * 0.04;
-          const grd = ctx!.createRadialGradient(w.x, w.y, 0, w.x, w.y, r);
-          grd.addColorStop(0,   `rgba(200,215,255,0)`);
-          grd.addColorStop(0.7, `rgba(200,215,255,0)`);
-          grd.addColorStop(1,   `rgba(200,215,255,${fillAlpha.toFixed(3)})`);
-          ctx!.fillStyle = grd;
-          ctx!.beginPath();
-          ctx!.arc(w.x, w.y, r, 0, Math.PI * 2);
-          ctx!.fill();
-        }
-
-        ctx!.restore();
+      // Orb 1 — follows cursor
+      const r1 = w * 0.48;
+      const g1 = ctx!.createRadialGradient(o1x, o1y, 0, o1x, o1y, r1);
+      if (isDark) {
+        g1.addColorStop(0,   "rgba(25, 40, 140, 0.28)");
+        g1.addColorStop(0.4, "rgba(15, 25,  90, 0.12)");
+        g1.addColorStop(1,   "rgba(5,   8,  30, 0)");
+      } else {
+        g1.addColorStop(0,   "rgba(100, 140, 255, 0.18)");
+        g1.addColorStop(0.4, "rgba( 80, 110, 220, 0.08)");
+        g1.addColorStop(1,   "rgba( 60,  80, 180, 0)");
       }
+      ctx!.fillStyle = g1;
+      ctx!.fillRect(0, 0, w, h);
 
-      animFrame = requestAnimationFrame(render);
+      // Orb 2 — bottom-left drift
+      const r2 = w * 0.40;
+      const g2 = ctx!.createRadialGradient(o2x, o2y, 0, o2x, o2y, r2);
+      if (isDark) {
+        g2.addColorStop(0,   "rgba(65, 15, 120, 0.24)");
+        g2.addColorStop(0.5, "rgba(38, 10,  80, 0.10)");
+        g2.addColorStop(1,   "rgba(12,  3,  28, 0)");
+      } else {
+        g2.addColorStop(0,   "rgba(160, 100, 255, 0.14)");
+        g2.addColorStop(0.5, "rgba(130,  80, 220, 0.06)");
+        g2.addColorStop(1,   "rgba( 90,  50, 180, 0)");
+      }
+      ctx!.fillStyle = g2;
+      ctx!.fillRect(0, 0, w, h);
+
+      // Orb 3 — top-right drift
+      const r3 = w * 0.36;
+      const g3 = ctx!.createRadialGradient(o3x, o3y, 0, o3x, o3y, r3);
+      if (isDark) {
+        g3.addColorStop(0,   "rgba(8,  50, 110, 0.22)");
+        g3.addColorStop(0.5, "rgba(5,  30,  75, 0.09)");
+        g3.addColorStop(1,   "rgba(2,  10,  30, 0)");
+      } else {
+        g3.addColorStop(0,   "rgba( 60, 190, 220, 0.14)");
+        g3.addColorStop(0.5, "rgba( 40, 160, 200, 0.06)");
+        g3.addColorStop(1,   "rgba( 20, 120, 170, 0)");
+      }
+      ctx!.fillStyle = g3;
+      ctx!.fillRect(0, 0, w, h);
+
+      raf = requestAnimationFrame(render);
     }
 
-    window.addEventListener("click", onClick);
+    window.addEventListener("mousemove", onMove);
     window.addEventListener("resize", resize);
     resize();
-    ctx.fillStyle = "#08080c";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    animFrame = requestAnimationFrame(render);
+    raf = requestAnimationFrame(render);
 
     return () => {
-      cancelAnimationFrame(animFrame);
-      window.removeEventListener("click", onClick);
+      cancelAnimationFrame(raf);
+      window.removeEventListener("mousemove", onMove);
       window.removeEventListener("resize", resize);
     };
   }, []);

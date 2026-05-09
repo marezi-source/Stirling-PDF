@@ -1,6 +1,6 @@
 # OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-09 (Session 19)
+**Last updated:** 2026-05-09 (Session 20)
 **Branch:** OnePDF-UI-Change  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -1556,3 +1556,119 @@ Both pages share `AuthLayout` so one change covers both.
 - [ ] White auth card floats visibly above the dark background (strong drop shadow)
 - [ ] "Powerful tools. Easy to use." section no longer appears on the marketing landing page
 - [ ] Nav, hero, and rest of landing page layout unchanged
+
+---
+
+## Session 20: Gradient Motion Background + Card Glare + Logo + Footer + Light/Dark Toggle
+
+### Background Effect — Replace Pressure Wave with Gradient Orbs
+
+The pressure-wave (click-triggered) effect was replaced with a cursor-reactive gradient motion background applied to all pages (landing, login/signup, workspace).
+
+**`frontend/src/core/components/shared/LandingWebGLBackground.tsx`** — complete rewrite:
+
+Three radial gradient orbs rendered on a `#04040a` near-black base:
+
+| Orb | Colour | Behaviour |
+|---|---|---|
+| Orb 1 | Deep indigo `rgba(25, 40, 140, 0.28)` | Smooth cursor follower (lerp 0.05) |
+| Orb 2 | Violet `rgba(65, 15, 120, 0.24)` | Slow autonomous drift, bottom-left, lerp 0.018 |
+| Orb 3 | Steel blue `rgba(8, 50, 110, 0.22)` | Slow autonomous drift, top-right, opposite phase |
+
+Drift uses `sin`/`cos` of accumulated time to create organic looping paths. Frame-rate independent via `dt` capped at 0.05.
+
+**`frontend/src/core/pages/HomePage.tsx`** — Modified:
+- Added `import { LandingWebGLBackground }` and rendered `<LandingWebGLBackground />` as first child of the root `<div className="h-screen overflow-hidden">`, so the gradient background persists across all workspace states (empty, with files, any tool active).
+
+**`frontend/src/saas/routes/authShared/AuthLayout.tsx`** — Modified:
+- Added `import { LandingWebGLBackground }` and rendered it as first child of `authContainer`, giving login and signup pages the same dark animated background.
+
+---
+
+### Card Glare + 3D Tilt (Document Stack)
+
+**`frontend/src/core/components/shared/LandingDocumentStack.tsx`** — Added:
+- `stackRef`, `glareRef`, `frontRef`, `leftRef`, `rightRef` refs
+- `window.mousemove` handler: normalises cursor offset from card centre, drives `targetRotX`/`targetRotY` and glare position
+- `requestAnimationFrame` loop: lerps current rotation toward target (t = 0.07), applies `perspective(600px) rotateX rotateY`
+- Specular glare: `radial-gradient(ellipse 80% 55% at …)` overlaid on the front card with opacity driven by cursor distance
+- Depth shadow shift: light blue-white box-shadow on front card (`rgba(210,220,255,0.22)`) and back cards that shifts direction with tilt
+
+---
+
+### Logo Added to Landing Page
+
+**`frontend/src/core/components/shared/LandingPage.tsx`** — Modified:
+- Added `import { LogoIcon }` from `@app/components/shared/LogoIcon`
+- Rendered `<LogoIcon className="landing-logo" aria-label="OnePDF" />` above `<LandingDocumentStack />`
+
+**`frontend/src/core/components/shared/LandingPage.css`** — Added:
+```css
+.landing-logo {
+  width: 160px;
+  height: auto;
+  margin-bottom: 1.5rem;
+  flex-shrink: 0;
+}
+```
+
+---
+
+### Footer Simplified
+
+**`frontend/src/core/components/shared/Footer.tsx`** — Modified:
+- Removed all links: Survey, Privacy Policy, Terms and Conditions, Discord, GitHub, Accessibility, Cookie Policy
+- Removed unused imports: `useTranslation`, `useCookieConsent`, `useFooterInfo`, `Flex`
+- Replaced with a single mailto link:
+```tsx
+<a className="footer-link px-3" href="mailto:feedback@onepdf.app" style={{ fontSize: "0.75rem" }}>
+  Feedback / Complaint
+</a>
+```
+
+---
+
+### Light/Dark Theme Toggle on Landing Page
+
+**`frontend/src/core/components/shared/LandingPage.tsx`** — Modified:
+- Added `import { useRainbowThemeContext }` from `@app/components/shared/RainbowThemeProvider`
+- Added `import DarkModeIcon` and `import LightModeIcon` from `@mui/icons-material`
+- Added `const { toggleTheme, themeMode } = useRainbowThemeContext()`
+- Added an absolutely-positioned `ActionIcon` (top: 1rem, right: 1rem, z-index: 10) inside the Container with:
+  - Sun icon in dark mode, moon icon in light mode
+  - Frosted glass style: `backdropFilter: blur(8px)` + semi-transparent background + border
+  - Colors switch between dark-mode white and light-mode slate
+  - Wired to `toggleTheme()` — uses same preference system as the workspace RightRail toggle
+
+**`frontend/src/core/components/shared/LandingWebGLBackground.tsx`** — Modified:
+- Added `import { useMantineColorScheme }` from `@mantine/core`
+- `colorScheme` stored in a `schemeRef` so the rAF loop reads current value without restart
+- Dark mode: `#04040a` base + indigo/violet/steel blue orbs (unchanged)
+- Light mode: `#f0f4ff` base + soft blue (`rgba(100,140,255,0.18)`) + lavender (`rgba(160,100,255,0.14)`) + cyan (`rgba(60,190,220,0.14)`) orbs — subtle on light background
+
+**`frontend/src/core/components/shared/LandingDocumentStack.tsx`** — Modified:
+- Added `import { useMantineColorScheme }` from `@mantine/core`
+- `colorScheme` stored in `schemeRef` for use inside the rAF loop
+- Dark mode: light blue-white glows (`rgba(210,220,255,0.22)`) on front and back cards
+- Light mode: blue-gray shadows (`rgba(80,100,180,0.18)`) — visible on light backgrounds without the white-glow illusion
+
+---
+
+### Session 20 — Test Checklist
+
+- [ ] Landing page background is dark with three drifting gradient orbs visible
+- [ ] Moving cursor shifts orb 1 toward cursor position (smooth)
+- [ ] Orbs 2 and 3 drift autonomously in looping paths
+- [ ] Login and signup pages have the same dark animated background
+- [ ] Workspace (tool panel / workbench area) has the animated gradient background
+- [ ] Document stack tilts toward cursor (3D perspective)
+- [ ] Specular glare visible on front card header, moves with cursor
+- [ ] Box shadow shifts direction as card tilts
+- [ ] OnePDF logo image visible on the landing page (160px wide)
+- [ ] Footer shows only "Feedback / Complaint" link (all other links removed)
+- [ ] Dark/light toggle button visible top-right of the landing page
+- [ ] Clicking toggle switches light/dark mode — preference persists across navigation
+- [ ] Dark mode: landing canvas uses dark `#04040a` base + indigo/violet/steel orbs
+- [ ] Light mode: landing canvas uses light `#f0f4ff` base + soft blue/lavender/cyan orbs
+- [ ] Light mode: card shadows switch from white glow to blue-gray drop shadow (visible on light bg)
+- [ ] Dark mode: no visual regression — all dark-mode colors unchanged

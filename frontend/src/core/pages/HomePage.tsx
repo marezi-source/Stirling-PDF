@@ -27,6 +27,7 @@ import { useFilesModalContext } from "@app/contexts/FilesModalContext";
 import AppConfigModal from "@app/components/shared/AppConfigModalLazy";
 import { getStartupNavigationAction } from "@app/utils/homePageNavigation";
 import { HomePageExtensions } from "@app/components/home/HomePageExtensions";
+import { LandingWebGLBackground } from "@app/components/shared/LandingWebGLBackground";
 
 import "@app/pages/HomePage.css";
 
@@ -231,6 +232,7 @@ export default function HomePage() {
 
   return (
     <div className="h-screen overflow-hidden">
+      <LandingWebGLBackground />
       <HomePageExtensions />
       {isMobile ? (
         <div className="mobile-layout">

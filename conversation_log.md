@@ -1,6 +1,6 @@
 # OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-09 (Session 20)
+**Last updated:** 2026-05-09 (Session 21)
 **Branch:** OnePDF-UI-Change  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -1672,3 +1672,85 @@ Drift uses `sin`/`cos` of accumulated time to create organic looping paths. Fram
 - [ ] Light mode: landing canvas uses light `#f0f4ff` base + soft blue/lavender/cyan orbs
 - [ ] Light mode: card shadows switch from white glow to blue-gray drop shadow (visible on light bg)
 - [ ] Dark mode: no visual regression — all dark-mode colors unchanged
+
+---
+
+## Session 21: Theme Toggle Placement Fix + Marketing Page Light Mode
+
+### Bug Fix — Toggle Was Added to Workspace, Not Marketing Page
+
+The Session 20 toggle button was placed in `LandingPage.tsx` (the workspace drop-zone shown after login when no files are loaded), not on the marketing landing page at `/`. The user reported seeing a second toggle appearing in the workspace.
+
+**Reverted from `frontend/src/core/components/shared/LandingPage.tsx`:**
+- Removed `ActionIcon`, `useRainbowThemeContext`, `DarkModeIcon`, `LightModeIcon` imports
+- Removed `toggleTheme` / `themeMode` hook call
+- Removed the absolutely-positioned `ActionIcon` toggle button from the JSX
+
+---
+
+### Theme Toggle — Marketing Landing Page (`/`)
+
+**`frontend/src/proprietary/routes/MarketingLanding.tsx`** — Modified:
+- Added `import { useRainbowThemeContext }` from `@app/components/shared/RainbowThemeProvider`
+- Added `const { toggleTheme, themeMode } = useRainbowThemeContext()`
+- Added `data-theme={themeMode}` attribute to the root `.page` div
+- Added theme toggle button to the nav `navActions` group (left of Login button) using inline SVG sun/moon icons consistent with the page's existing icon style
+
+---
+
+### Marketing Landing Page — Full Light Mode Support
+
+All hardcoded dark colors in `MarketingLanding.module.css` were replaced with CSS custom properties. A single `[data-theme="light"]` block on `.page` overrides every token, so toggling the attribute flips the entire page in one step.
+
+**`frontend/src/proprietary/routes/MarketingLanding.module.css`** — Complete rewrite:
+
+**Design tokens defined on `.page` (dark mode defaults):**
+
+| Token | Dark value | Light value |
+|---|---|---|
+| `--c-bg` | `#0d0d0d` | `#f5f7ff` |
+| `--c-bg-features` | `#0a0a0a` | `#eef1fb` |
+| `--c-nav-bg` | `rgba(13,13,13,0.92)` | `rgba(245,247,255,0.92)` |
+| `--c-text-primary` | `#fafafa` | `#0a0a0a` |
+| `--c-text-secondary` | `#777` | `#444` |
+| `--c-text-muted` | `#666` | `#555` |
+| `--c-text-feature` | `#ccc` | `#222` |
+| `--c-border-ui` | `rgba(255,255,255,0.1)` | `rgba(0,0,0,0.1)` |
+| `--c-border-btn` | `rgba(255,255,255,0.14)` | `rgba(0,0,0,0.14)` |
+| `--c-surface` | `#141414` | `#ffffff` |
+| `--c-surface-raised` | `#1a1a1a` | `#f0f2ff` |
+| `--c-surface-icon` | `#1e1e1e` | `#e8ecff` |
+| `--c-hover-overlay` | `rgba(255,255,255,0.06)` | `rgba(0,0,0,0.05)` |
+| `--c-action-bg` | `#fafafa` | `#0a0a0a` |
+| `--c-action-fg` | `#0a0a0a` | `#fafafa` |
+| `--c-action-hover` | `#e0e0e0` | `#222222` |
+| `--c-signup-bg/fg` | white bg / dark text | dark bg / white text |
+| `--c-pdfcorner` | `#222` | `#dde1f8` |
+| `--c-pdfline` | `rgba(255,255,255,0.1)` | `rgba(0,0,0,0.1)` |
+| `--c-dropdown-shadow` | `rgba(0,0,0,0.7)` | `rgba(0,0,0,0.14)` |
+| `--c-card-shadow` | `rgba(0,0,0,0.5)` | `rgba(0,0,0,0.1)` |
+
+All rule bodies (`background`, `color`, `border-color`, `box-shadow`) reference these tokens. `transition: 0.25s` added to every color-bearing property for a smooth animated switch.
+
+**Light mode background:** `#f5f7ff` — a soft blue-white that complements the light canvas orbs from `LandingWebGLBackground`.
+
+---
+
+### Session 21 — Test Checklist
+
+- [ ] Navigate to `/` — theme toggle button is visible in the top nav (left of Login)
+- [ ] No second toggle button appears in the workspace (`/app`)
+- [ ] Clicking toggle in dark mode switches to light mode — entire page inverts smoothly
+- [ ] Clicking toggle in light mode switches back to dark mode
+- [ ] Light mode: page background is `#f5f7ff` (soft blue-white)
+- [ ] Light mode: hero title, subtitle, nav brand are dark (`#0a0a0a`)
+- [ ] Light mode: nav background is semi-transparent white
+- [ ] Light mode: "Get Started" button is dark bg / white text (inverted from dark mode)
+- [ ] Light mode: "Sign up" nav button is dark bg / white text
+- [ ] Light mode: Login and Sign In buttons have dark borders / dark text
+- [ ] Light mode: PDF illustration card is white, float cards are light
+- [ ] Light mode: Convert dropdown uses white/light surface, dark text items
+- [ ] Light mode: tool cards (if visible) use white bg, dark names
+- [ ] All color transitions animate over 0.25s (no hard flash)
+- [ ] Preference persists — toggling then navigating to `/login` keeps selected theme
+- [ ] Dark mode: no visual regression — all existing dark colors intact

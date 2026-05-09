@@ -1,11 +1,81 @@
-/* ── Page shell ── */
+/* ── Design tokens (dark mode default) ── */
 .page {
+  --c-bg:            #0d0d0d;
+  --c-bg-features:   #0a0a0a;
+  --c-nav-bg:        rgba(13, 13, 13, 0.92);
+  --c-text-primary:  #fafafa;
+  --c-text-secondary:#777;
+  --c-text-muted:    #666;
+  --c-text-dim:      #555;
+  --c-text-label:    #444;
+  --c-text-item:     #999;
+  --c-text-feature:  #ccc;
+  --c-border-subtle: rgba(255, 255, 255, 0.05);
+  --c-border:        rgba(255, 255, 255, 0.06);
+  --c-border-ui:     rgba(255, 255, 255, 0.1);
+  --c-border-btn:    rgba(255, 255, 255, 0.14);
+  --c-border-hover:  rgba(255, 255, 255, 0.28);
+  --c-surface:       #141414;
+  --c-surface-raised:#1a1a1a;
+  --c-surface-icon:  #1e1e1e;
+  --c-hover-overlay: rgba(255, 255, 255, 0.06);
+  --c-press-overlay: rgba(255, 255, 255, 0.04);
+  --c-dropdown-shadow: rgba(0, 0, 0, 0.7);
+  --c-card-shadow:   rgba(0, 0, 0, 0.5);
+  --c-pdfcorner:     #222;
+  --c-pdfline:       rgba(255, 255, 255, 0.1);
+  --c-action-bg:     #fafafa;
+  --c-action-fg:     #0a0a0a;
+  --c-action-hover:  #e0e0e0;
+  --c-signup-bg:     #fafafa;
+  --c-signup-fg:     #0a0a0a;
+  --c-signup-hover:  #e0e0e0;
+  --c-icon-color:    #888;
+  --c-float-color:   #777;
+
   position: relative;
   min-height: 100vh;
-  background: #0d0d0d;
+  background: var(--c-bg);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: #fafafa;
+  color: var(--c-text-primary);
   overflow-x: hidden;
+  transition: background 0.25s, color 0.25s;
+}
+
+/* ── Light mode token overrides ── */
+.page[data-theme="light"] {
+  --c-bg:            #f5f7ff;
+  --c-bg-features:   #eef1fb;
+  --c-nav-bg:        rgba(245, 247, 255, 0.92);
+  --c-text-primary:  #0a0a0a;
+  --c-text-secondary:#444;
+  --c-text-muted:    #555;
+  --c-text-dim:      #666;
+  --c-text-label:    #888;
+  --c-text-item:     #444;
+  --c-text-feature:  #222;
+  --c-border-subtle: rgba(0, 0, 0, 0.06);
+  --c-border:        rgba(0, 0, 0, 0.07);
+  --c-border-ui:     rgba(0, 0, 0, 0.1);
+  --c-border-btn:    rgba(0, 0, 0, 0.14);
+  --c-border-hover:  rgba(0, 0, 0, 0.28);
+  --c-surface:       #ffffff;
+  --c-surface-raised:#f0f2ff;
+  --c-surface-icon:  #e8ecff;
+  --c-hover-overlay: rgba(0, 0, 0, 0.05);
+  --c-press-overlay: rgba(0, 0, 0, 0.03);
+  --c-dropdown-shadow: rgba(0, 0, 0, 0.14);
+  --c-card-shadow:   rgba(0, 0, 0, 0.1);
+  --c-pdfcorner:     #dde1f8;
+  --c-pdfline:       rgba(0, 0, 0, 0.1);
+  --c-action-bg:     #0a0a0a;
+  --c-action-fg:     #fafafa;
+  --c-action-hover:  #222222;
+  --c-signup-bg:     #0a0a0a;
+  --c-signup-fg:     #fafafa;
+  --c-signup-hover:  #222222;
+  --c-icon-color:    #555;
+  --c-float-color:   #555;
 }
 
 /* ── Navigation ── */
@@ -18,11 +88,12 @@
   justify-content: space-between;
   padding: 0 2rem;
   height: 4rem;
-  background: rgba(13, 13, 13, 0.92);
+  background: var(--c-nav-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--c-border);
   gap: 1rem;
+  transition: background 0.25s, border-color 0.25s;
 }
 
 .navLogo {
@@ -42,8 +113,9 @@
 .navBrand {
   font-size: 1.0625rem;
   font-weight: 700;
-  color: #fafafa;
+  color: var(--c-text-primary);
   letter-spacing: -0.02em;
+  transition: color 0.25s;
 }
 
 /* ── Nav tool links (center) ── */
@@ -57,7 +129,7 @@
 
 .navToolLink {
   font-size: 0.875rem;
-  color: #777;
+  color: var(--c-text-secondary);
   font-weight: 500;
   background: none;
   border: none;
@@ -71,8 +143,8 @@
 }
 
 .navToolLink:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #fafafa;
+  background: var(--c-hover-overlay);
+  color: var(--c-text-primary);
 }
 
 /* ── Convert dropdown ── */
@@ -87,8 +159,8 @@
 }
 
 .convertBtnOpen {
-  background: rgba(255, 255, 255, 0.06);
-  color: #fafafa;
+  background: var(--c-hover-overlay);
+  color: var(--c-text-primary);
 }
 
 .convertDropdown {
@@ -96,16 +168,17 @@
   top: calc(100% + 0.75rem);
   left: 50%;
   transform: translateX(-50%);
-  background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--c-surface-raised);
+  border: 1px solid var(--c-border-ui);
   border-radius: 0.875rem;
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 12px 48px var(--c-dropdown-shadow);
   padding: 1.25rem 1rem;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0 1.5rem;
   min-width: 420px;
   z-index: 100;
+  transition: background 0.25s, border-color 0.25s;
 }
 
 .convertSection {}
@@ -113,11 +186,12 @@
 .convertSectionTitle {
   font-size: 0.6875rem;
   font-weight: 700;
-  color: #444;
+  color: var(--c-text-label);
   letter-spacing: 0.07em;
   text-transform: uppercase;
   margin-bottom: 0.5rem;
   padding: 0 0.375rem;
+  transition: color 0.25s;
 }
 
 .convertItem {
@@ -125,7 +199,7 @@
   width: 100%;
   text-align: left;
   font-size: 0.875rem;
-  color: #999;
+  color: var(--c-text-item);
   background: none;
   border: none;
   cursor: pointer;
@@ -137,8 +211,8 @@
 }
 
 .convertItem:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #fafafa;
+  background: var(--c-hover-overlay);
+  color: var(--c-text-primary);
 }
 
 /* ── Nav actions (right) ── */
@@ -149,10 +223,31 @@
   flex-shrink: 0;
 }
 
+.themeToggleBtn {
+  background: none;
+  border: 1px solid var(--c-border-btn);
+  color: var(--c-text-secondary);
+  width: 2.125rem;
+  height: 2.125rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.themeToggleBtn:hover {
+  border-color: var(--c-border-hover);
+  color: var(--c-text-primary);
+  background: var(--c-press-overlay);
+}
+
 .loginBtn {
   background: none;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: #aaa;
+  border: 1px solid var(--c-border-btn);
+  color: var(--c-text-muted);
   font-size: 0.875rem;
   font-weight: 500;
   padding: 0.4375rem 1rem;
@@ -164,22 +259,22 @@
 }
 
 .loginBtn:hover {
-  border-color: rgba(255, 255, 255, 0.28);
-  color: #fafafa;
-  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--c-border-hover);
+  color: var(--c-text-primary);
+  background: var(--c-press-overlay);
 }
 
 .signupBtn {
-  background: #fafafa;
-  border: 1px solid #fafafa;
-  color: #0a0a0a;
+  background: var(--c-signup-bg);
+  border: 1px solid var(--c-signup-bg);
+  color: var(--c-signup-fg);
   font-size: 0.875rem;
   font-weight: 600;
   padding: 0.4375rem 1.125rem;
   border-radius: 0.5rem;
   cursor: pointer;
   font-family: inherit;
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s;
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
@@ -187,8 +282,8 @@
 }
 
 .signupBtn:hover {
-  background: #e0e0e0;
-  border-color: #e0e0e0;
+  background: var(--c-signup-hover);
+  border-color: var(--c-signup-hover);
 }
 
 /* ── Hero ── */
@@ -215,15 +310,17 @@
   line-height: 1.05;
   letter-spacing: -0.04em;
   margin: 0 0 1.125rem;
-  color: #fafafa;
+  color: var(--c-text-primary);
+  transition: color 0.25s;
 }
 
 .heroSubtitle {
   font-size: 1.0625rem;
   font-weight: 400;
-  color: #666;
+  color: var(--c-text-muted);
   margin: 0 0 2.5rem;
   line-height: 1.65;
+  transition: color 0.25s;
 }
 
 .heroDesc {
@@ -242,8 +339,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  background: #fafafa;
-  color: #0a0a0a;
+  background: var(--c-action-bg);
+  color: var(--c-action-fg);
   border: none;
   font-size: 0.9375rem;
   font-weight: 600;
@@ -251,21 +348,21 @@
   border-radius: 0.5rem;
   cursor: pointer;
   font-family: inherit;
-  transition: background 0.15s;
+  transition: background 0.15s, color 0.15s;
   letter-spacing: -0.01em;
   white-space: nowrap;
 }
 
 .getStartedBtn:hover {
-  background: #e0e0e0;
+  background: var(--c-action-hover);
 }
 
 .signInBtn {
   display: inline-flex;
   align-items: center;
   background: none;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: #aaa;
+  border: 1px solid var(--c-border-btn);
+  color: var(--c-text-muted);
   font-size: 0.9375rem;
   font-weight: 500;
   padding: 0.75rem 1.375rem;
@@ -277,9 +374,9 @@
 }
 
 .signInBtn:hover {
-  border-color: rgba(255, 255, 255, 0.28);
-  color: #fafafa;
-  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--c-border-hover);
+  color: var(--c-text-primary);
+  background: var(--c-press-overlay);
 }
 
 /* keep old classes hidden so nothing breaks */
@@ -303,13 +400,14 @@
   width: 2rem;
   height: 2rem;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--c-border-ui);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #777;
+  color: var(--c-float-color);
   flex-shrink: 0;
   margin-top: 0.1rem;
+  transition: border-color 0.25s, color 0.25s;
 }
 
 .featureText {
@@ -321,14 +419,16 @@
 .featureTitle {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #ccc;
+  color: var(--c-text-feature);
   line-height: 1.3;
+  transition: color 0.25s;
 }
 
 .featureSubtext {
   font-size: 0.75rem;
-  color: #555;
+  color: var(--c-text-dim);
   line-height: 1.3;
+  transition: color 0.25s;
 }
 
 /* ── PDF illustration ── */
@@ -349,8 +449,8 @@
   position: relative;
   width: 10rem;
   height: 13rem;
-  background: #141414;
-  border: 1.5px dashed rgba(255, 255, 255, 0.14);
+  background: var(--c-surface);
+  border: 1.5px dashed var(--c-border-btn);
   border-radius: 0.875rem;
   display: flex;
   flex-direction: column;
@@ -358,6 +458,7 @@
   padding: 1.25rem 1rem;
   gap: 0.5rem;
   overflow: hidden;
+  transition: background 0.25s, border-color 0.25s;
 }
 
 .pdfDocCorner {
@@ -368,13 +469,15 @@
   height: 0;
   border-style: solid;
   border-width: 0 2rem 2rem 0;
-  border-color: transparent #222 transparent transparent;
+  border-color: transparent var(--c-pdfcorner) transparent transparent;
+  transition: border-right-color 0.25s;
 }
 
 .pdfLine {
   height: 0.4rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--c-pdfline);
   border-radius: 0.25rem;
+  transition: background 0.25s;
 }
 
 .pdfLineShort {
@@ -385,14 +488,15 @@
   position: absolute;
   width: 3.5rem;
   height: 3.5rem;
-  background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--c-surface-raised);
+  border: 1px solid var(--c-border-ui);
   border-radius: 0.875rem;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 24px var(--c-card-shadow);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #777;
+  color: var(--c-float-color);
+  transition: background 0.25s, border-color 0.25s, color 0.25s;
 }
 
 .floatTopLeft  { top: 2rem; left: 2rem; }
@@ -406,9 +510,10 @@
   position: relative;
   z-index: 1;
   padding: 5rem 2.5rem 6rem;
-  background: #0a0a0a;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--c-bg-features);
+  border-top: 1px solid var(--c-border-subtle);
   text-align: center;
+  transition: background 0.25s, border-color 0.25s;
 }
 
 .featuresTitle {
@@ -416,13 +521,15 @@
   font-weight: 800;
   letter-spacing: -0.03em;
   margin: 0 0 0.625rem;
-  color: #fafafa;
+  color: var(--c-text-primary);
+  transition: color 0.25s;
 }
 
 .featuresSubtitle {
   font-size: 0.9375rem;
-  color: #666;
+  color: var(--c-text-muted);
   margin: 0 0 2.5rem;
+  transition: color 0.25s;
 }
 
 .toolGrid {
@@ -437,8 +544,8 @@
   display: flex;
   align-items: center;
   gap: 0.875rem;
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border-ui);
   border-radius: 0.875rem;
   padding: 1.125rem 1.25rem;
   text-align: left;
@@ -447,34 +554,37 @@
 }
 
 .toolCard:hover {
-  border-color: rgba(255, 255, 255, 0.16);
-  background: #1a1a1a;
+  border-color: var(--c-border-btn);
+  background: var(--c-surface-raised);
 }
 
 .toolIcon {
   flex-shrink: 0;
   width: 2.5rem;
   height: 2.5rem;
-  background: #1e1e1e;
+  background: var(--c-surface-icon);
   border-radius: 0.625rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #888;
+  color: var(--c-icon-color);
+  transition: background 0.25s, color 0.25s;
 }
 
 .toolName {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #fafafa;
+  color: var(--c-text-primary);
   letter-spacing: -0.01em;
   margin-bottom: 0.2rem;
+  transition: color 0.25s;
 }
 
 .toolDesc {
   font-size: 0.8125rem;
-  color: #666;
+  color: var(--c-text-muted);
   line-height: 1.4;
+  transition: color 0.25s;
 }
 
 /* ── Responsive ── */

@@ -7,6 +7,7 @@ import { useBackendProbe } from "@app/hooks/useBackendProbe";
 import AuthLayout from "@app/routes/authShared/AuthLayout";
 import LoginHeader from "@app/routes/login/LoginHeader";
 import { useTranslation } from "react-i18next";
+import { isGuestMode } from "@app/utils/guestMode";
 
 /**
  * Landing component - Smart router based on authentication status
@@ -94,6 +95,14 @@ export default function Landing() {
     timestamp: new Date().toISOString(),
   });
   console.log("[Landing] ════════════════════════════════════");
+
+  // Guest mode: user dropped a PDF from the marketing landing page without logging in.
+  // Skip the loading spinner entirely — auth state is already known (no JWT),
+  // and waiting for the backend probe just adds unnecessary delay.
+  // 401s from background API calls are suppressed by httpErrorHandler for guest mode.
+  if (!authLoading && isGuestMode()) {
+    return <HomePage />;
+  }
 
   // Show loading while checking auth and config
   if (loading) {

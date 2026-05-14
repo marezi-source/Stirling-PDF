@@ -55,6 +55,7 @@ import { Z_INDEX_OVER_FULLSCREEN_SURFACE } from "@app/styles/zIndex";
 import { QuickAccessBarFooterExtensions } from "@app/components/quickAccessBar/QuickAccessBarFooterExtensions";
 import { useConfigButtonIcon } from "@app/hooks/useConfigButtonIcon";
 import { useAuth } from "@app/auth/UseSession";
+import { isGuestMode } from "@app/utils/guestMode";
 
 const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
   const { t } = useTranslation();
@@ -161,6 +162,7 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
   const { session } = useAuth();
   const [loginGateOpen, setLoginGateOpen] = useState(false);
   const [comingSoonOpen, setComingSoonOpen] = useState(false);
+  const guestMode = !session && isGuestMode();
 
   const isRTL =
     typeof document !== "undefined" && document.documentElement.dir === "rtl";
@@ -687,6 +689,7 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
           isRound: false,
           type: "navigation" as const,
           onClick: () => {
+            if (guestMode) { setLoginGateOpen(true); return; }
             setActiveButton("read");
             handleReaderToggle();
           },
@@ -705,6 +708,7 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
           isRound: false,
           type: "navigation" as const,
           onClick: () => {
+            if (guestMode) { setLoginGateOpen(true); return; }
             setActiveButton("automate");
             // If already on automate tool, reset it directly
             if (selectedToolKey === "automate") {
@@ -802,6 +806,7 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
             size: "md" as const,
             type: "modal" as const,
             onClick: () => {
+              if (guestMode) { setLoginGateOpen(true); return; }
               navigate("/settings/overview");
               setConfigModalOpen(true);
             },
@@ -832,6 +837,7 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
         <AllToolsNavButton
           activeButton={activeButton}
           setActiveButton={setActiveButton}
+          onGuestClick={guestMode ? () => setLoginGateOpen(true) : undefined}
         />
       </div>
 

@@ -2154,3 +2154,102 @@ Sidebar buttons in the workspace responded sluggishly. Root cause: the `onClick`
 - [ ] Keyboard navigation: Tab focuses sidebar buttons, Enter/Space activates them
 - [ ] Navigation buttons (Reader, Automate) with `href` render as `<a>` tags
 - [ ] Disabled buttons show `not-allowed` cursor and do not fire on click or keyboard
+
+---
+
+## Session 27: Guest Drop-a-PDF Flow + Bug Fixes
+
+### Feature: Guest Access via "Drop a PDF" on Marketing Landing Page
+
+Implemented a guest-mode flow so unauthenticated users can drop a PDF on the marketing landing page and be taken directly into the PDF editor workspace — without signing up or logging in. Inside the workspace, only the Edit PDF tool is accessible; every other button shows a login modal.
+
+---
+
+### Changes
+
+#### New file — `frontend/src/core/utils/guestMode.ts`
+
+Thin `sessionStorage` utility:
+- `setGuestMode()` — marks the session as guest
+- `isGuestMode()` — reads the flag (synchronous)
+- `clearGuestMode()` — removes the flag
+
+Used by all other changed files via the `@app/utils/guestMode` alias.
+
+---
+
+#### `frontend/src/proprietary/routes/MarketingLanding.tsx`
+
+- `handleFilesSelected`: removed the `!session → navigate("/login")` early return. For unauthenticated users it now calls `setGuestMode()` then proceeds to `addFiles` + `handleToolSelect("pdfTextEditor")` + `navigate("/app")`.
+- `handleLocalUpload` and `handleGoogleDriveUpload`: removed their individual `!session` login-redirect guards — they both flow through `handleFilesSelected`.
+- Tool nav links in the navbar (Merge, Split, etc.) still require login via the existing `goToTool` guard.
+
+---
+
+#### `frontend/src/proprietary/routes/Landing.tsx`
+
+- Moved the guest mode check **before** the loading spinner so the workspace appears immediately (no 2–3 s spinner from `backendProbe.loading`). The condition `!authLoading && isGuestMode()` short-circuits directly to `<HomePage />`.
+- Removed the redundant second guest mode check that had been placed below the login-disabled check.
+
+---
+
+#### `frontend/src/core/components/shared/QuickAccessBar.tsx`
+
+Computed `guestMode = !session && isGuestMode()` once in the component. Applied login-gate guards to the previously unguarded buttons:
+
+| Button | Before | After (guest mode) |
+|--------|--------|--------------------|
+| Reader | Unrestricted | Shows login gate modal |
+| Automate | Unrestricted | Shows login gate modal |
+| Settings | Unrestricted | Shows login gate modal |
+| Files | Already gated | Unchanged |
+| Collaborate | Already gated | Unchanged |
+| Sign | Already gated | Unchanged |
+
+Passes `onGuestClick={guestMode ? () => setLoginGateOpen(true) : undefined}` to `AllToolsNavButton`.
+
+---
+
+#### `frontend/src/core/components/shared/AllToolsNavButton.tsx`
+
+Added optional `onGuestClick?: () => void` prop. Both `handleClick` and `handleNavClick` call `onGuestClick()` (and prevent default) before any other logic when provided — preventing guest users from opening the tool panel.
+
+---
+
+### Bug Fixes (same session)
+
+#### Bug 1 — Workspace auto-redirected to login after a few seconds
+
+**Root cause:** `frontend/src/core/services/httpErrorHandler.ts` intercepts every axios response error globally. Any 401 not marked with `skipAuthRedirect: true` triggers `window.location.href = "/login"`. Background API calls made by workspace components (e.g. the sign-request badge poll in `QuickAccessBar`) return 401 for unauthenticated users. The component-level `catch { /* silent */ }` never ran because the axios interceptor fired first.
+
+**Fix:** Added an early-exit at the top of the 401 handling block in `httpErrorHandler.ts`:
+```typescript
+if (isGuestMode()) {
+  return true; // suppress toast and skip redirect
+}
+```
+Guest-mode 401s are now silently suppressed — no toast, no redirect.
+
+---
+
+#### Bug 2 — Slow workspace load after dropping a PDF
+
+**Root cause:** `Landing.tsx` checked loading state (`authLoading || configLoading || backendProbe.loading`) before the guest mode check. `useBackendProbe` creates a fresh probe state on every mount, so the guest saw a 2–3 s spinner while the backend probe completed before the workspace appeared.
+
+**Fix:** Guest mode check is now the **first** conditional in `Landing.tsx` (before the spinner), guarded only by `!authLoading`. Auth state is already resolved by the time the user navigates from the marketing landing page, so the workspace appears immediately.
+
+---
+
+### Session 27 — Test Checklist
+
+#### Guest Drop-a-PDF Flow
+- [ ] Unauthenticated user can drag-and-drop a PDF onto the hero upload zone without being redirected to login
+- [ ] Unauthenticated user can click "Your device" button in the hero upload zone and pick a file without login
+- [ ] After dropping, workspace opens immediately with the PDF text editor active (no loading spinner)
+- [ ] Workspace does not auto-redirect to login after a few seconds
+- [ ] Inside the workspace: Reader, Automate, Settings, All Tools buttons show "Login to have access" modal
+- [ ] Inside the workspace: Files, Collaborate, Sign buttons still show login modal (pre-existing behaviour)
+- [ ] Clicking Login in the gate modal navigates to `/login`
+- [ ] Download button in the Right Rail works (guest can save their edited PDF)
+- [ ] Logged-in users are completely unaffected — `guestMode` only applies when `!session && isGuestMode()`
+- [ ] Nav tool links on marketing page (Merge, Split, etc.) still require login

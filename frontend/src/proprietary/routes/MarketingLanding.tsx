@@ -9,6 +9,7 @@ import { useFileHandler } from "@app/hooks/useFileHandler";
 import { useGoogleDrivePicker } from "@app/hooks/useGoogleDrivePicker";
 import { openFilesFromDisk } from "@app/services/openFilesFromDisk";
 import styles from "./MarketingLanding.module.css";
+import { setGuestMode } from "@app/utils/guestMode";
 
 const PATH_TO_TOOL_ID: Record<string, ToolId> = {
   "/pdf-text-editor": "pdfTextEditor",
@@ -244,8 +245,7 @@ export default function MarketingLanding() {
   const handleFilesSelected = async (files: File[]) => {
     if (files.length === 0) return;
     if (!session) {
-      navigate(`/login?from=${encodeURIComponent("/pdf-text-editor")}`);
-      return;
+      setGuestMode();
     }
     setIsUploading(true);
     try {
@@ -258,10 +258,6 @@ export default function MarketingLanding() {
   };
 
   const handleLocalUpload = async () => {
-    if (!session) {
-      navigate(`/login?from=${encodeURIComponent("/pdf-text-editor")}`);
-      return;
-    }
     const files = await openFilesFromDisk({
       multiple: false,
       onFallbackOpen: () => fileInputRef.current?.click(),
@@ -270,10 +266,6 @@ export default function MarketingLanding() {
   };
 
   const handleGoogleDriveUpload = async () => {
-    if (!session) {
-      navigate(`/login?from=${encodeURIComponent("/pdf-text-editor")}`);
-      return;
-    }
     const files = await openGoogleDrivePicker({ multiple: false, mimeTypes: "application/pdf" });
     if (files.length > 0) await handleFilesSelected(files);
   };

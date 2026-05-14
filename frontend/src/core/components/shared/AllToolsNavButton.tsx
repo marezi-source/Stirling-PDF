@@ -13,11 +13,13 @@ import QuickAccessButton from "@app/components/shared/quickAccessBar/QuickAccess
 interface AllToolsNavButtonProps {
   activeButton: string;
   setActiveButton: (id: string) => void;
+  onGuestClick?: () => void;
 }
 
 const AllToolsNavButton: React.FC<AllToolsNavButtonProps> = ({
   activeButton,
   setActiveButton,
+  onGuestClick,
 }) => {
   const { t } = useTranslation();
   const {
@@ -38,6 +40,10 @@ const AllToolsNavButton: React.FC<AllToolsNavButtonProps> = ({
   };
 
   const handleClick = () => {
+    if (onGuestClick) {
+      onGuestClick();
+      return;
+    }
     if (hasUnsavedChanges) {
       navigationActions.requestNavigation(performNavigation);
       return;
@@ -54,6 +60,11 @@ const AllToolsNavButton: React.FC<AllToolsNavButtonProps> = ({
   const navProps = getHomeNavigation();
 
   const handleNavClick = (e: React.MouseEvent) => {
+    if (onGuestClick) {
+      e.preventDefault();
+      onGuestClick();
+      return;
+    }
     if (hasUnsavedChanges) {
       e.preventDefault();
       navigationActions.requestNavigation(performNavigation);

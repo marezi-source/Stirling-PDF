@@ -1,6 +1,6 @@
 # OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-15 (Session 28)
+**Last updated:** 2026-05-15 (Session 29)
 **Branch:** OnePDF-UI-Change  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -2327,3 +2327,89 @@ signInRequired = "Sign in to convert and edit PDFs."
 - [ ] Authenticated users uploading a PDF see no regressions in PDF Text Editor error handling
 - [ ] If conversion genuinely fails (non-401 error), the original error message is still shown correctly
 - [ ] Translation key `pdfTextEditor.errors.signInRequired` resolves to "Sign in to convert and edit PDFs."
+
+---
+
+## Session 29: Guest PDF Preview in PDF Editor Workspace
+
+### Feature: PDF previewed inside PDF Editor for unauthenticated users
+
+When a guest user drops a PDF on the marketing landing page, the workspace now opens with the PDF visible inside the PDF Editor workbench — no login required, no error messages.
+
+---
+
+### Root Cause (Previous State)
+
+The PDF Text Editor's custom workbench (`custom:pdfTextEditor`) was activating correctly (URL: `/pdf-text-editor`, "PDF Editor" tab highlighted), but the main area showed "No document loaded". The backend conversion API (`/api/v1/convert/pdf/text-editor/...`) requires auth; without it the load returned 401 and exited early, leaving the workbench empty. Attempts to reroute guests to the viewer (`handleToolSelect("read")`) or suppress the workbench switch were reverted because they either broke the "PDF Editor is open" experience or didn't take effect reliably.
+
+---
+
+### Solution
+
+Render the uploaded PDF as a client-side `<iframe>` blob URL directly inside the PDF Text Editor's own workbench view, replacing the "No document loaded" empty state for guest users. No backend call needed — the browser's native PDF renderer shows the full document.
+
+---
+
+### Changes
+
+#### `frontend/src/core/tools/pdfTextEditor/pdfTextEditorTypes.ts`
+
+Added one field to `PdfTextEditorViewData`:
+```typescript
+guestPreviewUrl: string | null;
+```
+
+---
+
+#### `frontend/src/core/tools/pdfTextEditor/PdfTextEditor.tsx`
+
+Added a `guestPreviewUrl` memo that produces a `URL.createObjectURL` blob URL from `selectedFiles[0]` when in guest mode and no document has been loaded:
+
+```typescript
+const guestPreviewUrl = useMemo(() => {
+  if (!isGuestMode() || selectedFiles.length === 0 || hasDocument) return null;
+  const file = selectedFiles[0];
+  if (!(file instanceof File)) return null;
+  return URL.createObjectURL(file);
+}, [selectedFiles, hasDocument]);
+
+useEffect(() => {
+  return () => {
+    if (guestPreviewUrl) URL.revokeObjectURL(guestPreviewUrl);
+  };
+}, [guestPreviewUrl]);
+```
+
+- `guestPreviewUrl` included in `viewData` and its `useMemo` deps array
+- Blob URL is revoked on cleanup to prevent memory leaks
+- `isGuestMode` import added
+
+Also retained the 401 silent-exit guards from Session 28 (catch blocks returning early in guest mode).
+
+---
+
+#### `frontend/src/core/components/tools/pdfTextEditor/PdfTextEditorView.tsx`
+
+Split the empty-state block into two:
+1. **Guest preview** — renders when `!hasDocument && !isConverting && guestPreviewUrl`:
+   ```tsx
+   <iframe
+     src={guestPreviewUrl}
+     title="PDF Preview"
+     style={{ flex: 1, width: "100%", border: "none", minHeight: 0 }}
+   />
+   ```
+2. **Standard dropzone** — renders when `!hasDocument && !isConverting && !guestPreviewUrl` (unchanged "No document loaded" UI for authenticated users)
+
+---
+
+### Session 29 — Test Checklist
+
+#### Guest PDF Preview
+- [ ] Drop a PDF on the marketing landing page without logging in — workspace opens with the PDF visible inside the PDF Editor workbench
+- [ ] The PDF Editor panel (settings: Text Grouping Mode, Auto-scale, etc.) is visible on the left while the PDF is shown in the main area
+- [ ] No error alert or "No document loaded" empty state appears
+- [ ] No "Sign in to convert and edit PDFs." alert appears
+- [ ] Blob URL is cleaned up on unmount (no memory leak)
+- [ ] Authenticated users uploading a PDF see no change — they still get the fully editable PDF Text Editor canvas
+- [ ] Authenticated users with no file loaded still see the "No document loaded" dropzone

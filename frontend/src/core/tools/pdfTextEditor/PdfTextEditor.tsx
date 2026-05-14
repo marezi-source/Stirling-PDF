@@ -278,6 +278,21 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
   );
   const [autoScaleText, setAutoScaleText] = useState(true);
 
+  // Guest mode: create a blob URL from the selected file so the PDF can be
+  // previewed directly in the workbench without a backend conversion call.
+  const guestPreviewUrl = useMemo(() => {
+    if (!isGuestMode() || selectedFiles.length === 0 || hasDocument) return null;
+    const file = selectedFiles[0];
+    if (!(file instanceof File)) return null;
+    return URL.createObjectURL(file);
+  }, [selectedFiles, hasDocument]);
+
+  useEffect(() => {
+    return () => {
+      if (guestPreviewUrl) URL.revokeObjectURL(guestPreviewUrl);
+    };
+  }, [guestPreviewUrl]);
+
   // Lazy loading state
   const [isLazyMode, setIsLazyMode] = useState(false);
   const [cachedJobId, setCachedJobId] = useState<string | null>(null);
@@ -1887,6 +1902,7 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
       onMergeGroups: handleMergeGroups,
       onUngroupGroup: handleUngroupGroup,
       onLoadFile: handleLoadFileFromDropzone,
+      guestPreviewUrl,
     }),
     [
       handleMergeGroups,
@@ -1897,6 +1913,7 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
       isSavingToWorkbench,
       pagePreviews,
       dirtyPages,
+      guestPreviewUrl,
       errorMessage,
       fileName,
       groupsByPage,

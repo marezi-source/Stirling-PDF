@@ -1,6 +1,6 @@
 # OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-14 (Session 25)
+**Last updated:** 2026-05-14 (Session 26)
 **Branch:** OnePDF-UI-Change  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -2119,3 +2119,38 @@ Remaining system accounts: `admin` (id=1), `STIRLING-PDF-BACKEND-API-USER` (id=2
 - [ ] Signing up with an already-registered email returns "User already exists" (400), not 500
 - [ ] No user cap — more than 5 accounts can be created via self-registration
 - [ ] `admin` and `STIRLING-PDF-BACKEND-API-USER` accounts remain intact in Neon
+
+---
+
+## Session 26: Sidebar Button Click Delay Fix
+
+### Problem
+
+Sidebar buttons in the workspace responded sluggishly. Root cause: the `onClick` handler in `QuickAccessButton` was only attached to the inner `ActionIcon` (the icon element), not the full pill area. Clicking on the label text below the icon did nothing — users had to reposition and click again on the icon, creating the appearance of a delay.
+
+### Fix
+
+**`frontend/src/core/components/shared/quickAccessBar/QuickAccessButton.tsx`** — Refactored:
+
+- Made the **entire pill area clickable** by moving `onClick` and `onKeyDown` to the outer container element (`div` or `a` tag) instead of the inner `ActionIcon`
+- Set `pointerEvents: "none"` and `tabIndex={-1}` on `ActionIcon` so it is purely visual — all interaction is handled by the outer container
+- Added `role="button"`, `aria-label`, `aria-disabled`, and keyboard support (Enter/Space) to the outer container for accessibility
+- Navigation buttons (`component="a"` with `href`) now render as an `<a>` tag for correct link behaviour; other buttons render as `<div role="button">`
+
+**Code quality improvements (from simplify review):**
+- Extracted `isLink` variable — the `component === "a" && href` condition was previously evaluated twice
+- Replaced unsafe `onClick?.(e as unknown as React.MouseEvent)` keyboard cast with `(e.currentTarget as HTMLElement).click()` — fires a real DOM click event instead of casting an incompatible event type
+- Removed redundant `disabled` prop from `ActionIcon` — already non-interactive via `pointerEvents: none`
+- Removed duplicate `textDecoration: "none"` from `ActionIcon` style — already set on outer element
+
+---
+
+### Session 26 — Test Checklist
+
+#### Sidebar Button Responsiveness
+- [ ] Clicking the label text of any sidebar button triggers the action immediately
+- [ ] Clicking the icon area of any sidebar button still works
+- [ ] Clicking anywhere in the pill (padding, icon, label) triggers the action
+- [ ] Keyboard navigation: Tab focuses sidebar buttons, Enter/Space activates them
+- [ ] Navigation buttons (Reader, Automate) with `href` render as `<a>` tags
+- [ ] Disabled buttons show `not-allowed` cursor and do not fire on click or keyboard

@@ -45,21 +45,16 @@ const QuickAccessButton: React.FC<QuickAccessButtonProps> = ({
     color ||
     (isActive ? "var(--nav-btn-active-color)" : "var(--nav-btn-inactive-color)");
 
-  const actionIconProps =
-    component === "a" && href
-      ? {
-          component: "a" as const,
-          href,
-          onClick,
-          "aria-label": ariaLabel,
-        }
-      : {
-          onClick,
-          "aria-label": ariaLabel,
-        };
+  const isLink = component === "a" && !!href;
+  const Tag = isLink ? "a" : "div";
 
   return (
-    <div
+    <Tag
+      {...(isLink ? { href } : {})}
+      role="button"
+      tabIndex={disabled ? -1 : 0}
+      aria-label={ariaLabel}
+      aria-disabled={disabled}
       className={`flex flex-col items-center gap-1 qab-pill${isActive ? " qab-pill--active" : ""}`}
       style={{
         backgroundColor: bgColor,
@@ -70,24 +65,32 @@ const QuickAccessButton: React.FC<QuickAccessButtonProps> = ({
         transition: "background-color 150ms ease",
         opacity: disabled ? 0.5 : 1,
         cursor: disabled ? "not-allowed" : "pointer",
+        textDecoration: "none",
       }}
       data-tour={dataTour}
+      data-testid={dataTestId}
+      onClick={disabled ? undefined : onClick}
+      onKeyDown={disabled ? undefined : (e: React.KeyboardEvent) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          (e.currentTarget as HTMLElement).click();
+        }
+      }}
     >
       <ActionIcon
-        {...actionIconProps}
         size={buttonSize}
         variant="subtle"
-        disabled={disabled}
+        tabIndex={-1}
         style={{
           backgroundColor: "transparent",
           color: textColor,
           border: "none",
           borderRadius: "8px",
-          textDecoration: "none",
           cursor: "inherit",
+          pointerEvents: "none",
         }}
         className={className || ""}
-        data-testid={dataTestId}
+        aria-hidden
       >
         <span className="iconContainer">{icon}</span>
       </ActionIcon>
@@ -106,7 +109,7 @@ const QuickAccessButton: React.FC<QuickAccessButtonProps> = ({
           }}
         />
       </div>
-    </div>
+    </Tag>
   );
 };
 

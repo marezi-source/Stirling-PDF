@@ -96,25 +96,13 @@ public class UserController {
                         .body(Map.of("error", "Password is required"));
             }
 
-            if (licenseSettingsService.wouldExceedLimit(1)) {
-                long availableSlots = licenseSettingsService.getAvailableUserSlots();
-                int maxAllowed = licenseSettingsService.calculateMaxAllowedUsers();
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(
-                                Map.of(
-                                        "error",
-                                        "Maximum number of users reached. Allowed: "
-                                                + maxAllowed
-                                                + ", Available slots: "
-                                                + availableSlots));
-            }
             Team team = teamRepository.findByName(TeamService.DEFAULT_TEAM_NAME).orElse(null);
             SaveUserRequest.Builder builder =
                     SaveUserRequest.builder()
                             .username(username)
                             .password(password)
                             .team(team)
-                            .enabled(false);
+                            .enabled(true);
             User user = userService.saveUserCore(builder.build());
 
             log.info("User registered successfully: {}", username);

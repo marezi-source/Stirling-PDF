@@ -1,6 +1,6 @@
 # OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-14 (Session 24)
+**Last updated:** 2026-05-14 (Session 25)
 **Branch:** OnePDF-UI-Change  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -2080,3 +2080,42 @@ Attempting to register a new account from the marketing landing page signup form
 - [ ] Marketing landing page "Sign Up" button navigates to `/signup`
 - [ ] Submitting the signup form creates a user without "Authentication required" error
 - [ ] Newly registered user can log in immediately after signup
+
+---
+
+## Session 25: Signup Flow Bug Fixes
+
+### Fix: New Users Created as Disabled
+
+After the Neon migration, signing up and then attempting to log in showed `"User account is disabled"`. The `/api/v1/user/register` endpoint was hardcoded to create all self-registered users with `enabled = false`, expecting an admin to manually activate them — a Stirling-PDF enterprise workflow that doesn't apply to OnePDF's self-service signup.
+
+**`app/proprietary/src/main/java/stirling/software/proprietary/security/controller/api/UserController.java`** — Modified:
+- `SaveUserRequest.builder()...enabled(false)` → `enabled(true)` — self-registered users are now active immediately
+
+---
+
+### Fix: User Limit Blocking Signup (500 Error)
+
+After fixing the disabled-user issue, signup returned `"Request failed with status code 500"` (actually a 400 from the backend: `"Maximum number of users reached. Allowed: 5, Available slots: 0"`). The register endpoint was checking `licenseSettingsService.wouldExceedLimit(1)` — an enterprise seat-limiting feature that caps accounts at 5 without a paid Stirling-PDF license. This has no place in a public self-signup flow.
+
+**`app/proprietary/src/main/java/stirling/software/proprietary/security/controller/api/UserController.java`** — Modified:
+- Removed the `licenseSettingsService.wouldExceedLimit(1)` block entirely from the `register()` method — no user cap on self-registration
+
+**Neon cleanup (test users created during debugging):**
+```sql
+DELETE FROM user_settings WHERE user_id IN (4, 5, 6, 7);
+DELETE FROM authorities WHERE user_id IN (4, 5, 6, 7);
+DELETE FROM users WHERE user_id IN (4, 5, 6, 7);
+```
+Remaining system accounts: `admin` (id=1), `STIRLING-PDF-BACKEND-API-USER` (id=2).
+
+---
+
+### Session 25 — Test Checklist
+
+#### Signup + Login Flow
+- [ ] Signing up with a new email creates an enabled account (no "account is disabled" error)
+- [ ] Newly registered user can log in immediately after signup
+- [ ] Signing up with an already-registered email returns "User already exists" (400), not 500
+- [ ] No user cap — more than 5 accounts can be created via self-registration
+- [ ] `admin` and `STIRLING-PDF-BACKEND-API-USER` accounts remain intact in Neon

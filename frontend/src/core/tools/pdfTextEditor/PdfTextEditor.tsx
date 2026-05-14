@@ -18,6 +18,7 @@ import { getDefaultWorkbench } from "@app/types/workbench";
 import { CONVERSION_ENDPOINTS } from "@app/constants/convertConstants";
 import apiClient from "@app/services/apiClient";
 import { downloadBlob, downloadTextAsFile } from "@app/utils/downloadUtils";
+import { isGuestMode } from "@app/utils/guestMode";
 import { getFilenameFromHeaders } from "@app/utils/fileResponseUtils";
 import { pdfWorkerManager } from "@app/services/pdfWorkerManager";
 import { Util } from "pdfjs-dist/legacy/build/pdf.mjs";
@@ -863,12 +864,18 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
         cachedJobIdRef.current = null;
 
         if (isPdf) {
-          const errorMsg =
-            error?.message ||
-            t(
-              "pdfTextEditor.conversionFailed",
-              "Failed to convert PDF. Please try again.",
-            );
+          const is401 = error?.response?.status === 401;
+          if (is401 && isGuestMode()) return;
+          const errorMsg = is401
+            ? t(
+                "pdfTextEditor.errors.signInRequired",
+                "Sign in to convert and edit PDFs.",
+              )
+            : (error?.message ||
+              t(
+                "pdfTextEditor.conversionFailed",
+                "Failed to convert PDF. Please try again.",
+              ));
           setErrorMessage(errorMsg);
           console.error("Setting error message:", errorMsg);
         } else {
@@ -1387,15 +1394,20 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
         setErrorMessage(null);
       } catch (error: any) {
         console.error("Failed to convert JSON back to PDF", error);
-        const message =
-          error?.response?.data ||
-          error?.message ||
-          t(
-            "pdfTextEditor.errors.pdfConversion",
-            "Unable to convert the edited JSON back into a PDF.",
-          );
-        const msgString =
-          typeof message === "string" ? message : String(message);
+        if (error?.response?.status === 401 && isGuestMode()) return;
+        const raw =
+          error?.response?.status === 401
+            ? t(
+                "pdfTextEditor.errors.signInRequired",
+                "Sign in to convert and edit PDFs.",
+              )
+            : (error?.response?.data ||
+              error?.message ||
+              t(
+                "pdfTextEditor.errors.pdfConversion",
+                "Unable to convert the edited JSON back into a PDF.",
+              ));
+        const msgString = typeof raw === "string" ? raw : String(raw);
         setErrorMessage(msgString);
         if (onError) {
           onError(msgString);
@@ -1657,14 +1669,20 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
       setShouldNavigateAfterSave(true);
     } catch (error: any) {
       console.error("Failed to save to workbench", error);
-      const message =
-        error?.response?.data ||
-        error?.message ||
-        t(
-          "pdfTextEditor.errors.pdfConversion",
-          "Unable to save changes to workbench.",
-        );
-      const msgString = typeof message === "string" ? message : String(message);
+      if (error?.response?.status === 401 && isGuestMode()) return;
+      const raw =
+        error?.response?.status === 401
+          ? t(
+              "pdfTextEditor.errors.signInRequired",
+              "Sign in to convert and edit PDFs.",
+            )
+          : (error?.response?.data ||
+            error?.message ||
+            t(
+              "pdfTextEditor.errors.pdfConversion",
+              "Unable to save changes to workbench.",
+            ));
+      const msgString = typeof raw === "string" ? raw : String(raw);
       setErrorMessage(msgString);
       if (onError) {
         onError(msgString);

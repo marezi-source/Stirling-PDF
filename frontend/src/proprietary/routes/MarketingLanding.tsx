@@ -299,7 +299,7 @@ export default function MarketingLanding() {
   };
 
   return (
-    <div className={`${styles.page}${isUploadHovered ? ` ${styles.uploadHovered}` : ""}`} data-theme="dark">
+    <div className={`${styles.page}${isUploadHovered ? ` ${styles.uploadHovered}` : ""}`} data-theme="dark" data-mantine-color-scheme="dark">
       <LandingWebGLBackground blurred={isUploadHovered} />
 
       {/* ── Navigation ── */}

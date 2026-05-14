@@ -1,6 +1,6 @@
 # OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-09 (Session 22)
+**Last updated:** 2026-05-14 (Session 24)
 **Branch:** OnePDF-UI-Change  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -1985,3 +1985,98 @@ Features that need a user account now show a "Login to have access" modal popup 
 - [ ] Scrollbar is hidden by default, appears on hover
 - [ ] Bottom buttons (Help, Settings) remain anchored to the bottom when content fits
 - [ ] Bottom buttons scroll naturally when content overflows
+
+---
+
+## Session 24: Backend–Frontend Connectivity + Neon PostgreSQL Migration
+
+### Problem: Frontend–Backend Proxy Not Working
+
+The Vite dev server was returning `500 Internal Server Error` when proxying `/api/*` requests to the backend, even though both services were running. Root cause: `/etc/hosts` was completely empty — `localhost` had no DNS mapping, so the Vite proxy could not resolve the backend URL.
+
+**Fix:** Added standard entries to `/etc/hosts`:
+```
+127.0.0.1 localhost
+::1 localhost
+```
+
+**How to start (updated):**
+```bash
+# Terminal 1 — backend
+task backend:dev
+
+# Terminal 2 — frontend (localhost now resolves correctly)
+task frontend:dev
+```
+
+> Note: previous sessions documented `BACKEND_URL=http://127.0.0.1:8080 task frontend:dev` as the workaround. This is no longer needed now that `/etc/hosts` is fixed.
+
+---
+
+### Database Migration: H2 → Neon (PostgreSQL)
+
+Migrated the user/session database from the local embedded H2 file to a hosted Neon serverless PostgreSQL database.
+
+**Where login data is stored:**
+
+| What | Table |
+|---|---|
+| Usernames + BCrypt-hashed passwords | `users` |
+| Roles / permissions | `authorities` |
+| Active sessions | `sessions` |
+| "Remember me" tokens | `persistent_logins` |
+| Per-user preferences | `user_settings` |
+
+Previously all stored in: `app/core/configs/stirling-pdf-DB-2.3.232.mv.db`  
+Now stored in: Neon PostgreSQL (serverless, hosted)
+
+**Changes made:**
+
+**`app/core/configs/settings.yml`** — Modified:
+- `premium.enabled`: `false` → `true` (required to unlock custom database config)
+- `system.datasource.enableCustomDatabase`: `false` → `true`
+- `system.datasource.customDatabaseUrl`: set to Neon JDBC connection string
+- `system.datasource.username`: set to Neon role username
+- `system.datasource.password`: set to Neon role password
+
+**`app/proprietary/src/main/java/stirling/software/proprietary/security/configuration/DatabaseConfig.java`** — Modified:
+- Removed `runningProOrHigher` field and constructor parameter — the custom database feature was gated behind a valid Stirling-PDF enterprise license key; since this is the OnePDF fork, the license gate was removed entirely
+- Removed `@ConditionalOnBooleanProperty(name = "premium.enabled")` annotation from `useCustomDataSource()` (private method — annotation had no effect there anyway)
+- Changed `dataSource()` condition from `!runningProOrHigher || !datasource.isEnableCustomDatabase()` → `!datasource.isEnableCustomDatabase()`
+- Removed unused `@Qualifier` and `ConditionalOnBooleanProperty` imports
+
+Confirmation line in startup logs:
+```
+INFO  s.s.p.s.configuration.DatabaseConfig - Using custom database configuration
+```
+
+The Hibernate schema warnings (`constraint "uk_..." does not exist, skipping`) on first boot are harmless — Hibernate is trying to drop constraints that don't exist yet on the fresh database and skipping them safely.
+
+---
+
+### Fix: Signup Endpoint Blocked by Spring Security
+
+Attempting to register a new account from the marketing landing page signup form returned `{"error":"Authentication required"}`. The `/api/v1/user/register` endpoint was not in the Spring Security public endpoint whitelist, so requests were blocked before reaching the controller.
+
+**`app/common/src/main/java/stirling/software/common/util/RequestUriUtils.java`** — Modified:
+- Added `|| trimmedUri.startsWith("/api/v1/user/register")` to the `isPublicAuthEndpoint()` method's return statement
+
+---
+
+### Session 24 — Test Checklist
+
+#### Connectivity
+- [ ] `task frontend:dev` starts without needing `BACKEND_URL` override
+- [ ] `/api/*` calls from the browser proxy correctly to the backend
+- [ ] No `500` errors on frontend → backend proxy
+
+#### Neon Database
+- [ ] Backend startup log shows `Using custom database configuration` (not `Using default H2 database`)
+- [ ] Neon dashboard → Tables shows `users`, `sessions`, `authorities`, `persistent_logins` tables
+- [ ] Login with a valid account works end-to-end
+- [ ] New user registration persists to Neon (visible in Neon dashboard after signup)
+
+#### Signup
+- [ ] Marketing landing page "Sign Up" button navigates to `/signup`
+- [ ] Submitting the signup form creates a user without "Authentication required" error
+- [ ] Newly registered user can log in immediately after signup

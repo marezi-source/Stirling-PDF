@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { useMantineColorScheme } from "@mantine/core";
 
 interface LandingWebGLBackgroundProps {
   blurred?: boolean;
@@ -7,9 +6,6 @@ interface LandingWebGLBackgroundProps {
 
 export function LandingWebGLBackground({ blurred }: LandingWebGLBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { colorScheme } = useMantineColorScheme();
-  const schemeRef = useRef(colorScheme);
-  schemeRef.current = colorScheme;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -47,7 +43,7 @@ export function LandingWebGLBackground({ blurred }: LandingWebGLBackgroundProps)
 
       const w = canvas!.width;
       const h = canvas!.height;
-      const isDark = schemeRef.current === "dark";
+      const isDark = true;
 
       // Orb 1 — smooth cursor follower
       o1x += (mouseX - o1x) * 0.05;

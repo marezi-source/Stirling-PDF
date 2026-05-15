@@ -1,6 +1,6 @@
 # OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-15 (Session 32)
+**Last updated:** 2026-05-15 (Session 33)
 **Branch:** OnePDF-UI-Change  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -2900,3 +2900,177 @@ style={{
 - [ ] Mobile bottom navigation bar is fully visible (not overlapped by the viewer toolbar)
 - [ ] RightRail does not appear on mobile
 - [ ] Layout fits entirely within the visible viewport (no scroll/overflow from iOS address bar)
+
+---
+
+## Session 33: Mobile Logo Fix + Clickable Header + PDF Editor Mobile Scaling
+
+**Date:** 2026-05-15  
+**Branch:** OnePDF-UI-Change
+
+---
+
+### Change 1: Mobile Logo — Broken Image Fix
+
+**Root cause:** `useLogoPath.ts` and `useLogoAssets.ts` referenced the old Stirling-PDF filenames (`StirlingPDFLogo*.svg`) which no longer exist. The actual files in `classic-logo/` and `modern-logo/` are named `OnePDFLogo*.svg`. This caused the logo in the mobile header to render as a broken image ("?" placeholder).
+
+**`frontend/src/core/hooks/useLogoPath.ts`** — Modified:
+
+```ts
+// Before
+dark: `${folderPath}/StirlingPDFLogoNoTextDark.svg`,
+light: `${folderPath}/StirlingPDFLogoNoTextLight.svg`,
+
+// After
+dark: `${folderPath}/OnePDFLogoNoTextDark.svg`,
+light: `${folderPath}/OnePDFLogoNoTextLight.svg`,
+```
+
+**`frontend/src/core/hooks/useLogoAssets.ts`** — Modified:
+
+```ts
+// Before
+black: `${folderPath}/StirlingPDFLogoBlackText.svg`,
+grey:  `${folderPath}/StirlingPDFLogoGreyText.svg`,
+white: `${folderPath}/StirlingPDFLogoWhiteText.svg`,
+
+// After
+black: `${folderPath}/OnePDFLogoBlackText.svg`,
+grey:  `${folderPath}/OnePDFLogoGreyText.svg`,
+white: `${folderPath}/OnePDFLogoWhiteText.svg`,
+```
+
+**`frontend/src/core/hooks/useLogoAssets.test.ts`** — Updated test assertions to match the new filenames. All 20 tests pass.
+
+---
+
+### Change 2: Mobile Header — Clickable Logo & Wordmark
+
+The "OnePDF" logo and wordmark in the mobile header were a plain `<div>` with no interaction. Tapping them had no effect.
+
+**`frontend/src/core/pages/HomePage.tsx`** — Modified:
+
+Replaced the `<div className="mobile-brand">` with a `<button>` that calls `navigate("/")` on click:
+
+```tsx
+// Before
+<div className="mobile-brand">
+  <LogoIcon className="mobile-brand-icon" />
+  <Wordmark alt={brandAltText} className="mobile-brand-text" />
+</div>
+
+// After
+<button
+  type="button"
+  className="mobile-brand mobile-brand-link"
+  onClick={() => navigate("/")}
+  aria-label={t("home.mobile.goToHome", "Go to home page")}
+>
+  <LogoIcon className="mobile-brand-icon" />
+  <Wordmark alt={brandAltText} className="mobile-brand-text" />
+</button>
+```
+
+**`frontend/src/core/pages/HomePage.css`** — Added:
+
+```css
+.mobile-brand-link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+```
+
+The button strips all default button styling so visually it is identical to the previous `<div>`. `useNavigate` was already imported in `HomePage.tsx`.
+
+---
+
+### Change 3: PDF Editor — Mobile Scaling Fix (Responsive Canvas)
+
+**Root cause:** `PdfTextEditorView.tsx` had a fixed `MAX_RENDER_WIDTH = 820`. On a ~390px iPhone, the canvas rendered at 820px (full width for desktop), causing horizontal overflow. The text overlay boxes were positioned in the correct pixel coordinates within the 820px canvas but the visible viewport was much narrower, making the text appear mashed/doubled as the canvas spilled off-screen.
+
+**`frontend/src/core/components/tools/pdfTextEditor/PdfTextEditorView.tsx`** — Modified:
+
+1. Added `scrollAreaWrapperRef` and `effectiveMaxWidth` state:
+
+```tsx
+const scrollAreaWrapperRef = useRef<HTMLDivElement | null>(null);
+const [effectiveMaxWidth, setEffectiveMaxWidth] = useState(MAX_RENDER_WIDTH);
+```
+
+2. Added a `ResizeObserver` effect that tracks the actual scroll container width and updates `effectiveMaxWidth`:
+
+```tsx
+useEffect(() => {
+  const element = scrollAreaWrapperRef.current;
+  if (!element) return;
+  const observer = new ResizeObserver((entries) => {
+    const entry = entries[0];
+    if (entry) {
+      // Subtract padding (0.5rem * 2 ≈ 16px) so canvas fits without overflow
+      setEffectiveMaxWidth(
+        Math.min(Math.floor(entry.contentRect.width) - 16, MAX_RENDER_WIDTH),
+      );
+    }
+  });
+  observer.observe(element);
+  return () => observer.disconnect();
+}, []);
+```
+
+3. Updated the scale calculation to use `effectiveMaxWidth` instead of `MAX_RENDER_WIDTH`:
+
+```tsx
+// Before
+const calculatedScale = Math.min(MAX_RENDER_WIDTH / pageWidth, 2.5);
+// ...
+}, [pageWidth, pageHeight]);
+
+// After
+const calculatedScale = Math.min(effectiveMaxWidth / pageWidth, 2.5);
+// ...
+}, [pageWidth, pageHeight, effectiveMaxWidth]);
+```
+
+4. Attached `scrollAreaWrapperRef` to the centering Box wrapper inside `ScrollArea`:
+
+```tsx
+<Box ref={scrollAreaWrapperRef} style={{ display: "flex", justifyContent: "center", ... }}>
+```
+
+**Result:** On mobile, `effectiveMaxWidth` is set to the actual container width (~350–380px on iPhone). The canvas, preview image, and all text overlay boxes are all scaled from the same value, so they remain in perfect alignment at the correct mobile size.
+
+---
+
+### Session 33 — Files Changed
+
+| File | Change |
+|---|---|
+| `frontend/src/core/hooks/useLogoPath.ts` | `StirlingPDFLogoNoText*.svg` → `OnePDFLogoNoText*.svg` |
+| `frontend/src/core/hooks/useLogoAssets.ts` | `StirlingPDFLogo*.svg` → `OnePDFLogo*.svg` (wordmark variants) |
+| `frontend/src/core/hooks/useLogoAssets.test.ts` | Updated test assertions to match renamed logo files |
+| `frontend/src/core/pages/HomePage.tsx` | Mobile brand `<div>` → `<button>` with `navigate("/")` on click |
+| `frontend/src/core/pages/HomePage.css` | Added `.mobile-brand-link` styles to strip default button appearance |
+| `frontend/src/core/components/tools/pdfTextEditor/PdfTextEditorView.tsx` | Responsive canvas scaling via `ResizeObserver` + `effectiveMaxWidth` |
+
+---
+
+### Session 33 — Test Checklist
+
+#### Mobile Logo
+- [ ] Mobile header shows the OnePDF logo icon correctly (no "?" placeholder)
+- [ ] Works in both light mode and dark mode
+
+#### Clickable Header
+- [ ] Tapping the OnePDF logo on mobile navigates to `/` (home/landing page)
+- [ ] Tapping the "OnePDF" wordmark on mobile also navigates to `/`
+- [ ] No blue tap highlight flash on iOS
+
+#### PDF Editor Mobile Scaling
+- [ ] Open PDF Editor tool on mobile, load a PDF
+- [ ] Canvas fits within the screen width — no horizontal scroll required
+- [ ] Text overlay boxes align correctly with the background page preview
+- [ ] Text does not appear mashed, doubled, or clipped
+- [ ] On desktop (wide screen), canvas still renders at up to 820px (full width unchanged)

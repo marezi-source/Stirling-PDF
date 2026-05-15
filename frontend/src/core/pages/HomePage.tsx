@@ -251,10 +251,15 @@ export default function HomePage() {
         <div className="mobile-layout">
           <div className="mobile-toggle">
             <div className="mobile-header">
-              <div className="mobile-brand">
+              <button
+                type="button"
+                className="mobile-brand mobile-brand-link"
+                onClick={() => navigate("/")}
+                aria-label={t("home.mobile.goToHome", "Go to home page")}
+              >
                 <LogoIcon className="mobile-brand-icon" />
                 <Wordmark alt={brandAltText} className="mobile-brand-text" />
-              </div>
+              </button>
             </div>
             <div
               className="mobile-toggle-buttons"

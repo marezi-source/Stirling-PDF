@@ -360,6 +360,8 @@ const PdfTextEditorView = ({ data }: PdfTextEditorViewProps) => {
   const [textScales, setTextScales] = useState<Map<string, number>>(new Map());
   const measurementKeyRef = useRef<string>("");
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const scrollAreaWrapperRef = useRef<HTMLDivElement | null>(null);
+  const [effectiveMaxWidth, setEffectiveMaxWidth] = useState(MAX_RENDER_WIDTH);
   const editorRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const caretOffsetsRef = useRef<Map<string, number>>(new Map());
   const composingGroupsRef = useRef<Set<string>>(new Set());
@@ -397,6 +399,22 @@ const PdfTextEditorView = ({ data }: PdfTextEditorViewProps) => {
       // Ignore localStorage errors
     }
     setShowWelcomeBanner(false);
+  }, []);
+
+  useEffect(() => {
+    const element = scrollAreaWrapperRef.current;
+    if (!element) return;
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) {
+        // Subtract padding (0.5rem * 2 sides ≈ 16px) so canvas fits without overflow
+        setEffectiveMaxWidth(
+          Math.min(Math.floor(entry.contentRect.width) - 16, MAX_RENDER_WIDTH),
+        );
+      }
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
   }, []);
 
   const {
@@ -1149,9 +1167,9 @@ const PdfTextEditorView = ({ data }: PdfTextEditorViewProps) => {
     [pageImages],
   );
   const scale = useMemo(() => {
-    const calculatedScale = Math.min(MAX_RENDER_WIDTH / pageWidth, 2.5);
+    const calculatedScale = Math.min(effectiveMaxWidth / pageWidth, 2.5);
     console.log(`🔍 [PdfTextEditor] Scale Calculation:`, {
-      MAX_RENDER_WIDTH,
+      effectiveMaxWidth,
       pageWidth,
       pageHeight,
       calculatedScale: calculatedScale.toFixed(3),
@@ -1159,7 +1177,7 @@ const PdfTextEditorView = ({ data }: PdfTextEditorViewProps) => {
       scaledHeight: (pageHeight * calculatedScale).toFixed(2),
     });
     return calculatedScale;
-  }, [pageWidth, pageHeight]);
+  }, [pageWidth, pageHeight, effectiveMaxWidth]);
   const scaledWidth = pageWidth * scale;
   const scaledHeight = pageHeight * scale;
   const selectionToolbarPosition = useMemo(() => {
@@ -2041,6 +2059,7 @@ const PdfTextEditorView = ({ data }: PdfTextEditorViewProps) => {
               offsetScrollbars
             >
               <Box
+                ref={scrollAreaWrapperRef}
                 style={{
                   display: "flex",
                   justifyContent: "center",

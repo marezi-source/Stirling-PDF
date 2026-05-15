@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 interface FooterProps {
   privacyPolicy?: string;
   termsAndConditions?: string;
@@ -24,13 +26,13 @@ export default function Footer({ forceLightMode = false }: FooterProps) {
         justifyContent: "center",
       }}
     >
-      <a
+      <Link
         className="footer-link px-3"
-        href="mailto:feedback@onepdf.app"
+        to="/help"
         style={{ fontSize: "0.75rem" }}
       >
-        Feedback / Complaint
-      </a>
+        Help & Support
+      </Link>
     </div>
   );
 }

@@ -2,9 +2,10 @@ import { useEffect, useRef } from "react";
 
 interface LandingWebGLBackgroundProps {
   blurred?: boolean;
+  lightMode?: boolean;
 }
 
-export function LandingWebGLBackground({ blurred }: LandingWebGLBackgroundProps) {
+export function LandingWebGLBackground({ blurred, lightMode = false }: LandingWebGLBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -43,7 +44,7 @@ export function LandingWebGLBackground({ blurred }: LandingWebGLBackgroundProps)
 
       const w = canvas!.width;
       const h = canvas!.height;
-      const isDark = true;
+      const isDark = !lightMode;
 
       // Orb 1 — smooth cursor follower
       o1x += (mouseX - o1x) * 0.05;

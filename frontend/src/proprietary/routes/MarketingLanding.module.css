@@ -1,37 +1,37 @@
-/* ── Design tokens (dark mode default) ── */
+/* ── Design tokens (light mode) ── */
 .page {
-  --c-bg:            #0d0d0d;
-  --c-bg-features:   #0a0a0a;
-  --c-nav-bg:        rgba(13, 13, 13, 0.92);
-  --c-text-primary:  #fafafa;
-  --c-text-secondary:#777;
-  --c-text-muted:    #666;
-  --c-text-dim:      #555;
-  --c-text-label:    #444;
-  --c-text-item:     #999;
-  --c-text-feature:  #ccc;
-  --c-border-subtle: rgba(255, 255, 255, 0.05);
-  --c-border:        rgba(255, 255, 255, 0.06);
-  --c-border-ui:     rgba(255, 255, 255, 0.1);
-  --c-border-btn:    rgba(255, 255, 255, 0.14);
-  --c-border-hover:  rgba(255, 255, 255, 0.28);
-  --c-surface:       #141414;
-  --c-surface-raised:#1a1a1a;
-  --c-surface-icon:  #1e1e1e;
-  --c-hover-overlay: rgba(255, 255, 255, 0.06);
-  --c-press-overlay: rgba(255, 255, 255, 0.04);
-  --c-dropdown-shadow: rgba(0, 0, 0, 0.7);
-  --c-card-shadow:   rgba(0, 0, 0, 0.5);
-  --c-pdfcorner:     #222;
-  --c-pdfline:       rgba(255, 255, 255, 0.1);
-  --c-action-bg:     #fafafa;
-  --c-action-fg:     #0a0a0a;
-  --c-action-hover:  #e0e0e0;
-  --c-signup-bg:     #fafafa;
-  --c-signup-fg:     #0a0a0a;
-  --c-signup-hover:  #e0e0e0;
-  --c-icon-color:    #888;
-  --c-float-color:   #777;
+  --c-bg:            #f0f4ff;
+  --c-bg-features:   #eaeefc;
+  --c-nav-bg:        rgba(240, 244, 255, 0.92);
+  --c-text-primary:  #111111;
+  --c-text-secondary:#555555;
+  --c-text-muted:    #666666;
+  --c-text-dim:      #888888;
+  --c-text-label:    #999999;
+  --c-text-item:     #555555;
+  --c-text-feature:  #333333;
+  --c-border-subtle: rgba(0, 0, 0, 0.06);
+  --c-border:        rgba(0, 0, 0, 0.08);
+  --c-border-ui:     rgba(0, 0, 0, 0.12);
+  --c-border-btn:    rgba(0, 0, 0, 0.16);
+  --c-border-hover:  rgba(0, 0, 0, 0.30);
+  --c-surface:       #e8edff;
+  --c-surface-raised:#f5f7ff;
+  --c-surface-icon:  #dde3f8;
+  --c-hover-overlay: rgba(0, 0, 0, 0.05);
+  --c-press-overlay: rgba(0, 0, 0, 0.03);
+  --c-dropdown-shadow: rgba(0, 0, 0, 0.12);
+  --c-card-shadow:   rgba(0, 0, 0, 0.08);
+  --c-pdfcorner:     #e0e0e0;
+  --c-pdfline:       rgba(0, 0, 0, 0.10);
+  --c-action-bg:     #111111;
+  --c-action-fg:     #ffffff;
+  --c-action-hover:  #333333;
+  --c-signup-bg:     #111111;
+  --c-signup-fg:     #ffffff;
+  --c-signup-hover:  #333333;
+  --c-icon-color:    #666666;
+  --c-float-color:   #999999;
 
   position: relative;
   min-height: 100vh;
@@ -89,7 +89,7 @@
 .navBrand {
   font-size: 1.0625rem;
   font-weight: 700;
-  color: var(--c-text-primary);
+  color: #4f46e5;
   letter-spacing: -0.02em;
   transition: color 0.25s;
 }
@@ -119,8 +119,8 @@
 }
 
 .navToolLink:hover {
-  background: var(--c-hover-overlay);
-  color: var(--c-text-primary);
+  background: rgba(79, 70, 229, 0.08);
+  color: #4f46e5;
 }
 
 /* ── Convert dropdown ── */
@@ -135,8 +135,8 @@
 }
 
 .convertBtnOpen {
-  background: var(--c-hover-overlay);
-  color: var(--c-text-primary);
+  background: rgba(79, 70, 229, 0.08);
+  color: #4f46e5;
 }
 
 .convertDropdown {
@@ -201,8 +201,8 @@
 
 .loginBtn {
   background: none;
-  border: 1px solid var(--c-border-btn);
-  color: var(--c-text-muted);
+  border: 1px solid rgba(79, 70, 229, 0.40);
+  color: #4f46e5;
   font-size: 0.875rem;
   font-weight: 500;
   padding: 0.4375rem 1rem;
@@ -214,31 +214,33 @@
 }
 
 .loginBtn:hover {
-  border-color: var(--c-border-hover);
-  color: var(--c-text-primary);
-  background: var(--c-press-overlay);
+  border-color: #4f46e5;
+  color: #4f46e5;
+  background: rgba(79, 70, 229, 0.08);
 }
 
 .signupBtn {
-  background: var(--c-signup-bg);
-  border: 1px solid var(--c-signup-bg);
-  color: var(--c-signup-fg);
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  border: 1px solid transparent;
+  color: #ffffff;
   font-size: 0.875rem;
   font-weight: 600;
   padding: 0.4375rem 1.125rem;
   border-radius: 0.5rem;
   cursor: pointer;
   font-family: inherit;
-  transition: background 0.15s, border-color 0.15s;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
+  box-shadow: 0 2px 12px rgba(79, 70, 229, 0.30);
 }
 
 .signupBtn:hover {
-  background: var(--c-signup-hover);
-  border-color: var(--c-signup-hover);
+  background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+  border-color: transparent;
+  box-shadow: 0 4px 18px rgba(79, 70, 229, 0.40);
 }
 
 /* ── Hero ── */
@@ -587,8 +589,8 @@
   justify-content: center;
   gap: 0.5rem;
   width: 100%;
-  background: var(--c-action-bg);
-  color: var(--c-action-fg);
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: #ffffff;
   border: none;
   font-size: 0.9375rem;
   font-weight: 600;
@@ -596,11 +598,13 @@
   border-radius: 0.5rem;
   cursor: pointer;
   font-family: inherit;
-  transition: background 0.15s;
+  transition: background 0.15s, box-shadow 0.15s;
+  box-shadow: 0 2px 12px rgba(79, 70, 229, 0.30);
 }
 
 .uploadLocalBtn:hover:not(:disabled) {
-  background: var(--c-action-hover);
+  background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+  box-shadow: 0 4px 18px rgba(79, 70, 229, 0.40);
 }
 
 .uploadLocalBtn:disabled {
@@ -645,6 +649,73 @@
   color: var(--c-text-dim);
   margin: 0;
   transition: color 0.25s;
+}
+
+/* ── Hero title accent ── */
+.heroTitleAccent {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 55%, #e11d48 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Coloured float cards ── */
+.floatCardIndigo {
+  background: rgba(79, 70, 229, 0.12);
+  border-color: rgba(79, 70, 229, 0.28);
+  color: #4f46e5;
+}
+.floatCardViolet {
+  background: rgba(124, 58, 237, 0.12);
+  border-color: rgba(124, 58, 237, 0.28);
+  color: #7c3aed;
+}
+.floatCardEmerald {
+  background: rgba(5, 150, 105, 0.12);
+  border-color: rgba(5, 150, 105, 0.28);
+  color: #059669;
+}
+.floatCardAmber {
+  background: rgba(217, 119, 6, 0.12);
+  border-color: rgba(217, 119, 6, 0.28);
+  color: #d97706;
+}
+.floatCardRose {
+  background: rgba(225, 29, 72, 0.12);
+  border-color: rgba(225, 29, 72, 0.28);
+  color: #e11d48;
+}
+
+/* ── Coloured feature-strip icons ── */
+.featureIconEmerald {
+  background: rgba(5, 150, 105, 0.10);
+  border-color: rgba(5, 150, 105, 0.25);
+  color: #059669;
+}
+.featureIconAmber {
+  background: rgba(217, 119, 6, 0.10);
+  border-color: rgba(217, 119, 6, 0.25);
+  color: #d97706;
+}
+.featureIconIndigo {
+  background: rgba(79, 70, 229, 0.10);
+  border-color: rgba(79, 70, 229, 0.25);
+  color: #4f46e5;
+}
+.featureIconSky {
+  background: rgba(2, 132, 199, 0.10);
+  border-color: rgba(2, 132, 199, 0.25);
+  color: #0284c7;
+}
+
+/* ── Upload zone: indigo-tinted border ── */
+.uploadZoneInline {
+  border-color: rgba(79, 70, 229, 0.38);
+}
+.uploadZoneInline .uploadZoneIcon {
+  background: rgba(79, 70, 229, 0.10);
+  border-color: rgba(79, 70, 229, 0.22);
+  color: #4f46e5;
 }
 
 /* ── Responsive ── */

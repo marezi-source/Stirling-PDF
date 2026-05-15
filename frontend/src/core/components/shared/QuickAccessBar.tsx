@@ -161,6 +161,7 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
   const configButtonIcon = useConfigButtonIcon();
   const { session } = useAuth();
   const [comingSoonOpen, setComingSoonOpen] = useState(false);
+  const [loginPromptOpen, setLoginPromptOpen] = useState(false);
   const isRTL =
     typeof document !== "undefined" && document.documentElement.dir === "rtl";
   const hasSelectedFiles = selectedFiles.length > 0;
@@ -583,6 +584,10 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
   }, [leftPanelView, selectedToolKey, toolRegistry, readerMode]);
 
   const handleFilesButtonClick = () => {
+    if (config?.enableLogin === true && !session) {
+      setLoginPromptOpen(true);
+      return;
+    }
     openFilesModal();
   };
 
@@ -1323,6 +1328,34 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
         <Group justify="flex-end">
           <Button onClick={() => setComingSoonOpen(false)}>
             Got it
+          </Button>
+        </Group>
+      </Modal>
+
+      <Modal
+        opened={loginPromptOpen}
+        onClose={() => setLoginPromptOpen(false)}
+        title={t("auth.loginRequired", "Login Required")}
+        centered
+        size="sm"
+      >
+        <Text size="sm" c="dimmed" mb="lg">
+          {t(
+            "auth.loginToViewFiles",
+            "Please log in to access your previously uploaded files.",
+          )}
+        </Text>
+        <Group justify="flex-end">
+          <Button variant="default" onClick={() => setLoginPromptOpen(false)}>
+            {t("common.cancel", "Cancel")}
+          </Button>
+          <Button
+            onClick={() => {
+              setLoginPromptOpen(false);
+              navigate("/login");
+            }}
+          >
+            {t("auth.logIn", "Log In")}
           </Button>
         </Group>
       </Modal>

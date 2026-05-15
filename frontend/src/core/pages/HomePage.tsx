@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { useToolWorkflow } from "@app/contexts/ToolWorkflowContext";
-import { Group } from "@mantine/core";
+import { Group, Modal, Text, Button } from "@mantine/core";
+import { useAuth } from "@app/auth/UseSession";
 import { useSidebarContext } from "@app/contexts/SidebarContext";
 import { useDocumentMeta } from "@app/hooks/useDocumentMeta";
 import { useBaseUrl } from "@app/hooks/useBaseUrl";
@@ -52,11 +54,22 @@ export default function HomePage() {
 
   const { openFilesModal } = useFilesModalContext();
   const { config } = useAppConfig();
+  const { session } = useAuth();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const sliderRef = useRef<HTMLDivElement | null>(null);
   const [activeMobileView, setActiveMobileView] = useState<MobileView>("tools");
   const isProgrammaticScroll = useRef(false);
   const [configModalOpen, setConfigModalOpen] = useState(false);
+  const [mobileLoginPromptOpen, setMobileLoginPromptOpen] = useState(false);
+
+  const handleMobileFilesButtonClick = () => {
+    if (config?.enableLogin === true && !session) {
+      setMobileLoginPromptOpen(true);
+      return;
+    }
+    openFilesModal();
+  };
 
   const { activeFiles } = useFileContext();
   const navigationState = useNavigationState();
@@ -338,7 +351,7 @@ export default function HomePage() {
             <button
               className="mobile-bottom-button"
               aria-label={t("home.mobile.openFiles", "Open files")}
-              onClick={() => openFilesModal()}
+              onClick={handleMobileFilesButtonClick}
             >
               <LocalIcon icon="folder-rounded" width="1.5rem" height="1.5rem" />
               <span className="mobile-bottom-button-label">
@@ -365,6 +378,36 @@ export default function HomePage() {
             opened={configModalOpen}
             onClose={() => setConfigModalOpen(false)}
           />
+          <Modal
+            opened={mobileLoginPromptOpen}
+            onClose={() => setMobileLoginPromptOpen(false)}
+            title={t("auth.loginRequired", "Login Required")}
+            centered
+            size="sm"
+          >
+            <Text size="sm" c="dimmed" mb="lg">
+              {t(
+                "auth.loginToViewFiles",
+                "Please log in to access your previously uploaded files.",
+              )}
+            </Text>
+            <Group justify="flex-end">
+              <Button
+                variant="default"
+                onClick={() => setMobileLoginPromptOpen(false)}
+              >
+                {t("common.cancel", "Cancel")}
+              </Button>
+              <Button
+                onClick={() => {
+                  setMobileLoginPromptOpen(false);
+                  navigate("/login");
+                }}
+              >
+                {t("auth.logIn", "Log In")}
+              </Button>
+            </Group>
+          </Modal>
         </div>
       ) : (
         <Group align="flex-start" gap={0} h="100%" className="flex-nowrap flex">

@@ -1,6 +1,6 @@
 # OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-15 (Session 30)
+**Last updated:** 2026-05-15 (Session 31)
 **Branch:** OnePDF-UI-Change  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -2545,3 +2545,125 @@ Accounts still exist (Neon PostgreSQL), login/signup still work, but neither is 
 - [ ] `/api/v1/general/`, `/api/v1/convert/`, `/api/v1/misc/` endpoints return results without auth
 - [ ] Login and Signup still work for users who want an account
 - [ ] Logged-in users see no regression in any tool or workflow
+
+---
+
+## Session 31 — Auth Gate on Files Button + Footer Link + Marketing Landing Page Redesign
+
+**Date:** 2026-05-15  
+**Branch:** OnePDF-UI-Change
+
+---
+
+### Change 1: Files button gated behind login
+
+The workspace "Files" button previously opened the file manager for any visitor. It now checks whether login is enabled and the user is logged out, showing a "Login Required" popup instead of opening the modal.
+
+**Gate condition:** `config?.enableLogin === true && !session`
+- When login is disabled (core/OSS builds): button works for everyone as before
+- When login is enabled and user is not authenticated: popup appears with Cancel + Log In (navigates to `/login`)
+
+**Files changed:**
+
+`frontend/src/core/components/shared/QuickAccessBar.tsx` (desktop sidebar)
+- Added `loginPromptOpen` state
+- Modified `handleFilesButtonClick` to check the gate condition
+- Added a Mantine `Modal` with "Login Required" title and "Please log in to access your previously uploaded files." message
+
+`frontend/src/core/pages/HomePage.tsx` (mobile bottom bar)
+- Imported `useNavigate`, `useAuth`, `Modal`, `Text`, `Button`
+- Added `mobileLoginPromptOpen` state and `handleMobileFilesButtonClick` with the same gate logic
+- Same login prompt modal added for the mobile view
+
+---
+
+### Change 2: Footer "Feedback / Complaint" → Help & Support link
+
+`frontend/src/core/components/shared/Footer.tsx`
+- Replaced `<a href="mailto:feedback@onepdf.app">` with a React Router `<Link to="/help">` — navigates to the same `/help` route as the sidebar Help button (no full page reload)
+- Renamed link text: "Feedback / Complaint" → "Help & Support"
+
+---
+
+### Change 3: Marketing landing page — light mode
+
+**Root cause of dark background:** `LandingWebGLBackground.tsx` had `const isDark = true` hardcoded on line 46. The canvas renders `position: fixed; z-index: 0`, so it paints over the page's CSS background color. The `.nav` (z-index 50) and `.hero` (z-index 1) content render above it, but the visible backdrop was always the near-black canvas fill `#04040a`.
+
+**Fix:**
+
+`frontend/src/core/components/shared/LandingWebGLBackground.tsx`
+- Added `lightMode?: boolean` prop (default `false` — all other callers unchanged)
+- `const isDark = !lightMode` — switches canvas base fill to `#f0f4ff` and uses the already-written light-mode orb gradients
+
+`frontend/src/proprietary/routes/MarketingLanding.tsx`
+- Root div: `data-theme="light"`, `data-mantine-color-scheme="light"`
+- Passes `lightMode` prop to `<LandingWebGLBackground>`
+
+`frontend/src/proprietary/routes/MarketingLanding.module.css`
+- All 35 design tokens updated from dark to light values
+- Backgrounds: `#0d0d0d` → `#f0f4ff` (matches canvas base fill)
+- Text: `#fafafa` primary → `#111111`
+- Borders: white-alpha → black-alpha equivalents
+- CTA buttons: inverted to dark bg + white fg for contrast on a light page
+- Shadows: softened
+
+---
+
+### Change 4: Hero upload zone aligned with background
+
+The canvas base fill (`#f0f4ff`, cool blue-white) and the upload zone surface (`#f5f5f5`, warm neutral grey) clashed visually. Fixed by shifting all surface/background tokens to the same blue-white family:
+
+| Token | Before | After |
+|---|---|---|
+| `--c-bg` | `#ffffff` | `#f0f4ff` — matches canvas exactly |
+| `--c-nav-bg` | `rgba(255,255,255,0.92)` | `rgba(240,244,255,0.92)` |
+| `--c-surface` | `#f5f5f5` | `#e8edff` — upload zone, tool cards |
+| `--c-surface-raised` | `#ffffff` | `#f5f7ff` — dropdowns, hover states |
+| `--c-surface-icon` | `#eeeeee` | `#dde3f8` — icon circle backgrounds |
+| `--c-bg-features` | `#f8f9fa` | `#eaeefc` — features section |
+
+---
+
+### Change 5: Marketing landing page — accent colour scheme
+
+Added a full indigo/violet/emerald/amber/rose/sky accent palette to lift the page from monochrome blue-white:
+
+**CSS additions in `MarketingLanding.module.css`:**
+- `.heroTitleAccent` — gradient text (indigo → violet → rose) applied to "PDFs." in the hero title
+- `.floatCardIndigo/Violet/Emerald/Amber/Rose` — each floating tool icon card gets a distinct tinted background + border + icon colour
+- `.featureIconEmerald/Amber/Indigo/Sky` — each feature-strip icon circle gets its own accent
+- `.uploadZoneInline` border override — indigo-tinted dashed border `rgba(79,70,229,0.38)`
+- Upload zone icon circle — indigo tint
+- `navBrand` — solid indigo `#4f46e5`
+- `signupBtn` — indigo→violet gradient with glow shadow (replaces flat black)
+- `uploadLocalBtn` — same indigo→violet gradient
+
+**TSX class additions in `MarketingLanding.tsx`:**
+- `"PDFs."` wrapped in `<span className={styles.heroTitleAccent}>`
+- Float cards: Pencil=Indigo, Convert=Violet, Merge=Emerald, Download=Amber, Sign=Rose
+- Feature icons: Shield=Emerald, Zap=Amber, Grid=Indigo, Cloud=Sky
+
+---
+
+### Change 6: Nav bar button colour polish
+
+`frontend/src/proprietary/routes/MarketingLanding.module.css`
+
+| Element | Before | After |
+|---|---|---|
+| **Login button** | Neutral grey border + muted text | Indigo border `rgba(79,70,229,0.40)` + indigo text; full indigo border + light indigo bg on hover |
+| **Nav tool links** (Convert, Merge, Split…) | Grey text, dark overlay on hover | Grey at rest; indigo text + light indigo bg on hover |
+| **Convert dropdown open state** | Dark overlay bg + dark text | Indigo bg + indigo text (matches hover) |
+
+---
+
+### Session 31 — Files Changed
+
+| File | Change |
+|---|---|
+| `frontend/src/core/components/shared/QuickAccessBar.tsx` | Login gate on Files button (desktop) |
+| `frontend/src/core/pages/HomePage.tsx` | Login gate on Files button (mobile) |
+| `frontend/src/core/components/shared/Footer.tsx` | "Help & Support" link → `/help` |
+| `frontend/src/core/components/shared/LandingWebGLBackground.tsx` | `lightMode` prop |
+| `frontend/src/proprietary/routes/MarketingLanding.tsx` | Light mode attrs + `lightMode` prop + accent class names |
+| `frontend/src/proprietary/routes/MarketingLanding.module.css` | Full light-mode token set + accent colour palette |

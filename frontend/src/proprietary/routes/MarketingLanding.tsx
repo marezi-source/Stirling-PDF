@@ -284,8 +284,8 @@ export default function MarketingLanding() {
   };
 
   return (
-    <div className={`${styles.page}${isUploadHovered ? ` ${styles.uploadHovered}` : ""}`} data-theme="dark" data-mantine-color-scheme="dark">
-      <LandingWebGLBackground blurred={isUploadHovered} />
+    <div className={`${styles.page}${isUploadHovered ? ` ${styles.uploadHovered}` : ""}`} data-theme="light" data-mantine-color-scheme="light">
+      <LandingWebGLBackground blurred={isUploadHovered} lightMode />
 
       {/* ── Navigation ── */}
       <nav className={styles.nav}>
@@ -353,7 +353,7 @@ export default function MarketingLanding() {
       <section className={styles.hero}>
         <div className={styles.heroLeft}>
           <h1 className={styles.heroTitle}>
-            Everything you need<br />to do more with PDFs.
+            Everything you need<br />to do more with <span className={styles.heroTitleAccent}>PDFs.</span>
           </h1>
           <p className={styles.heroSubtitle}>
             Edit, convert, merge, split, compress, sign,<br />
@@ -361,28 +361,28 @@ export default function MarketingLanding() {
           </p>
           <div className={styles.featureStrip}>
             <div className={styles.featureItem}>
-              <div className={styles.featureIcon}><ShieldIcon /></div>
+              <div className={`${styles.featureIcon} ${styles.featureIconEmerald}`}><ShieldIcon /></div>
               <div className={styles.featureText}>
                 <span className={styles.featureTitle}>Secure</span>
                 <span className={styles.featureSubtext}>Your files are always protected</span>
               </div>
             </div>
             <div className={styles.featureItem}>
-              <div className={styles.featureIcon}><ZapIcon /></div>
+              <div className={`${styles.featureIcon} ${styles.featureIconAmber}`}><ZapIcon /></div>
               <div className={styles.featureText}>
                 <span className={styles.featureTitle}>Fast</span>
                 <span className={styles.featureSubtext}>Process files in seconds</span>
               </div>
             </div>
             <div className={styles.featureItem}>
-              <div className={styles.featureIcon}><GridIcon /></div>
+              <div className={`${styles.featureIcon} ${styles.featureIconIndigo}`}><GridIcon /></div>
               <div className={styles.featureText}>
                 <span className={styles.featureTitle}>All in One</span>
                 <span className={styles.featureSubtext}>Powerful tools in one place</span>
               </div>
             </div>
             <div className={styles.featureItem}>
-              <div className={styles.featureIcon}><CloudBaseIcon /></div>
+              <div className={`${styles.featureIcon} ${styles.featureIconSky}`}><CloudBaseIcon /></div>
               <div className={styles.featureText}>
                 <span className={styles.featureTitle}>Cloud-Based</span>
                 <span className={styles.featureSubtext}>Access anywhere, anytime</span>
@@ -394,11 +394,11 @@ export default function MarketingLanding() {
         {/* ── Edit PDF upload zone with floating tool cards ── */}
         <div className={styles.heroRight}>
           <div className={styles.illustration}>
-            <div className={`${styles.floatCard} ${styles.floatTopLeft}`}><PencilIcon /></div>
-            <div className={`${styles.floatCard} ${styles.floatTopRight}`}><ConvertIcon /></div>
-            <div className={`${styles.floatCard} ${styles.floatMidLeft}`}><MergeIcon /></div>
-            <div className={`${styles.floatCard} ${styles.floatMidRight}`}><DownloadIcon /></div>
-            <div className={`${styles.floatCard} ${styles.floatBottom}`}><SignIcon /></div>
+            <div className={`${styles.floatCard} ${styles.floatTopLeft} ${styles.floatCardIndigo}`}><PencilIcon /></div>
+            <div className={`${styles.floatCard} ${styles.floatTopRight} ${styles.floatCardViolet}`}><ConvertIcon /></div>
+            <div className={`${styles.floatCard} ${styles.floatMidLeft} ${styles.floatCardEmerald}`}><MergeIcon /></div>
+            <div className={`${styles.floatCard} ${styles.floatMidRight} ${styles.floatCardAmber}`}><DownloadIcon /></div>
+            <div className={`${styles.floatCard} ${styles.floatBottom} ${styles.floatCardRose}`}><SignIcon /></div>
 
             <div
               className={`${styles.uploadZone} ${styles.uploadZoneInline}${isDragging ? ` ${styles.uploadZoneDragging}` : ""}${isUploading ? ` ${styles.uploadZoneLoading}` : ""}`}

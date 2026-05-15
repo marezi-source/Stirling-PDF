@@ -291,6 +291,7 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
   const originalGroupsRef = useRef<TextGroup[][]>([]);
   const imagesByPageRef = useRef<PdfJsonImageElement[][]>([]);
   const lastLoadedFileRef = useRef<File | null>(null);
+  const showSaveReviewRef = useRef(false);
   const autoLoadKeyRef = useRef<string | null>(null);
   const sourceFileIdRef = useRef<string | null>(null);
   const loadRequestIdRef = useRef(0);
@@ -311,10 +312,14 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
     async () => false,
   );
 
-  // Keep ref in sync with state for access in async callbacks
+  // Keep refs in sync with state for access in async callbacks
   useEffect(() => {
     loadedDocumentRef.current = loadedDocument;
   }, [loadedDocument]);
+
+  useEffect(() => {
+    showSaveReviewRef.current = showSaveReview;
+  }, [showSaveReview]);
 
   useEffect(() => {
     loadedImagePagesRef.current = new Set(loadedImagePages);
@@ -645,6 +650,11 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
         return;
       }
 
+      // Don't reload and clear the review panel while the user is viewing save results
+      if (showSaveReviewRef.current) {
+        return;
+      }
+
       setShowSaveReview(false);
       lastLoadedFileRef.current = file;
       const requestId = loadRequestIdRef.current + 1;
@@ -914,6 +924,8 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
   // Wrapper for loading files from the dropzone - adds to workbench first
   const handleLoadFileFromDropzone = useCallback(
     async (file: File) => {
+      // User explicitly loaded a new file — clear the review panel guard
+      showSaveReviewRef.current = false;
       // Add the file to the workbench so it appears in the file list
       const addedFiles = await addFiles([file]);
       // Capture the file ID for save-to-workbench functionality
@@ -1633,11 +1645,16 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
         stubs,
       );
 
+      // Block handleLoadFile synchronously before React processes the consumeFiles
+      // dispatch — this prevents any auto-reload triggered by selectedFiles changing
+      // (including the pinned-file case where selectedFiles[0] is still the old file)
+      // from clearing the review panel.
+      showSaveReviewRef.current = true;
+
       // Update the source file ID to point to the new file
       sourceFileIdRef.current = stubs[0].id;
+      autoLoadKeyRef.current = stubs[0].id;
 
-      // Clear the unsaved changes flag - this will trigger the useEffect to navigate
-      // once React has processed the state update
       navigationActions.setHasUnsavedChanges(false);
       setErrorMessage(null);
       setShowSaveReview(true);
@@ -1856,9 +1873,10 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
       onUngroupGroup: handleUngroupGroup,
       onLoadFile: handleLoadFileFromDropzone,
       showSaveReview,
-      onDownloadSaved: handleGeneratePdf,
+      onDownloadSaved: () => void handleGeneratePdf(true),
       onContinueEditing: () => setShowSaveReview(false),
       onGoToViewer: () => {
+        navigationActions.setHasUnsavedChanges(false);
         setShowSaveReview(false);
         navigationActions.setToolAndWorkbench(null, getDefaultWorkbench());
       },

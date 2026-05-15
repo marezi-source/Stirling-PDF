@@ -3147,3 +3147,99 @@ Added `backgroundColor: "rgba(255,255,255,0.92)"` to the static (non-editing) te
 - [ ] Active/selected text boxes still show the blue/purple highlight outline as before
 - [ ] Edited (yellow-highlighted) text boxes look correct
 - [ ] Images and graphical elements in the PDF are still visible through the background (text boxes only cover text regions, not the full page)
+
+---
+
+## Session 37: PDF Text Editor — Save Review Panel Fix
+
+**Date:** 2026-05-15  
+**Branch:** OnePDF-UI-Change
+
+---
+
+### Context
+
+The PDF Text Editor has an "Apply Changes" button that saves the edited PDF back to the workbench. After a successful save, the sidebar should transition to a **save review panel** showing:
+- Green checkmark + "Changes Applied" heading
+- File name
+- **Download PDF** button
+- **View PDF** button
+- **Continue Editing** button
+
+This infrastructure was wired up in Session 36 (`showSaveReview` state, `PdfTextEditorViewData` interface fields, sidebar early-return block). However, clicking "Apply Changes" still showed the tools list + viewer instead of the review panel.
+
+---
+
+### Root Cause Analysis
+
+Three bugs were identified, each individually preventing the review panel from appearing:
+
+#### Bug 1 — `onDownloadSaved` triggered tool completion and navigated away
+
+`onDownloadSaved` was wired to `handleGeneratePdf` with the default `skipComplete = false`. After generating the PDF, `handleGeneratePdf` calls `onComplete([pdfFile])`, which navigates the workbench away from the PDF text editor — destroying the review panel before the user sees it.
+
+**Fix:** Pass `skipComplete = true` so the download completes without triggering tool completion navigation.
+
+```typescript
+// Before
+onDownloadSaved: handleGeneratePdf,
+
+// After
+onDownloadSaved: () => void handleGeneratePdf(true),
+```
+
+#### Bug 2 — Navigation guard re-armed after save, blocking "View PDF"
+
+After `handleSaveToWorkbench` called `setHasUnsavedChanges(false)`, the existing `hasChanges` sync effect immediately re-armed it back to `true` (text group state is never reset on save). When the user clicked "View PDF", the navigation guard showed a "discard changes?" dialog rather than navigating.
+
+**Fix:** Added `navigationActions.setHasUnsavedChanges(false)` explicitly inside `onGoToViewer` before calling `setToolAndWorkbench`.
+
+#### Bug 3 — Auto-load effect cleared `showSaveReview` after save (race condition)
+
+After `consumeFiles` completes, the `selectedFiles` array in FileContext changes (new file replaces old). The auto-load `useEffect` fires, computes the file's key, and — if the key doesn't match `autoLoadKeyRef.current` — calls `handleLoadFile`. The very first line of `handleLoadFile` is `setShowSaveReview(false)`, erasing the review panel before it renders.
+
+The tricky variant: if the original file was **pinned**, `processFileSwap` keeps the old file in `selectedFileIds`. So `selectedFiles[0]` is still the OLD file after the save. The key computed from the old file never matches the new `autoLoadKeyRef.current = stubs[0].id`, so the reload fires regardless of the key pre-arm.
+
+**Fix:** Added a `showSaveReviewRef` that is set **synchronously** (before React processes any batched state updates) right after `consumeFiles` resolves. `handleLoadFile` checks this ref at the very top and returns early if the review panel is up.
+
+```typescript
+// In handleSaveToWorkbench — set ref BEFORE React processes consumeFiles dispatch
+await consumeFiles([sourceFileIdRef.current], stirlingFiles, stubs);
+showSaveReviewRef.current = true;   // ← blocks handleLoadFile synchronously
+sourceFileIdRef.current = stubs[0].id;
+autoLoadKeyRef.current = stubs[0].id;
+navigationActions.setHasUnsavedChanges(false);
+setErrorMessage(null);
+setShowSaveReview(true);
+
+// In handleLoadFile — guard at the top
+if (showSaveReviewRef.current) {
+  return;  // don't reload while review panel is showing
+}
+setShowSaveReview(false);
+```
+
+The ref is kept in sync with the `showSaveReview` state via a `useEffect`, so when the user clicks "Continue Editing" (`setShowSaveReview(false)`), the ref resets to `false` and the editor resumes normal auto-load behaviour.
+
+A separate guard clears the ref in `handleLoadFileFromDropzone` so that explicitly dropping a new file while the review is showing still loads it correctly.
+
+---
+
+### Files Changed
+
+| File | Change |
+|---|---|
+| `frontend/src/core/tools/pdfTextEditor/PdfTextEditor.tsx` | Added `showSaveReviewRef`; added guard at top of `handleLoadFile`; set ref synchronously in `handleSaveToWorkbench` after `consumeFiles`; fixed `onDownloadSaved` skipComplete; fixed `onGoToViewer` navigation guard; reset ref in `handleLoadFileFromDropzone` |
+
+---
+
+### Test Checklist
+
+#### Save Review Panel
+- [ ] Load a PDF in the PDF Text Editor, make a text edit, click "Apply Changes" — the sidebar transitions to the review panel (green checkmark, "Changes Applied", three buttons)
+- [ ] Click "Download PDF" in the review panel — PDF downloads; sidebar stays on the review panel (does not navigate away)
+- [ ] Click "View PDF" in the review panel — navigates to the viewer; no "discard changes?" dialog appears
+- [ ] Click "Continue Editing" in the review panel — sidebar returns to the editor controls; the newly saved file is loaded and editable
+- [ ] Apply changes, then drop a new file onto the editor — review panel clears and the new file loads correctly
+- [ ] Open a PDF where the original file is pinned; apply changes — review panel still appears (pinned-file path)
+- [ ] Apply changes with no edits (button disabled check) — "Apply Changes" button is disabled when `hasChanges = false`

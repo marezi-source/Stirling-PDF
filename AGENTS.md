@@ -454,8 +454,5 @@ The frontend is organized with a clear separation of concerns:
 
 ## Decision Making
 - Ask clarifying questions before making assumptions
-- Stop and ask when uncertain about project-specific details
 - Confirm approach before making structural changes
-- Request guidance on preferences (cross-platform vs specific tools, etc.)
 - Verify understanding of requirements before proceeding
-- If on Edit automatically mode, don't ask questions unless very important.

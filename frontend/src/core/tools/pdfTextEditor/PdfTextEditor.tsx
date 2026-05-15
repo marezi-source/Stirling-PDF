@@ -18,7 +18,6 @@ import { getDefaultWorkbench } from "@app/types/workbench";
 import { CONVERSION_ENDPOINTS } from "@app/constants/convertConstants";
 import apiClient from "@app/services/apiClient";
 import { downloadBlob, downloadTextAsFile } from "@app/utils/downloadUtils";
-import { isGuestMode } from "@app/utils/guestMode";
 import { getFilenameFromHeaders } from "@app/utils/fileResponseUtils";
 import { pdfWorkerManager } from "@app/services/pdfWorkerManager";
 import { Util } from "pdfjs-dist/legacy/build/pdf.mjs";
@@ -277,21 +276,6 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
     new Map(),
   );
   const [autoScaleText, setAutoScaleText] = useState(true);
-
-  // Guest mode: create a blob URL from the selected file so the PDF can be
-  // previewed directly in the workbench without a backend conversion call.
-  const guestPreviewUrl = useMemo(() => {
-    if (!isGuestMode() || selectedFiles.length === 0 || hasDocument) return null;
-    const file = selectedFiles[0];
-    if (!(file instanceof File)) return null;
-    return URL.createObjectURL(file);
-  }, [selectedFiles, hasDocument]);
-
-  useEffect(() => {
-    return () => {
-      if (guestPreviewUrl) URL.revokeObjectURL(guestPreviewUrl);
-    };
-  }, [guestPreviewUrl]);
 
   // Lazy loading state
   const [isLazyMode, setIsLazyMode] = useState(false);
@@ -879,18 +863,12 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
         cachedJobIdRef.current = null;
 
         if (isPdf) {
-          const is401 = error?.response?.status === 401;
-          if (is401 && isGuestMode()) return;
-          const errorMsg = is401
-            ? t(
-                "pdfTextEditor.errors.signInRequired",
-                "Sign in to convert and edit PDFs.",
-              )
-            : (error?.message ||
-              t(
-                "pdfTextEditor.conversionFailed",
-                "Failed to convert PDF. Please try again.",
-              ));
+          const errorMsg =
+            error?.message ||
+            t(
+              "pdfTextEditor.conversionFailed",
+              "Failed to convert PDF. Please try again.",
+            );
           setErrorMessage(errorMsg);
           console.error("Setting error message:", errorMsg);
         } else {
@@ -1409,19 +1387,13 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
         setErrorMessage(null);
       } catch (error: any) {
         console.error("Failed to convert JSON back to PDF", error);
-        if (error?.response?.status === 401 && isGuestMode()) return;
         const raw =
-          error?.response?.status === 401
-            ? t(
-                "pdfTextEditor.errors.signInRequired",
-                "Sign in to convert and edit PDFs.",
-              )
-            : (error?.response?.data ||
-              error?.message ||
-              t(
-                "pdfTextEditor.errors.pdfConversion",
-                "Unable to convert the edited JSON back into a PDF.",
-              ));
+          error?.response?.data ||
+          error?.message ||
+          t(
+            "pdfTextEditor.errors.pdfConversion",
+            "Unable to convert the edited JSON back into a PDF.",
+          );
         const msgString = typeof raw === "string" ? raw : String(raw);
         setErrorMessage(msgString);
         if (onError) {
@@ -1684,19 +1656,13 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
       setShouldNavigateAfterSave(true);
     } catch (error: any) {
       console.error("Failed to save to workbench", error);
-      if (error?.response?.status === 401 && isGuestMode()) return;
       const raw =
-        error?.response?.status === 401
-          ? t(
-              "pdfTextEditor.errors.signInRequired",
-              "Sign in to convert and edit PDFs.",
-            )
-          : (error?.response?.data ||
-            error?.message ||
-            t(
-              "pdfTextEditor.errors.pdfConversion",
-              "Unable to save changes to workbench.",
-            ));
+        error?.response?.data ||
+        error?.message ||
+        t(
+          "pdfTextEditor.errors.pdfConversion",
+          "Unable to save changes to workbench.",
+        );
       const msgString = typeof raw === "string" ? raw : String(raw);
       setErrorMessage(msgString);
       if (onError) {
@@ -1902,7 +1868,6 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
       onMergeGroups: handleMergeGroups,
       onUngroupGroup: handleUngroupGroup,
       onLoadFile: handleLoadFileFromDropzone,
-      guestPreviewUrl,
     }),
     [
       handleMergeGroups,
@@ -1913,7 +1878,6 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
       isSavingToWorkbench,
       pagePreviews,
       dirtyPages,
-      guestPreviewUrl,
       errorMessage,
       fileName,
       groupsByPage,

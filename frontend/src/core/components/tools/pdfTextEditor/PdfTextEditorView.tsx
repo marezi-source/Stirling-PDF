@@ -432,7 +432,6 @@ const PdfTextEditorView = ({ data }: PdfTextEditorViewProps) => {
     onMergeGroups,
     onUngroupGroup,
     onLoadFile,
-    guestPreviewUrl,
   } = data;
 
   // Define derived variables immediately after props destructuring, before any hooks
@@ -1654,15 +1653,7 @@ const PdfTextEditorView = ({ data }: PdfTextEditorViewProps) => {
         </Alert>
       )}
 
-      {!hasDocument && !isConverting && guestPreviewUrl && (
-        <iframe
-          src={guestPreviewUrl}
-          title="PDF Preview"
-          style={{ flex: 1, width: "100%", border: "none", minHeight: 0 }}
-        />
-      )}
-
-      {!hasDocument && !isConverting && !guestPreviewUrl && (
+      {!hasDocument && !isConverting && (
         <Stack
           align="center"
           justify="center"

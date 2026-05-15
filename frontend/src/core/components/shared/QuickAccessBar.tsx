@@ -55,7 +55,7 @@ import { Z_INDEX_OVER_FULLSCREEN_SURFACE } from "@app/styles/zIndex";
 import { QuickAccessBarFooterExtensions } from "@app/components/quickAccessBar/QuickAccessBarFooterExtensions";
 import { useConfigButtonIcon } from "@app/hooks/useConfigButtonIcon";
 import { useAuth } from "@app/auth/UseSession";
-import { isGuestMode } from "@app/utils/guestMode";
+
 
 const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
   const { t } = useTranslation();
@@ -160,10 +160,7 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
 
   const configButtonIcon = useConfigButtonIcon();
   const { session } = useAuth();
-  const [loginGateOpen, setLoginGateOpen] = useState(false);
   const [comingSoonOpen, setComingSoonOpen] = useState(false);
-  const guestMode = !session && isGuestMode();
-
   const isRTL =
     typeof document !== "undefined" && document.documentElement.dir === "rtl";
   const hasSelectedFiles = selectedFiles.length > 0;
@@ -586,10 +583,6 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
   }, [leftPanelView, selectedToolKey, toolRegistry, readerMode]);
 
   const handleFilesButtonClick = () => {
-    if (!session) {
-      setLoginGateOpen(true);
-      return;
-    }
     openFilesModal();
   };
 
@@ -689,7 +682,6 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
           isRound: false,
           type: "navigation" as const,
           onClick: () => {
-            if (guestMode) { setLoginGateOpen(true); return; }
             setActiveButton("read");
             handleReaderToggle();
           },
@@ -708,7 +700,6 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
           isRound: false,
           type: "navigation" as const,
           onClick: () => {
-            if (guestMode) { setLoginGateOpen(true); return; }
             setActiveButton("automate");
             // If already on automate tool, reset it directly
             if (selectedToolKey === "automate") {
@@ -806,7 +797,6 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
             size: "md" as const,
             type: "modal" as const,
             onClick: () => {
-              if (guestMode) { setLoginGateOpen(true); return; }
               navigate("/settings/overview");
               setConfigModalOpen(true);
             },
@@ -837,7 +827,6 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
         <AllToolsNavButton
           activeButton={activeButton}
           setActiveButton={setActiveButton}
-          onGuestClick={guestMode ? () => setLoginGateOpen(true) : undefined}
         />
       </div>
 
@@ -887,10 +876,6 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
                       label={t("quickAccess.access", "Collaborate")}
                       isActive={!isSignWorkbenchActive && accessMenuOpen}
                       onClick={() => {
-                        if (!session) {
-                          setLoginGateOpen(true);
-                          return;
-                        }
                         setAccessMenuOpen((prev) => !prev);
                       }}
                       ariaLabel={t("quickAccess.access", "Collaborate")}
@@ -923,7 +908,6 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
                           label={t("quickAccess.sign", "Sign")}
                           isActive={signMenuOpen || isSignWorkbenchActive}
                           onClick={() => {
-                            if (!session) { setLoginGateOpen(true); return; }
                             setSignMenuOpen((prev) => !prev);
                           }}
                           ariaLabel={t("quickAccess.sign", "Sign")}
@@ -942,7 +926,6 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
                         label={t("quickAccess.sign", "Sign")}
                         isActive={signMenuOpen || isSignWorkbenchActive}
                         onClick={() => {
-                          if (!session) { setLoginGateOpen(true); return; }
                           setSignMenuOpen((prev) => !prev);
                         }}
                         ariaLabel={t("quickAccess.sign", "Sign")}
@@ -1326,26 +1309,6 @@ const QuickAccessBar = forwardRef<HTMLDivElement>((_, ref) => {
         isRTL={isRTL}
         groupSigningEnabled={groupSigningEnabled}
       />
-
-      <Modal
-        opened={loginGateOpen}
-        onClose={() => setLoginGateOpen(false)}
-        title="Login to have access"
-        centered
-        size="sm"
-      >
-        <Text size="sm" c="dimmed" mb="lg">
-          Please log in to use this feature.
-        </Text>
-        <Group justify="flex-end">
-          <Button variant="subtle" onClick={() => setLoginGateOpen(false)}>
-            Cancel
-          </Button>
-          <Button onClick={() => { setLoginGateOpen(false); navigate("/login"); }}>
-            Login
-          </Button>
-        </Group>
-      </Modal>
 
       <Modal
         opened={comingSoonOpen}

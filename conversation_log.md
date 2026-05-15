@@ -1,6 +1,6 @@
 # OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-15 (Session 29)
+**Last updated:** 2026-05-15 (Session 30)
 **Branch:** OnePDF-UI-Change  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -2413,3 +2413,135 @@ Split the empty-state block into two:
 - [ ] Blob URL is cleaned up on unmount (no memory leak)
 - [ ] Authenticated users uploading a PDF see no change — they still get the fully editable PDF Text Editor canvas
 - [ ] Authenticated users with no file loaded still see the "No document loaded" dropzone
+
+---
+
+## Session 30: Remove Login Requirement — PDF Tools Freely Accessible
+
+### Goal
+
+Allow any user to access and use all PDF tools without needing to sign up or log in. Authentication (Neon PostgreSQL accounts) still exists, but is entirely optional — not a gate.
+
+---
+
+### Problem 1: HTTP 500 on startup ("Server error 2")
+
+After the context window from Session 29 was restored, the backend was throwing 500 errors immediately after page load.
+
+**Root cause:** The previous session had whitelisted all `/api/v1/` paths in `RequestUriUtils.java` to make PDF tool endpoints public. This was too broad — it included `/api/v1/auth/me`, which `springAuthClient.ts` calls on startup to verify a stored JWT. The `AuthController` handling that endpoint called `getAuthentication().getName()` (or equivalent) on an anonymous request, causing a NullPointerException → 500.
+
+**Fix — `app/common/src/main/java/stirling/software/common/util/RequestUriUtils.java`:**
+
+Narrowed the public whitelist in `isPublicAuthEndpoint()` by adding two exclusions to the catch-all `/api/v1/` rule:
+
+```java
+// PDF tool endpoints — usable without an account (admin/auth paths still protected)
+|| (trimmedUri.startsWith("/api/v1/")
+        && !trimmedUri.startsWith("/api/v1/user/admin")
+        && !trimmedUri.startsWith("/api/v1/admin")
+        && !trimmedUri.startsWith("/api/v1/auth/")    // auth endpoints still require login
+        && !trimmedUri.startsWith("/api/v1/user/"))   // user management still requires login
+```
+
+PDF processing endpoints (`/api/v1/general/`, `/api/v1/convert/`, `/api/v1/misc/`, etc.) remain public. Auth and user endpoints retain their authentication requirement.
+
+---
+
+### Problem 2: Broken `guestMode.ts` import (frontend compilation)
+
+Sessions 27–29 had built a "guest mode" system (`guestMode.ts`, `isGuestMode()`, `setGuestMode()`). The previous context window had deleted `guestMode.ts` as part of a pivot away from that approach, but several files restored from `git checkout HEAD` at the Session 29 commit point still imported from it.
+
+**Files cleaned up:**
+
+#### `frontend/src/core/tools/pdfTextEditor/PdfTextEditor.tsx`
+
+- Removed `import { isGuestMode } from "@app/utils/guestMode"` (line deleted)
+- Removed `guestPreviewUrl` useMemo (blob URL from selected file for guest preview) and its cleanup useEffect
+- Simplified three catch-block 401 handlers — removed `if (is401 && isGuestMode()) return` early exits and the special "Sign in to convert and edit PDFs." message; now show the real error message or a generic fallback
+- Removed `guestPreviewUrl` from `viewData` object and `useMemo` deps array
+
+#### `frontend/src/core/tools/pdfTextEditor/pdfTextEditorTypes.ts`
+
+- Removed `guestPreviewUrl: string | null` field from `PdfTextEditorViewData` interface
+
+#### `frontend/src/core/components/tools/pdfTextEditor/PdfTextEditorView.tsx`
+
+- Removed `guestPreviewUrl` from props destructuring
+- Removed the guest preview `<iframe>` block (`!hasDocument && !isConverting && guestPreviewUrl`)
+- Merged the two empty-state conditions back into one: `{!hasDocument && !isConverting && (`
+
+---
+
+### Problem 3: Marketing landing page tool buttons redirected to `/login`
+
+Clicking any tool nav button on the marketing landing page (Merge PDF, Split PDF, Compress PDF, Sign PDF, Convert dropdown) redirected unauthenticated users to `/login` instead of opening the tool.
+
+**Root cause — `frontend/src/proprietary/routes/MarketingLanding.tsx`:**
+
+```typescript
+// Before:
+const goToTool = (path: string) => {
+  if (session) {
+    const toolId = PATH_TO_TOOL_ID[path];
+    if (toolId) handleToolSelect(toolId);
+    navigate(path);
+  } else {
+    navigate("/login");  // ← redirected unauthenticated users
+  }
+};
+
+// After:
+const goToTool = (path: string) => {
+  const toolId = PATH_TO_TOOL_ID[path];
+  if (toolId) handleToolSelect(toolId);
+  navigate(path);       // ← go directly, no auth check
+};
+```
+
+---
+
+### Problem 4: All app routes redirected unauthenticated users to `/login`
+
+Even after fixing `goToTool`, navigating to any tool route (e.g. `/pdf-text-editor`, `/merge`) would end up at `/login` because `Landing.tsx` — the catch-all route for `/*` — redirected to login as its final fallback.
+
+**Root cause — `frontend/src/proprietary/routes/Landing.tsx`:**
+
+```typescript
+// Before (line 172 — final fallback):
+return <Navigate to="/login" replace />;
+
+// After:
+return <HomePage />; // show the app directly; tools are publicly accessible
+```
+
+This is the same code path already used by the existing "login disabled / anonymous mode" (`config?.enableLogin === false`). Unauthenticated users now reach `<HomePage />` directly, identical to how an admin can disable login entirely — just without disabling it globally.
+
+Also removed the now-unused `Navigate` import from the file.
+
+---
+
+### Architecture After Session 30
+
+| Layer | Auth required? |
+|---|---|
+| PDF tool endpoints (`/api/v1/general/`, `/convert/`, `/misc/`, etc.) | No — public |
+| Auth endpoints (`/api/v1/auth/`) | Yes |
+| User management (`/api/v1/user/`, `/api/v1/user/admin`, `/api/v1/admin`) | Yes |
+| Frontend tool routes (`/pdf-text-editor`, `/merge`, `/split`, etc.) | No — open |
+| Login / Signup routes (`/login`, `/signup`) | Public (always) |
+| Login **button** in nav | Still present — users can log in for account features |
+
+Accounts still exist (Neon PostgreSQL), login/signup still work, but neither is required to use any PDF tool.
+
+---
+
+### Session 30 — Test Checklist
+
+- [ ] Clicking "Merge PDF", "Split PDF", "Compress PDF", "Sign PDF" in the landing page nav navigates directly to the tool workspace — no login redirect
+- [ ] Clicking any item in the "Convert PDF" dropdown navigates to `/convert` — no login redirect
+- [ ] Dropping a PDF on the hero upload zone opens the PDF Text Editor — no login redirect
+- [ ] Backend startup: no HTTP 500 "Server error 2" errors on page load
+- [ ] `/api/v1/auth/me` still requires auth (returns 401, not 500, for unauthenticated requests)
+- [ ] `/api/v1/general/`, `/api/v1/convert/`, `/api/v1/misc/` endpoints return results without auth
+- [ ] Login and Signup still work for users who want an account
+- [ ] Logged-in users see no regression in any tool or workflow

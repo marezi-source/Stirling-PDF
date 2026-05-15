@@ -11,7 +11,7 @@ import {
   clampText,
   extractAxiosErrorMessage,
 } from "@app/services/httpErrorUtils";
-import { isGuestMode } from "@app/utils/guestMode";
+
 
 // Module-scoped state to reduce global variable usage
 const recentSpecialByEndpoint: Record<string, number> = {};
@@ -60,12 +60,6 @@ export async function handleHttpError(error: any): Promise<boolean> {
   // Handle 401 authentication errors
   const status: number | undefined = error?.response?.status;
   if (status === 401) {
-    // Guest mode: user dropped a PDF without logging in. Suppress 401s silently —
-    // they are expected for unauthenticated background calls and should not redirect.
-    if (isGuestMode()) {
-      return true;
-    }
-
     const pathname = window.location.pathname;
 
     // Check if we're already on an auth page

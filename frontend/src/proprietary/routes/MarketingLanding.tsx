@@ -9,7 +9,7 @@ import { useFileHandler } from "@app/hooks/useFileHandler";
 import { useGoogleDrivePicker } from "@app/hooks/useGoogleDrivePicker";
 import { openFilesFromDisk } from "@app/services/openFilesFromDisk";
 import styles from "./MarketingLanding.module.css";
-import { setGuestMode } from "@app/utils/guestMode";
+
 
 const PATH_TO_TOOL_ID: Record<string, ToolId> = {
   "/pdf-text-editor": "pdfTextEditor",
@@ -233,20 +233,13 @@ export default function MarketingLanding() {
   }, [convertOpen]);
 
   const goToTool = (path: string) => {
-    if (session) {
-      const toolId = PATH_TO_TOOL_ID[path];
-      if (toolId) handleToolSelect(toolId);
-      navigate(path);
-    } else {
-      navigate("/login");
-    }
+    const toolId = PATH_TO_TOOL_ID[path];
+    if (toolId) handleToolSelect(toolId);
+    navigate(path);
   };
 
   const handleFilesSelected = async (files: File[]) => {
     if (files.length === 0) return;
-    if (!session) {
-      setGuestMode();
-    }
     setIsUploading(true);
     try {
       await addFiles(files);

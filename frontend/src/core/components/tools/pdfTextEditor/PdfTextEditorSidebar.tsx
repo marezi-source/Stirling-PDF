@@ -131,7 +131,7 @@ const PdfTextEditorSidebar = ({ data }: PdfTextEditorSidebarProps) => {
       <Stack style={{ height: "100%", display: "flex" }} gap={0}>
         <ScrollArea style={{ flex: 1 }} offsetScrollbars>
           <Stack gap="md">
-            <Stack gap="xs" pl="md" pr={0} pt="md">
+              <Stack gap="xs" pl="md" pr={0} pt="md">
               {/* Title row with ALPHA badge and info tooltip */}
               <Flex align="center" justify="space-between">
                 <Flex align="center" gap="xs">

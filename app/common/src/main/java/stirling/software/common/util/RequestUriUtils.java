@@ -185,7 +185,13 @@ public class RequestUriUtils {
                 // Workflow participant endpoints — access controlled by share tokens, not login
                 || trimmedUri.startsWith("/api/v1/workflow/participant/")
                 // Share-link SPA bootstrap; data APIs remain protected
-                || trimmedUri.matches("^/share/[^/]+/?$");
+                || trimmedUri.matches("^/share/[^/]+/?$")
+                // PDF tool endpoints — usable without an account (admin/auth paths still protected)
+                || (trimmedUri.startsWith("/api/v1/")
+                        && !trimmedUri.startsWith("/api/v1/user/admin")
+                        && !trimmedUri.startsWith("/api/v1/admin")
+                        && !trimmedUri.startsWith("/api/v1/auth/")
+                        && !trimmedUri.startsWith("/api/v1/user/"));
     }
 
     private static String stripContextPath(String contextPath, String requestURI) {

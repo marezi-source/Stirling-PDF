@@ -9,6 +9,8 @@ import { useDocumentMeta } from "@app/hooks/useDocumentMeta";
 import { useBaseUrl } from "@app/hooks/useBaseUrl";
 import { useIsMobile } from "@app/hooks/useIsMobile";
 import { useAppConfig } from "@app/contexts/AppConfigContext";
+import { useExportAll } from "@app/hooks/useExportAll";
+import { useFileActionTerminology } from "@app/hooks/useFileActionTerminology";
 import { LogoIcon } from "@app/components/shared/LogoIcon";
 import { Wordmark } from "@app/components/shared/Wordmark";
 import { useFileContext } from "@app/contexts/file/fileHooks";
@@ -198,13 +200,14 @@ export default function HomePage() {
     }
   }, [isMobile, readerMode, selectedToolKey]);
 
-  // Automatically switch to workbench slide when a custom workbench (e.g. signing) is active on mobile.
-  // hideToolPanel is true for all custom workbenches that take over the full screen.
+  // Automatically switch to workbench slide on mobile for:
+  // 1. Workbenches with hideToolPanel=true (e.g. signing, validate signature)
+  // 2. Any custom workbench (e.g. PDF text editor) — the canvas lives on the workbench slide
   useEffect(() => {
-    if (isMobile && hideToolPanel) {
+    if (isMobile && (hideToolPanel || navigationState.workbench.startsWith("custom:"))) {
       setActiveMobileView("workbench");
     }
-  }, [isMobile, hideToolPanel]);
+  }, [isMobile, hideToolPanel, navigationState.workbench]);
 
   // When navigating back to tools view in mobile with a workbench-only tool, show tool picker
   useEffect(() => {
@@ -215,6 +218,9 @@ export default function HomePage() {
       }
     }
   }, [isMobile, activeMobileView, selectedTool, setLeftPanelView]);
+
+  const { handleExportAll, isDisabled: isDownloadDisabled } = useExportAll();
+  const terminology = useFileActionTerminology();
 
   const baseUrl = useBaseUrl();
 
@@ -361,6 +367,17 @@ export default function HomePage() {
               <LocalIcon icon="folder-rounded" width="1.5rem" height="1.5rem" />
               <span className="mobile-bottom-button-label">
                 {t("quickAccess.files", "Files")}
+              </span>
+            </button>
+            <button
+              className="mobile-bottom-button"
+              aria-label={terminology.download}
+              onClick={() => void handleExportAll()}
+              disabled={isDownloadDisabled}
+            >
+              <LocalIcon icon="download" width="1.5rem" height="1.5rem" />
+              <span className="mobile-bottom-button-label">
+                {t("download", "Download")}
               </span>
             </button>
             <button

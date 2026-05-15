@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from "react";
-import { Button, Stack } from "@mantine/core";
+import React, { useEffect, useRef, useState } from "react";
+import { Button, Stack, Drawer } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import UndoIcon from "@mui/icons-material/Undo";
 import ErrorNotification from "@app/components/tools/shared/ErrorNotification";
@@ -12,6 +12,7 @@ import { useFileActionIcons } from "@app/hooks/useFileActionIcons";
 import { saveOperationResults } from "@app/services/operationResultsSaveService";
 import { useFileActions, useFileState } from "@app/contexts/FileContext";
 import { FileId } from "@app/types/fileContext";
+import { useIsMobile } from "@app/hooks/useIsMobile";
 import i18n from "@app/i18n";
 
 export interface ReviewToolStepProps<TParams = unknown> {
@@ -28,10 +29,12 @@ function ReviewStepContent<TParams = unknown>({
   operation,
   onFileClick,
   onUndo,
+  isVisible,
 }: {
   operation: ToolOperationHook<TParams>;
   onFileClick?: (file: File) => void;
   onUndo?: () => void;
+  isVisible?: boolean;
 }) {
   const { t } = useTranslation();
   const terminology = useFileActionTerminology();
@@ -40,6 +43,8 @@ function ReviewStepContent<TParams = unknown>({
   const stepRef = useRef<HTMLDivElement>(null);
   const { actions: fileActions } = useFileActions();
   const { selectors } = useFileState();
+  const isMobile = useIsMobile();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const handleUndo = async () => {
     try {
@@ -103,54 +108,89 @@ function ReviewStepContent<TParams = unknown>({
     }
   }, [previewFiles.length, operation.downloadUrl, operation.errorMessage]);
 
+  // On mobile, open a bottom drawer when results are ready
+  useEffect(() => {
+    if (isMobile && isVisible && (operation.downloadUrl || previewFiles.length > 0)) {
+      setDrawerOpen(true);
+    }
+  }, [isMobile, isVisible, operation.downloadUrl, previewFiles.length]);
+
+  // Close drawer when the review step is hidden (e.g. after undo)
+  useEffect(() => {
+    if (!isVisible) setDrawerOpen(false);
+  }, [isVisible]);
+
+  const downloadButton = operation.downloadUrl ? (
+    <Button
+      data-testid="download-result-button"
+      leftSection={<DownloadIcon />}
+      color="blue"
+      fullWidth
+      mb="md"
+      onClick={handleDownload}
+    >
+      {terminology.download}
+    </Button>
+  ) : null;
+
+  const undoButton = onUndo ? (
+    <Tooltip
+      content={t(
+        "undoOperationTooltip",
+        "Click to undo the last operation and restore the original files",
+      )}
+    >
+      <Button
+        leftSection={<UndoIcon />}
+        variant="outline"
+        color="var(--mantine-color-gray-6)"
+        onClick={handleUndo}
+        fullWidth
+      >
+        {t("undo", "Undo")}
+      </Button>
+    </Tooltip>
+  ) : null;
+
   return (
-    <Stack gap="sm" ref={stepRef}>
-      <ErrorNotification
-        error={operation.errorMessage}
-        onClose={operation.clearError}
-      />
-
-      {previewFiles.length > 0 && (
-        <ResultsPreview
-          files={previewFiles}
-          onFileClick={onFileClick}
-          isGeneratingThumbnails={operation.isGeneratingThumbnails}
+    <>
+      <Stack gap="sm" ref={stepRef}>
+        <ErrorNotification
+          error={operation.errorMessage}
+          onClose={operation.clearError}
         />
-      )}
+        {previewFiles.length > 0 && (
+          <ResultsPreview
+            files={previewFiles}
+            onFileClick={onFileClick}
+            isGeneratingThumbnails={operation.isGeneratingThumbnails}
+          />
+        )}
+        {undoButton}
+        {downloadButton}
+        <SuggestedToolsSection />
+      </Stack>
 
-      {onUndo && (
-        <Tooltip
-          content={t(
-            "undoOperationTooltip",
-            "Click to undo the last operation and restore the original files",
+      <Drawer
+        opened={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        position="bottom"
+        title={t("toolResult.readyToDownload", "Result Ready")}
+        size="auto"
+      >
+        <Stack gap="sm" pb="md">
+          {previewFiles.length > 0 && (
+            <ResultsPreview
+              files={previewFiles}
+              onFileClick={onFileClick}
+              isGeneratingThumbnails={operation.isGeneratingThumbnails}
+            />
           )}
-        >
-          <Button
-            leftSection={<UndoIcon />}
-            variant="outline"
-            color="var(--mantine-color-gray-6)"
-            onClick={handleUndo}
-            fullWidth
-          >
-            {t("undo", "Undo")}
-          </Button>
-        </Tooltip>
-      )}
-      {operation.downloadUrl && (
-        <Button
-          data-testid="download-result-button"
-          leftSection={<DownloadIcon />}
-          color="blue"
-          fullWidth
-          mb="md"
-          onClick={handleDownload}
-        >
-          {terminology.download}
-        </Button>
-      )}
-
-      <SuggestedToolsSection />
-    </Stack>
+          {downloadButton}
+          {undoButton}
+        </Stack>
+      </Drawer>
+    </>
   );
 }
 
@@ -181,6 +221,7 @@ export function createReviewToolStep<TParams = unknown>(
       operation={props.operation}
       onFileClick={props.onFileClick}
       onUndo={props.onUndo}
+      isVisible={props.isVisible}
     />,
   );
 }

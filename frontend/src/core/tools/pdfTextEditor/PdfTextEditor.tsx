@@ -263,7 +263,7 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isSavingToWorkbench, setIsSavingToWorkbench] = useState(false);
-  const [shouldNavigateAfterSave, setShouldNavigateAfterSave] = useState(false);
+  const [showSaveReview, setShowSaveReview] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
   const [conversionProgress, setConversionProgress] =
     useState<ConversionProgress | null>(null);
@@ -364,18 +364,6 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
       navigationActions.setHasUnsavedChanges(false);
     };
   }, [hasChanges, navigationActions]);
-
-  // Navigate to files view AFTER the unsaved changes state is properly cleared
-  useEffect(() => {
-    if (shouldNavigateAfterSave && !navigationState.hasUnsavedChanges) {
-      setShouldNavigateAfterSave(false);
-      navigationActions.setToolAndWorkbench(null, getDefaultWorkbench());
-    }
-  }, [
-    shouldNavigateAfterSave,
-    navigationState.hasUnsavedChanges,
-    navigationActions,
-  ]);
 
   const viewLabel = useMemo(
     () => t("pdfTextEditor.viewLabel", "PDF Editor"),
@@ -657,6 +645,7 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
         return;
       }
 
+      setShowSaveReview(false);
       lastLoadedFileRef.current = file;
       const requestId = loadRequestIdRef.current + 1;
       loadRequestIdRef.current = requestId;
@@ -1651,9 +1640,7 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
       // once React has processed the state update
       navigationActions.setHasUnsavedChanges(false);
       setErrorMessage(null);
-
-      // Set flag to trigger navigation after state update is processed
-      setShouldNavigateAfterSave(true);
+      setShowSaveReview(true);
     } catch (error: any) {
       console.error("Failed to save to workbench", error);
       const raw =
@@ -1868,12 +1855,20 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
       onMergeGroups: handleMergeGroups,
       onUngroupGroup: handleUngroupGroup,
       onLoadFile: handleLoadFileFromDropzone,
+      showSaveReview,
+      onDownloadSaved: handleGeneratePdf,
+      onContinueEditing: () => setShowSaveReview(false),
+      onGoToViewer: () => {
+        setShowSaveReview(false);
+        navigationActions.setToolAndWorkbench(null, getDefaultWorkbench());
+      },
     }),
     [
       handleMergeGroups,
       handleUngroupGroup,
       handleImageTransform,
       handleSaveToWorkbench,
+      showSaveReview,
       imagesByPage,
       isSavingToWorkbench,
       pagePreviews,
@@ -1902,6 +1897,8 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
       requestPagePreview,
       setForceSingleTextElement,
       handleLoadFileFromDropzone,
+      showSaveReview,
+      navigationActions,
     ],
   );
 

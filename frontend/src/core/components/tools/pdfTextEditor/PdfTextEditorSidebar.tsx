@@ -13,7 +13,9 @@ import {
   Stack,
   Switch,
   Text,
+  ThemeIcon,
 } from "@mantine/core";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutlineRounded";
 import { useTranslation } from "react-i18next";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
@@ -91,6 +93,10 @@ const PdfTextEditorSidebar = ({ data }: PdfTextEditorSidebarProps) => {
     onForceSingleTextElementChange,
     onGroupingModeChange,
     onAutoScaleTextChange,
+    showSaveReview,
+    onDownloadSaved,
+    onContinueEditing,
+    onGoToViewer,
   } = data;
 
   // Get page dimensions
@@ -125,6 +131,52 @@ const PdfTextEditorSidebar = ({ data }: PdfTextEditorSidebarProps) => {
   const handleCancelModeChange = useCallback(() => {
     setPendingModeChange(null);
   }, []);
+
+  if (showSaveReview) {
+    return (
+      <Stack style={{ height: "100%", display: "flex" }} gap={0} p="md">
+        <Stack gap="md" style={{ flex: 1, justifyContent: "center" }}>
+          <Group justify="center">
+            <ThemeIcon size="xl" color="green" variant="light" radius="xl">
+              <CheckCircleOutlineIcon fontSize="medium" />
+            </ThemeIcon>
+          </Group>
+          <Text ta="center" fw={600} size="md">
+            {t("pdfTextEditor.saveReview.title", "Changes Applied")}
+          </Text>
+          {fileName && (
+            <Text ta="center" size="sm" c="dimmed">
+              {fileName}
+            </Text>
+          )}
+          <Button
+            fullWidth
+            color="blue"
+            leftSection={<FileDownloadIcon fontSize="small" />}
+            loading={isGeneratingPdf}
+            onClick={() => void onDownloadSaved()}
+          >
+            {t("pdfTextEditor.saveReview.download", "Download PDF")}
+          </Button>
+          <Button
+            fullWidth
+            variant="default"
+            onClick={onGoToViewer}
+          >
+            {t("pdfTextEditor.saveReview.viewPdf", "View PDF")}
+          </Button>
+          <Button
+            fullWidth
+            variant="subtle"
+            color="gray"
+            onClick={onContinueEditing}
+          >
+            {t("pdfTextEditor.saveReview.continueEditing", "Continue Editing")}
+          </Button>
+        </Stack>
+      </Stack>
+    );
+  }
 
   return (
     <>

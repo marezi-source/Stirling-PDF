@@ -230,4 +230,8 @@ export interface PdfTextEditorViewData {
   onMergeGroups: (pageIndex: number, groupIds: string[]) => boolean;
   onUngroupGroup: (pageIndex: number, groupId: string) => boolean;
   onLoadFile: (file: File) => void;
+  showSaveReview: boolean;
+  onDownloadSaved: () => void;
+  onContinueEditing: () => void;
+  onGoToViewer: () => void;
 }

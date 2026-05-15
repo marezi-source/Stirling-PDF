@@ -458,3 +458,4 @@ The frontend is organized with a clear separation of concerns:
 - Confirm approach before making structural changes
 - Request guidance on preferences (cross-platform vs specific tools, etc.)
 - Verify understanding of requirements before proceeding
+- If on Edit automatically mode, don't ask questions unless very important.

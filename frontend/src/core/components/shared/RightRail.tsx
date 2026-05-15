@@ -6,18 +6,16 @@ import { useRightRail } from "@app/contexts/RightRailContext";
 import {
   useFileState,
   useFileSelection,
-  useFileActions,
 } from "@app/contexts/FileContext";
-import { isStirlingFile } from "@app/types/fileContext";
 import { useNavigationState } from "@app/contexts/NavigationContext";
 import { useTranslation } from "react-i18next";
 import { useFileActionTerminology } from "@app/hooks/useFileActionTerminology";
 import { useFileActionIcons } from "@app/hooks/useFileActionIcons";
+import { useExportAll } from "@app/hooks/useExportAll";
 
 import LanguageSelector from "@app/components/shared/LanguageSelector";
 import { useRainbowThemeContext } from "@app/components/shared/RainbowThemeProvider";
 import { Tooltip } from "@app/components/shared/Tooltip";
-import { ViewerContext } from "@app/contexts/ViewerContext";
 import LocalIcon from "@app/components/shared/LocalIcon";
 import { RightRailFooterExtensions } from "@app/components/rightRail/RightRailFooterExtensions";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
@@ -31,7 +29,6 @@ import {
   RightRailSection,
 } from "@app/types/rightRail";
 import { useRightRailTooltipSide } from "@app/hooks/useRightRailTooltipSide";
-import { downloadFile } from "@app/services/downloadService";
 
 const SECTION_ORDER: RightRailSection[] = ["top", "middle", "bottom"];
 
@@ -67,7 +64,6 @@ export default function RightRail() {
   const { t } = useTranslation();
   const terminology = useFileActionTerminology();
   const icons = useFileActionIcons();
-  const viewerContext = React.useContext(ViewerContext);
   const { toggleTheme, themeMode } = useRainbowThemeContext();
   const { buttons, actions, allButtonsDisabled } = useRightRail();
 
@@ -79,12 +75,13 @@ export default function RightRail() {
   const { workbench: currentView } = useNavigationState();
 
   const { selectors } = useFileState();
-  const { selectedFiles, selectedFileIds } = useFileSelection();
-  const { actions: fileActions } = useFileActions();
+  const { selectedFileIds } = useFileSelection();
   const activeFiles = selectors.getFiles();
   const pageEditorTotalPages = pageEditorFunctions?.totalPages ?? 0;
   const pageEditorSelectedCount =
     pageEditorFunctions?.selectedPageIds?.length ?? 0;
+
+  const { handleExportAll } = useExportAll();
 
   const totalItems = useMemo(() => {
     if (currentView === "pageEditor") return pageEditorTotalPages;
@@ -168,82 +165,6 @@ export default function RightRail() {
       disableForFullscreen,
       tooltipPosition,
       tooltipOffset,
-    ],
-  );
-
-  const handleExportAll = useCallback(
-    async (forceNewFile = false) => {
-      if (currentView === "viewer") {
-        const buffer = await viewerContext?.exportActions?.saveAsCopy?.();
-        if (!buffer) return;
-        const fileToExport =
-          selectedFiles.length > 0 ? selectedFiles[0] : activeFiles[0];
-        if (!fileToExport) return;
-        const stub = isStirlingFile(fileToExport)
-          ? selectors.getStirlingFileStub(fileToExport.fileId)
-          : undefined;
-        try {
-          const result = await downloadFile({
-            data: new Blob([buffer], { type: "application/pdf" }),
-            filename: fileToExport.name,
-            localPath: forceNewFile ? undefined : stub?.localFilePath,
-          });
-          if (!forceNewFile && !result.cancelled && stub && result.savedPath) {
-            fileActions.updateStirlingFileStub(stub.id, {
-              localFilePath: stub.localFilePath ?? result.savedPath,
-              isDirty: false,
-            });
-          }
-        } catch (error) {
-          console.error("[RightRail] Failed to export viewer file:", error);
-        }
-        return;
-      }
-
-      if (currentView === "pageEditor") {
-        pageEditorFunctions?.onExportAll?.();
-        return;
-      }
-
-      const filesToExport =
-        selectedFiles.length > 0 ? selectedFiles : activeFiles;
-
-      if (filesToExport.length > 0) {
-        for (const file of filesToExport) {
-          const stub = isStirlingFile(file)
-            ? selectors.getStirlingFileStub(file.fileId)
-            : undefined;
-          try {
-            const result = await downloadFile({
-              data: file,
-              filename: file.name,
-              localPath: forceNewFile ? undefined : stub?.localFilePath,
-            });
-            if (result.cancelled) continue;
-            if (!forceNewFile && stub && result.savedPath) {
-              fileActions.updateStirlingFileStub(stub.id, {
-                localFilePath: stub.localFilePath ?? result.savedPath,
-                isDirty: false,
-              });
-            }
-          } catch (error) {
-            console.error(
-              "[RightRail] Failed to export file:",
-              file.name,
-              error,
-            );
-          }
-        }
-      }
-    },
-    [
-      currentView,
-      selectedFiles,
-      activeFiles,
-      pageEditorFunctions,
-      viewerContext,
-      selectors,
-      fileActions,
     ],
   );
 

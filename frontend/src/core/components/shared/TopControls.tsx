@@ -6,6 +6,7 @@ import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import GridViewIcon from "@mui/icons-material/GridView";
 import FolderIcon from "@mui/icons-material/Folder";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
 import { WorkbenchType, isValidWorkbench } from "@app/types/workbench";
 import { PageEditorFileDropdown } from "@app/components/shared/PageEditorFileDropdown";
 import type { CustomWorkbenchViewInstance } from "@app/contexts/ToolWorkflowContext";
@@ -15,6 +16,8 @@ import {
   PageEditorDropdownState,
 } from "@app/components/pageEditor/hooks/usePageEditorDropdownState";
 import { FileId } from "@app/types/file";
+import { useExportAll } from "@app/hooks/useExportAll";
+import { useTranslation } from "react-i18next";
 
 const viewOptionStyle: React.CSSProperties = {
   display: "inline-flex",
@@ -149,7 +152,9 @@ const TopControls = ({
   onFileRemove,
 }: TopControlsProps) => {
   const { isRainbowMode } = useRainbowThemeContext();
+  const { t } = useTranslation();
   const [switchingTo, setSwitchingTo] = useState<WorkbenchType | null>(null);
+  const { handleExportAll, isDisabled: isDownloadDisabled } = useExportAll();
 
   const pageEditorState = usePageEditorDropdownState();
 
@@ -203,9 +208,11 @@ const TopControls = ({
     ],
   );
 
+  const showDownloadButton = activeFiles.length > 0 && !isDownloadDisabled;
+
   return (
     <div className="absolute left-0 w-full top-0 z-[100] pointer-events-none">
-      <div className="flex justify-center">
+      <div className="flex justify-center relative w-full">
         <SegmentedControl
           data-tour="view-switcher"
           data={viewOptions}
@@ -253,6 +260,37 @@ const TopControls = ({
             },
           }}
         />
+        {showDownloadButton && (
+          <button
+            type="button"
+            onClick={() => void handleExportAll()}
+            aria-label={t("download", "Download")}
+            style={{
+              position: "absolute",
+              right: "0.75rem",
+              top: 0,
+              height: "1.8rem",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.35rem",
+              padding: "0 0.75rem",
+              pointerEvents: "auto",
+              cursor: "pointer",
+              fontSize: "0.78rem",
+              fontWeight: 500,
+              borderRadius: "0 0 12px 12px",
+              backgroundColor: "var(--bg-toolbar)",
+              border: "1px solid var(--border-default)",
+              borderTop: "none",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              color: "var(--mantine-color-text)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            <DownloadOutlinedIcon style={{ fontSize: "1rem" }} />
+            {t("download", "Download")}
+          </button>
+        )}
       </div>
     </div>
   );

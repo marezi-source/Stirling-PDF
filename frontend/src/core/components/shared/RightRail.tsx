@@ -24,6 +24,7 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 
 import { useSidebarContext } from "@app/contexts/SidebarContext";
+import { useIsMobile } from "@app/hooks/useIsMobile";
 import {
   RightRailButtonConfig,
   RightRailRenderContext,
@@ -59,6 +60,7 @@ function renderWithTooltip(
 }
 
 export default function RightRail() {
+  const isMobile = useIsMobile();
   const { sidebarRefs } = useSidebarContext();
   const { position: tooltipPosition, offset: tooltipOffset } =
     useRightRailTooltipSide(sidebarRefs);
@@ -257,6 +259,8 @@ export default function RightRail() {
     }
     return terminology.downloadAll;
   }, [currentView, selectedCount, t, terminology]);
+
+  if (isMobile) return null;
 
   return (
     <div

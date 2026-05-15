@@ -1,9 +1,13 @@
 .mobile-layout {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  /* Use dynamic viewport height so the layout fits inside Safari's visible area
+     (100vh on iOS includes the address bar height, causing overflow). */
+  height: 100dvh;
   width: 100%;
   background-color: var(--bg-background);
+  position: relative;
+  z-index: 1;
 }
 
 .mobile-toggle {

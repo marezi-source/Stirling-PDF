@@ -96,6 +96,7 @@ import SignatureFieldOverlay from "@app/components/viewer/SignatureFieldOverlay"
 import { CommentsSidebar } from "@app/components/viewer/CommentsSidebar";
 import { CommentAuthorProvider } from "@app/contexts/CommentAuthorContext";
 import { accountService } from "@app/services/accountService";
+import { useIsMobile } from "@app/hooks/useIsMobile";
 
 interface LocalEmbedPDFProps {
   file?: File | Blob;
@@ -144,6 +145,7 @@ export function LocalEmbedPDF({
 }: LocalEmbedPDFProps) {
   const { t } = useTranslation();
   const { config } = useAppConfig();
+  const isMobile = useIsMobile();
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [, setAnnotations] = useState<
     Array<{ id: string; pageIndex: number; rect: Rect }>
@@ -961,7 +963,9 @@ export function LocalEmbedPDF({
                                     style={{
                                       position: "absolute",
                                       inset: 0,
-                                      transition: "filter 0.25s ease",
+                                      // Disable transition on mobile — it creates a ghost compositor
+                                      // layer on Safari that makes text appear doubled.
+                                      transition: isMobile ? undefined : "filter 0.25s ease",
                                       filter:
                                         pdfRenderMode === "dark"
                                           ? "invert(1) hue-rotate(180deg)"

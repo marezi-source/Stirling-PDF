@@ -28,6 +28,7 @@ import type { RedactionPendingTrackerAPI } from "@app/components/viewer/Redactio
 import { createStirlingFilesAndStubs } from "@app/services/fileStubHelpers";
 import { isStirlingFile, getFormFillFileId } from "@app/types/fileContext";
 import { useViewerRightRailButtons } from "@app/components/viewer/useViewerRightRailButtons";
+import { useIsMobile } from "@app/hooks/useIsMobile";
 import { StampPlacementOverlay } from "@app/components/viewer/StampPlacementOverlay";
 import {
   RulerOverlay,
@@ -153,6 +154,7 @@ const EmbedPdfViewerContent = ({
   const viewerRef = React.useRef<HTMLDivElement>(null);
   const pdfContainerRef = useRef<HTMLDivElement>(null);
   const [isViewerHovered, setIsViewerHovered] = React.useState(false);
+  const isMobile = useIsMobile();
 
   const {
     isThumbnailSidebarVisible,
@@ -1301,8 +1303,8 @@ const EmbedPdfViewerContent = ({
         </>
       )}
 
-      {/* Bottom Toolbar Overlay */}
-      {effectiveFile && (
+      {/* Bottom Toolbar Overlay — hidden on mobile (fixed positioning breaks inside flex/scroll containers) */}
+      {effectiveFile && !isMobile && (
         <div
           style={{
             position: "fixed",

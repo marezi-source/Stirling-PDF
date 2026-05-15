@@ -1,6 +1,6 @@
 # OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-15 (Session 31)
+**Last updated:** 2026-05-15 (Session 32)
 **Branch:** OnePDF-UI-Change  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -2667,3 +2667,236 @@ Added a full indigo/violet/emerald/amber/rose/sky accent palette to lift the pag
 | `frontend/src/core/components/shared/LandingWebGLBackground.tsx` | `lightMode` prop |
 | `frontend/src/proprietary/routes/MarketingLanding.tsx` | Light mode attrs + `lightMode` prop + accent class names |
 | `frontend/src/proprietary/routes/MarketingLanding.module.css` | Full light-mode token set + accent colour palette |
+
+---
+
+## Session 32: API Keys Page Cleanup + Settings Close Bug Fix + Mobile View Fixes
+
+**Date:** 2026-05-15  
+**Branch:** OnePDF-UI-Change
+
+---
+
+### Change 1: API Keys — Remove Documentation Links
+
+Removed the "API Documentation" and "API Schema Reference" anchor links (and the containing `<Paper>` block) from the API Keys settings page.
+
+**`frontend/src/proprietary/components/shared/config/configSections/ApiKeys.tsx`** — Modified:
+
+- Deleted the entire `<Paper>` section containing the section title, description paragraph, and both `<Anchor>` links
+- Removed now-unused `Paper` and `LocalIcon` imports (kept `Anchor`, `Group`, `Skeleton`)
+- Current imports after change: `import { Anchor, Group, Stack, Text, Skeleton } from "@mantine/core";`
+
+---
+
+### Change 2: Settings Modal Close — Back Navigation Bug Fix
+
+**Bug:** Clicking the close/back button on any settings panel navigated to the marketing landing page (`/`) instead of back to the workspace.
+
+**Root cause:** `handleClose` in `AppConfigModal.tsx` called `navigate("/", { replace: true })`. In the proprietary router, `/` maps to `<MarketingLanding />`, not the app workspace.
+
+**Fix — `frontend/src/core/components/shared/AppConfigModal.tsx`:**
+
+- Added `returnPathRef = useRef<string>("/app")` to track the last non-settings path
+- Added a `useEffect` to update `returnPathRef` whenever `location.pathname` changes away from `/settings*`
+- Changed `handleClose` to navigate to `returnPathRef.current` instead of `"/"`
+
+```tsx
+const returnPathRef = useRef<string>("/app");
+
+// Keep returnPathRef pointed at the last non-settings path so closing the
+// modal returns the user to the app instead of the marketing landing page.
+useEffect(() => {
+  if (!location.pathname.startsWith("/settings")) {
+    returnPathRef.current = location.pathname;
+  }
+}, [location.pathname]);
+
+const handleClose = useCallback(async () => {
+  const canProceed = await confirmIfDirty();
+  if (!canProceed) return;
+  navigate(returnPathRef.current, { replace: true });
+  onClose();
+}, [confirmIfDirty, navigate, onClose]);
+```
+
+---
+
+### Change 3: Favicon Replacement
+
+The Stirling-PDF favicon was replaced with the OnePDF logo.
+
+**File:** `frontend/public/modern-logo/favicon.ico`
+
+Referenced in `frontend/index.html`:
+```html
+<link rel="icon" href="modern-logo/favicon.ico" />
+<link rel="apple-touch-icon" href="modern-logo/logo192.png" />
+```
+
+The user replaced `favicon.ico` directly in the filesystem (2026-05-15 12:30, 119,880 bytes).
+
+---
+
+### Change 4: Mobile Preview Setup (Production Build)
+
+The Vite dev server serves ~1,377 individual JS modules over the network — far too slow for mobile testing. The production build bundles them into ~20 files.
+
+**Commands used:**
+```bash
+task frontend:build:proprietary   # ~1m 8s, 3512 modules transformed
+npx vite preview --host --port 4173
+```
+
+**Network access issue:** AP/Client Isolation on the home router blocked device-to-device communication. Resolved by using the phone's personal hotspot and connecting the Mac to it.
+
+Preview accessible at:
+- `http://172.20.10.12:4173` (hotspot IP)
+- `http://192.168.1.17:4173` (LAN IP)
+
+---
+
+### Change 5: Mobile Layout Fixes
+
+Four separate issues caused the mobile view to look broken after uploading a PDF.
+
+---
+
+#### Fix A: RightRail Breaking Mobile Layout
+
+**`frontend/src/core/components/shared/rightRail/RightRail.css`** — Modified:
+
+```css
+/* Before */
+.right-rail {
+  height: 100vh;
+}
+
+/* After */
+.right-rail {
+  height: 100%;
+}
+```
+
+`height: 100vh` forced the RightRail to full viewport height inside the constrained flex container, stealing width from the workbench area and causing layout overflow.
+
+---
+
+#### Fix B: RightRail Hidden on Mobile
+
+**`frontend/src/core/components/shared/RightRail.tsx`** — Modified:
+
+- Added `import { useIsMobile } from "@app/hooks/useIsMobile";`
+- Added `const isMobile = useIsMobile();` at the top of the component function
+- Added early return: `if (isMobile) return null;`
+
+The RightRail is not designed for mobile — it was stealing ~56px of horizontal width and causing layout issues on narrow screens.
+
+---
+
+#### Fix C: PdfViewerToolbar Overlapping Mobile Bottom Bar
+
+**`frontend/src/core/components/viewer/EmbedPdfViewer.tsx`** — Modified:
+
+- Added `import { useIsMobile } from "@app/hooks/useIsMobile";`
+- Added `const isMobile = useIsMobile();`
+- Changed the Bottom Toolbar Overlay condition:
+
+```tsx
+// Before:
+{effectiveFile && (
+
+// After:
+{effectiveFile && !isMobile && (
+```
+
+`PdfViewerToolbar` uses `position: fixed; bottom: 0; left: 0; right: 0`, which on iOS Safari escapes the flex container and overlaps the mobile bottom navigation bar.
+
+---
+
+#### Fix D: Doubled/Ghosted PDF Text on Mobile Safari
+
+**`frontend/src/core/components/viewer/LocalEmbedPDF.tsx`** — Modified:
+
+- Added `import { useIsMobile } from "@app/hooks/useIsMobile";`
+- Added `const isMobile = useIsMobile();`
+- Disabled `transition: filter` on the TilingLayer wrapper for mobile:
+
+```tsx
+style={{
+  position: "absolute",
+  inset: 0,
+  // Disable transition on mobile — it creates a ghost compositor
+  // layer on Safari that makes text appear doubled.
+  transition: isMobile ? undefined : "filter 0.25s ease",
+  filter:
+    pdfRenderMode === "dark"
+      ? "invert(1) hue-rotate(180deg)"
+      : pdfRenderMode === "sepia"
+        ? "sepia(0.7) brightness(0.85)"
+        : undefined,
+}}
+```
+
+`transition: filter` on a canvas-rendering element causes iOS Safari to create a ghost compositor layer, making all PDF text appear doubled/overlaid on itself.
+
+---
+
+#### Fix E: iOS Viewport Height Overflow
+
+**`frontend/src/core/pages/HomePage.css`** — Modified:
+
+```css
+/* Before */
+.mobile-layout {
+  height: 100%;
+}
+
+/* After */
+.mobile-layout {
+  height: 100dvh;
+  position: relative;
+  z-index: 1;
+}
+```
+
+`100vh` on iOS Safari includes the browser address bar height, causing the layout to extend beyond the visible viewport. `100dvh` (dynamic viewport height) correctly accounts for the browser chrome and constrains the layout to the actual visible area.
+
+---
+
+### Session 32 — Files Changed
+
+| File | Change |
+|---|---|
+| `frontend/src/proprietary/components/shared/config/configSections/ApiKeys.tsx` | Removed API documentation links section |
+| `frontend/src/core/components/shared/AppConfigModal.tsx` | Fixed back navigation — returns to app instead of marketing landing page |
+| `frontend/public/modern-logo/favicon.ico` | Replaced with OnePDF logo |
+| `frontend/src/core/components/shared/rightRail/RightRail.css` | `height: 100vh` → `height: 100%` |
+| `frontend/src/core/components/shared/RightRail.tsx` | Hidden entirely on mobile (`useIsMobile` early return) |
+| `frontend/src/core/components/viewer/EmbedPdfViewer.tsx` | Bottom toolbar hidden on mobile (prevents `position: fixed` overlap) |
+| `frontend/src/core/components/viewer/LocalEmbedPDF.tsx` | `transition: filter` disabled on mobile (prevents ghost compositor layer) |
+| `frontend/src/core/pages/HomePage.css` | `.mobile-layout` height: `100%` → `100dvh` + `position: relative; z-index: 1` |
+
+---
+
+### Session 32 — Test Checklist
+
+#### API Keys Page
+- [ ] Settings → API Keys: no "API Documentation" or "API Schema Reference" links visible
+- [ ] Rest of API keys UI (key list, create button) unchanged
+
+#### Settings Close Bug
+- [ ] Open any settings panel → click back/close → lands on workspace (`/app`), not the marketing landing page
+- [ ] Works after navigating to a tool first (e.g. `/merge`) then opening settings — closes back to `/merge`
+
+#### Favicon
+- [ ] Browser tab shows OnePDF logo, not Stirling-PDF icon
+- [ ] iOS home screen icon (apple-touch-icon) shows OnePDF logo
+
+#### Mobile View
+- [ ] No large black dead zone at the top of the screen after uploading a PDF
+- [ ] PDF text is clean — no doubled/ghosted characters
+- [ ] Content is not cut off on the right side
+- [ ] Mobile bottom navigation bar is fully visible (not overlapped by the viewer toolbar)
+- [ ] RightRail does not appear on mobile
+- [ ] Layout fits entirely within the visible viewport (no scroll/overflow from iOS address bar)

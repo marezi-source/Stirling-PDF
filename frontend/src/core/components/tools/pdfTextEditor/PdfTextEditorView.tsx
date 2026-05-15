@@ -2778,6 +2778,7 @@ const PdfTextEditorView = ({ data }: PdfTextEditorViewProps) => {
                                   display: "block",
                                   cursor: "text",
                                   overflow: enableWrap ? "visible" : "hidden",
+                                  backgroundColor: "rgba(255,255,255,0.92)",
                                 }}
                               >
                                 <span

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Anchor, Group, Stack, Text, Paper, Skeleton } from "@mantine/core";
+import { Anchor, Group, Stack, Text, Skeleton } from "@mantine/core";
 // eslint-disable-next-line no-restricted-imports
 import ApiKeySection from "./apiKeys/ApiKeySection";
 // eslint-disable-next-line no-restricted-imports
@@ -7,7 +7,6 @@ import RefreshModal from "./apiKeys/RefreshModal";
 // eslint-disable-next-line no-restricted-imports
 import useApiKey from "./apiKeys/hooks/useApiKey";
 import { useTranslation } from "react-i18next";
-import LocalIcon from "@app/components/shared/LocalIcon";
 
 export default function ApiKeys() {
   const [copied, setCopied] = useState<string | null>(null);
@@ -67,75 +66,6 @@ export default function ApiKeys() {
           "Use your API key to programmatically access OnePDF's processing capabilities.",
         )}
       </Text>
-
-      <Paper
-        p="md"
-        radius="md"
-        style={{
-          background: "var(--bg-muted)",
-          border: "1px solid var(--border-subtle)",
-        }}
-      >
-        <Group gap="xs" wrap="nowrap" align="flex-start">
-          <LocalIcon
-            icon="info-rounded"
-            width={18}
-            height={18}
-            style={{ marginTop: 2, flexShrink: 0, opacity: 0.7 }}
-          />
-          <Stack gap={8} style={{ flex: 1 }}>
-            <Text size="sm" fw={500}>
-              {t("config.apiKeys.docsTitle", "API Documentation")}
-            </Text>
-            <Text size="sm" c="dimmed">
-              {t(
-                "config.apiKeys.docsDescription",
-                "Learn more about integrating with OnePDF:",
-              )}
-            </Text>
-            <Stack gap={4}>
-              <Text size="sm">
-                <Anchor
-                  href="https://docs.stirlingpdf.com/API"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 4,
-                  }}
-                >
-                  {t("config.apiKeys.docsLink", "API Documentation")}
-                  <LocalIcon
-                    icon="open-in-new-rounded"
-                    width={14}
-                    height={14}
-                  />
-                </Anchor>
-              </Text>
-              <Text size="sm">
-                <Anchor
-                  href="https://registry.scalar.com/@stirlingpdf/apis/stirling-pdf-processing-api/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 4,
-                  }}
-                >
-                  {t("config.apiKeys.schemaLink", "API Schema Reference")}
-                  <LocalIcon
-                    icon="open-in-new-rounded"
-                    width={14}
-                    height={14}
-                  />
-                </Anchor>
-              </Text>
-            </Stack>
-          </Stack>
-        </Group>
-      </Paper>
 
       {apiKeyError && (
         <Text size="sm" c="red.5">

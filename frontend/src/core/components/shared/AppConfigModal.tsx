@@ -41,6 +41,15 @@ const AppConfigModalInner: React.FC<AppConfigModalProps> = ({
   const licenseAlert = useLicenseAlert();
   const { confirmIfDirty } = useUnsavedChanges();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const returnPathRef = useRef<string>("/app");
+
+  // Keep returnPathRef pointed at the last non-settings path so closing the
+  // modal returns the user to the app instead of the marketing landing page.
+  useEffect(() => {
+    if (!location.pathname.startsWith("/settings")) {
+      returnPathRef.current = location.pathname;
+    }
+  }, [location.pathname]);
 
   // Extract section from URL path (e.g., /settings/people -> people)
   const getSectionFromPath = (pathname: string): NavKey | null => {
@@ -135,8 +144,7 @@ const AppConfigModalInner: React.FC<AppConfigModalProps> = ({
     const canProceed = await confirmIfDirty();
     if (!canProceed) return;
 
-    // Navigate back to home when closing modal
-    navigate("/", { replace: true });
+    navigate(returnPathRef.current, { replace: true });
     onClose();
   }, [confirmIfDirty, navigate, onClose]);
 

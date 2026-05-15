@@ -1,6 +1,6 @@
 # OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-15 (Session 33)
+**Last updated:** 2026-05-15 (Session 34)
 **Branch:** OnePDF-UI-Change  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -3074,3 +3074,76 @@ const calculatedScale = Math.min(effectiveMaxWidth / pageWidth, 2.5);
 - [ ] Text overlay boxes align correctly with the background page preview
 - [ ] Text does not appear mashed, doubled, or clipped
 - [ ] On desktop (wide screen), canvas still renders at up to 820px (full width unchanged)
+
+---
+
+## Session 34: PDF Editor Text Doubling Fix
+
+**Date:** 2026-05-15  
+**Branch:** OnePDF-UI-Change
+
+---
+
+### Change: Opaque Background on Inactive Text Overlay Boxes
+
+**Root cause:** The PDF text editor renders two layers simultaneously:
+
+1. **Background layer** — `pagePreview`, a rasterized image of the full PDF page (including all text), used as the visual reference.
+2. **Overlay layer** — absolute-positioned `div` elements for each text group, rendered in web fonts for editing.
+
+Inactive (non-selected, unedited) text boxes had no background colour (`backgroundColor` was absent on the inner text `div`). This made them fully transparent, so both the PDF preview image text and the overlay web-rendered text were visible at the same time. Because PDF font rendering and browser CSS font rendering differ slightly in size, weight, and position, the two layers created a doubled/strikethrough appearance on every character.
+
+The editing state already used `backgroundColor: "rgba(255,255,255,0.92)"` on its `contentEditable` div, which correctly covered the underlying preview text. The non-editing (read) state was missing the same treatment.
+
+**`frontend/src/core/components/tools/pdfTextEditor/PdfTextEditorView.tsx`** — Modified:
+
+Added `backgroundColor: "rgba(255,255,255,0.92)"` to the static (non-editing) text `div`:
+
+```tsx
+// Before — no background, both layers visible
+<div
+  data-text-group={group.id}
+  style={{
+    width: "100%",
+    fontSize: `${fontSizePx}px`,
+    color: textColor,
+    // ... no backgroundColor
+  }}
+>
+
+// After — matches the editing state
+<div
+  data-text-group={group.id}
+  style={{
+    width: "100%",
+    fontSize: `${fontSizePx}px`,
+    color: textColor,
+    backgroundColor: "rgba(255,255,255,0.92)",
+    // ...
+  }}
+>
+```
+
+**Result:** Each text box now paints a near-opaque white rectangle over the matching region of the preview image, then renders only the web-font text on top. The preview image is still visible for non-text areas (images, borders, graphics). Text no longer appears doubled.
+
+---
+
+### Session 34 — Files Changed
+
+| File | Change |
+|---|---|
+| `frontend/src/core/components/tools/pdfTextEditor/PdfTextEditorView.tsx` | Added `backgroundColor: "rgba(255,255,255,0.92)"` to inactive text overlay `div` |
+
+**Commit:** `a4d58bbb7` — "Fix PDF editor text doubling — opaque background on inactive text boxes"
+
+---
+
+### Session 34 — Test Checklist
+
+#### PDF Editor Text Rendering
+- [ ] Open PDF Editor on mobile, load a PDF — text renders cleanly with no doubling or strikethrough effect
+- [ ] Same test on desktop — text renders cleanly (regression check)
+- [ ] Inactive text boxes cover the preview image text — only the web-rendered overlay is visible
+- [ ] Active/selected text boxes still show the blue/purple highlight outline as before
+- [ ] Edited (yellow-highlighted) text boxes look correct
+- [ ] Images and graphical elements in the PDF are still visible through the background (text boxes only cover text regions, not the full page)

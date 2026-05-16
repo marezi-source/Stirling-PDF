@@ -3152,7 +3152,7 @@ Added `backgroundColor: "rgba(255,255,255,0.92)"` to the static (non-editing) te
 
 ## Session 37: PDF Text Editor — Save Review Panel Fix
 
-**Date:** 2026-05-15  
+**Date:** 2026-05-15 → 2026-05-16  
 **Branch:** OnePDF-UI-Change
 
 ---
@@ -3172,7 +3172,9 @@ This infrastructure was wired up in Session 36 (`showSaveReview` state, `PdfText
 
 ### Root Cause Analysis
 
-Three bugs were identified, each individually preventing the review panel from appearing:
+Four bugs were identified and fixed across two sessions. The first three were addressed in Session 37 (first pass); the fourth was the true root cause found after confirming the review panel still did not appear.
+
+---
 
 #### Bug 1 — `onDownloadSaved` triggered tool completion and navigated away
 
@@ -3188,40 +3190,61 @@ onDownloadSaved: handleGeneratePdf,
 onDownloadSaved: () => void handleGeneratePdf(true),
 ```
 
+---
+
 #### Bug 2 — Navigation guard re-armed after save, blocking "View PDF"
 
 After `handleSaveToWorkbench` called `setHasUnsavedChanges(false)`, the existing `hasChanges` sync effect immediately re-armed it back to `true` (text group state is never reset on save). When the user clicked "View PDF", the navigation guard showed a "discard changes?" dialog rather than navigating.
 
 **Fix:** Added `navigationActions.setHasUnsavedChanges(false)` explicitly inside `onGoToViewer` before calling `setToolAndWorkbench`.
 
-#### Bug 3 — Auto-load effect cleared `showSaveReview` after save (race condition)
+---
 
-After `consumeFiles` completes, the `selectedFiles` array in FileContext changes (new file replaces old). The auto-load `useEffect` fires, computes the file's key, and — if the key doesn't match `autoLoadKeyRef.current` — calls `handleLoadFile`. The very first line of `handleLoadFile` is `setShowSaveReview(false)`, erasing the review panel before it renders.
+#### Bug 3 — Auto-load effect could clear `showSaveReview` (pinned-file race)
 
-The tricky variant: if the original file was **pinned**, `processFileSwap` keeps the old file in `selectedFileIds`. So `selectedFiles[0]` is still the OLD file after the save. The key computed from the old file never matches the new `autoLoadKeyRef.current = stubs[0].id`, so the reload fires regardless of the key pre-arm.
+After `consumeFiles` completes, `selectedFiles` changes. The auto-load `useEffect` fires and — when the file key doesn't match `autoLoadKeyRef.current` — calls `handleLoadFile`, whose first line is `setShowSaveReview(false)`.
 
-**Fix:** Added a `showSaveReviewRef` that is set **synchronously** (before React processes any batched state updates) right after `consumeFiles` resolves. `handleLoadFile` checks this ref at the very top and returns early if the review panel is up.
+The tricky variant: if the original file was **pinned**, `processFileSwap` keeps the old file in `selectedFileIds`. `selectedFiles[0]` is still the OLD file. The old file's key never matches `autoLoadKeyRef.current = stubs[0].id`, so the reload fires regardless of the key pre-arm.
+
+**Fix:** Added a `showSaveReviewRef` set **synchronously** right after `consumeFiles` resolves. `handleLoadFile` checks this ref at the top and returns early if the review panel is up. The ref is kept in sync with state via `useEffect`. A separate guard in `handleLoadFileFromDropzone` resets it so an explicit file drop still loads correctly.
+
+---
+
+#### Bug 4 (true root cause) — `setHasUnsavedChanges(false)` triggered guardian navigation
+
+Even with the above fixes applied, the review panel still did not appear — the app reverted to the tools list + viewer every time. Investigation of `NavigationContext` and `ToolWorkflowContext` revealed the real cause.
+
+**Cascade:**
+1. `handleSaveToWorkbench` called `navigationActions.setHasUnsavedChanges(false)`
+2. This dispatched `SET_UNSAVED_CHANGES` to NavigationContext → `hasUnsavedChanges` became `false`
+3. All callbacks that close over `state.hasUnsavedChanges` (`setWorkbench`, `setToolAndWorkbench`, `requestNavigation`, `handleToolSelect`) were recreated → the `actions` useMemo produced a new object
+4. `ToolWorkflowContext` subscribes to `useNavigationActions()` — it re-rendered with the new `actions`
+5. The guardian `useEffect` (deps: `actions`, `customWorkbenchViews`, `navigationState.*`) re-ran
+6. The guardian called `actions.setWorkbench(getDefaultWorkbench())` because its condition was met
+7. `setWorkbench` — now closing over `hasUnsavedChanges = false` — saw `leavingWorkbenchWithChanges = false` and dispatched `SET_TOOL_AND_WORKBENCH` with `toolId: null` immediately (no warning dialog)
+8. `selectedTool = null` → `PdfTextEditor` unmounted → `leftPanelView = "toolPicker"` → tools list shown
+
+**Fix:** Removed the `setHasUnsavedChanges(false)` call from `handleSaveToWorkbench` entirely.
+
+- `actions` is never recreated during the save → guardian never fires → workbench stays on `custom:pdfTextEditor`
+- `setShowSaveReview(true)` fires normally → review panel renders ✓
+- The `onGoToViewer` handler already called `setHasUnsavedChanges(false)` explicitly before navigating → "View PDF" still works without triggering the warning dialog
+- The `hasChanges` sync effect keeps the navigation guard armed while dirty pages exist — correct behaviour since the user can still edit further
 
 ```typescript
-// In handleSaveToWorkbench — set ref BEFORE React processes consumeFiles dispatch
-await consumeFiles([sourceFileIdRef.current], stirlingFiles, stubs);
-showSaveReviewRef.current = true;   // ← blocks handleLoadFile synchronously
-sourceFileIdRef.current = stubs[0].id;
+// Before — caused guardian cascade
+showSaveReviewRef.current = true;
 autoLoadKeyRef.current = stubs[0].id;
-navigationActions.setHasUnsavedChanges(false);
+navigationActions.setHasUnsavedChanges(false);  // ← removed
 setErrorMessage(null);
 setShowSaveReview(true);
 
-// In handleLoadFile — guard at the top
-if (showSaveReviewRef.current) {
-  return;  // don't reload while review panel is showing
-}
-setShowSaveReview(false);
+// After — stable, no actions recreation
+showSaveReviewRef.current = true;
+autoLoadKeyRef.current = stubs[0].id;
+setErrorMessage(null);
+setShowSaveReview(true);
 ```
-
-The ref is kept in sync with the `showSaveReview` state via a `useEffect`, so when the user clicks "Continue Editing" (`setShowSaveReview(false)`), the ref resets to `false` and the editor resumes normal auto-load behaviour.
-
-A separate guard clears the ref in `handleLoadFileFromDropzone` so that explicitly dropping a new file while the review is showing still loads it correctly.
 
 ---
 
@@ -3229,14 +3252,14 @@ A separate guard clears the ref in `handleLoadFileFromDropzone` so that explicit
 
 | File | Change |
 |---|---|
-| `frontend/src/core/tools/pdfTextEditor/PdfTextEditor.tsx` | Added `showSaveReviewRef`; added guard at top of `handleLoadFile`; set ref synchronously in `handleSaveToWorkbench` after `consumeFiles`; fixed `onDownloadSaved` skipComplete; fixed `onGoToViewer` navigation guard; reset ref in `handleLoadFileFromDropzone` |
+| `frontend/src/core/tools/pdfTextEditor/PdfTextEditor.tsx` | Added `showSaveReviewRef` + `useEffect` sync; guard at top of `handleLoadFile`; set ref synchronously in `handleSaveToWorkbench` after `consumeFiles`; removed `setHasUnsavedChanges(false)` from save path; fixed `onDownloadSaved` skipComplete; fixed `onGoToViewer` to call `setHasUnsavedChanges(false)` before navigating; reset ref in `handleLoadFileFromDropzone` |
 
 ---
 
 ### Test Checklist
 
 #### Save Review Panel
-- [ ] Load a PDF in the PDF Text Editor, make a text edit, click "Apply Changes" — the sidebar transitions to the review panel (green checkmark, "Changes Applied", three buttons)
+- [ ] Load a PDF in the PDF Text Editor, make a text edit, click "Apply Changes" — sidebar transitions to the review panel (green checkmark, "Changes Applied", three buttons)
 - [ ] Click "Download PDF" in the review panel — PDF downloads; sidebar stays on the review panel (does not navigate away)
 - [ ] Click "View PDF" in the review panel — navigates to the viewer; no "discard changes?" dialog appears
 - [ ] Click "Continue Editing" in the review panel — sidebar returns to the editor controls; the newly saved file is loaded and editable

@@ -1655,7 +1655,11 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
       sourceFileIdRef.current = stubs[0].id;
       autoLoadKeyRef.current = stubs[0].id;
 
-      navigationActions.setHasUnsavedChanges(false);
+      // Do NOT call setHasUnsavedChanges(false) here — doing so recreates the
+      // NavigationContext actions object, which causes ToolWorkflowContext's guardian
+      // effect to fire and navigate away from the custom workbench before the review
+      // panel can render. onGoToViewer disarms the guard explicitly when the user
+      // chooses to navigate away.
       setErrorMessage(null);
       setShowSaveReview(true);
     } catch (error: any) {

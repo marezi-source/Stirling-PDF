@@ -1,6 +1,6 @@
 # OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-16 (Session 38)
+**Last updated:** 2026-05-16 (Session 39)
 **Branch:** OnePDF-UI-Change  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -3334,3 +3334,70 @@ When enough tool buttons are registered (e.g. in PDF Text Editor view) the right
 
 #### Right rail scroll
 - [ ] Open a PDF in the PDF Text Editor — right rail shows all tool icons; if they overflow, scrolling with the mouse wheel reveals the rest without a visible scrollbar track
+
+---
+
+## Session 39: Mobile PDF Editor — Fix Scroll-Back-to-Tools Bug
+
+**Date:** 2026-05-16  
+**Branch:** OnePDF-UI-Change
+
+---
+
+### Problem
+
+On mobile, after uploading a PDF and landing in the PDF Text Editor workbench view, tapping on the PDF canvas to start editing caused the slider to snap back to the "Tools" slide. The PDF editor became unreachable for editing on mobile.
+
+---
+
+### Root Cause
+
+The mobile layout uses a horizontal scroll-snap slider (`mobile-slider`) with two slides: "Tools" (left) and "Workbench" (right). A `scroll` event listener on the slider checks `scrollLeft` against a midpoint threshold and updates `activeMobileView` accordingly.
+
+When the user taps inside the PDF editor canvas on mobile:
+- The virtual keyboard appears → the browser fires layout/scroll events on parent containers
+- PDF.js canvas touch handling generates touch events that propagate up to the slider
+- The slider's `scrollLeft` is briefly reported at a low value (near 0) during these browser-internal scroll adjustments
+- The handler read this momentary position and set `activeMobileView = "tools"`, scrolling the slider to the tools slide
+
+The `isProgrammaticScroll` guard only covers programmatic scrolls initiated by the app itself, not spurious browser scroll events.
+
+---
+
+### Fix
+
+Added `lockedToWorkbenchRef` — a ref that tracks whether a custom workbench (e.g. `custom:pdfTextEditor`) is currently active. A separate `useEffect` keeps the ref in sync with `navigationState.workbench` without stale closure issues.
+
+In the `handleScroll` rAF callback, when the scroll position would switch to `"tools"` but the ref is locked, the handler instead snaps the slider programmatically back to the workbench position and returns early — the user stays in the workbench view.
+
+Explicit tab button taps ("Tools" / "Workspace") are unaffected; they call `setActiveMobileView` directly and bypass the scroll handler entirely.
+
+```typescript
+// If a custom workbench is active, reject any scroll-based switch back to tools.
+if (nextView === "tools" && lockedToWorkbenchRef.current) {
+  isProgrammaticScroll.current = true;
+  container.scrollTo({ left: offsetWidth, behavior: "smooth" });
+  setTimeout(() => { isProgrammaticScroll.current = false; }, 500);
+  return;
+}
+```
+
+---
+
+### Files Changed
+
+| File | Change |
+|---|---|
+| `frontend/src/core/pages/HomePage.tsx` | Added `lockedToWorkbenchRef`; added `useEffect` to sync ref with `navigationState.workbench`; updated scroll handler to snap back to workbench instead of switching to tools when locked |
+
+---
+
+### Test Checklist
+
+- [ ] Upload a PDF from the landing screen → lands in PDF Text Editor workbench view (mobile)
+- [ ] Tap on the PDF canvas to edit text — view stays on the workbench slide (does NOT snap back to tools)
+- [ ] Virtual keyboard appears/disappears — still on workbench slide
+- [ ] Tap the "Tools" toggle button — correctly switches to tools slide
+- [ ] Tap the "Workspace" toggle button — correctly switches back to workbench slide
+- [ ] Manually swipe left from the workbench to tools — should now require an explicit swipe past midpoint with no custom workbench active (e.g. after closing the PDF editor)
+- [ ] On desktop — no behaviour change; slider and refs are not used

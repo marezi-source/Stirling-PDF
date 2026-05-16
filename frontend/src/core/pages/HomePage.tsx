@@ -62,6 +62,10 @@ export default function HomePage() {
   const sliderRef = useRef<HTMLDivElement | null>(null);
   const [activeMobileView, setActiveMobileView] = useState<MobileView>("tools");
   const isProgrammaticScroll = useRef(false);
+  // True when a custom workbench (e.g. PDF text editor) is active on mobile.
+  // Prevents accidental scroll-based navigation back to the tools slide when the
+  // virtual keyboard or PDF canvas touch events fire spurious scroll events on the slider.
+  const lockedToWorkbenchRef = useRef(false);
   const [configModalOpen, setConfigModalOpen] = useState(false);
   const [mobileLoginPromptOpen, setMobileLoginPromptOpen] = useState(false);
 
@@ -177,6 +181,19 @@ export default function HomePage() {
         const threshold = offsetWidth / 2;
         const nextView: MobileView =
           scrollLeft >= threshold ? "workbench" : "tools";
+
+        // A custom workbench (e.g. PDF editor) locks the slider to the workbench
+        // slide. Spurious scroll events from the virtual keyboard appearing or
+        // touches on the PDF canvas must not flip the user back to the tools slide.
+        if (nextView === "tools" && lockedToWorkbenchRef.current) {
+          isProgrammaticScroll.current = true;
+          container.scrollTo({ left: offsetWidth, behavior: "smooth" });
+          setTimeout(() => {
+            isProgrammaticScroll.current = false;
+          }, 500);
+          return;
+        }
+
         setActiveMobileView((current) =>
           current === nextView ? current : nextView,
         );
@@ -192,6 +209,12 @@ export default function HomePage() {
       }
     };
   }, [isMobile]);
+
+  // Keep lockedToWorkbenchRef current so the scroll handler can read it without stale closure issues
+  useEffect(() => {
+    lockedToWorkbenchRef.current =
+      isMobile && navigationState.workbench.startsWith("custom:");
+  }, [isMobile, navigationState.workbench]);
 
   // Automatically switch to workbench when read mode or multiTool is activated in mobile
   useEffect(() => {

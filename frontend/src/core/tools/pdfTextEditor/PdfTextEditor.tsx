@@ -48,6 +48,11 @@ import type { PDFDocumentProxy } from "pdfjs-dist";
 const WORKBENCH_VIEW_ID = "pdfTextEditorWorkbench";
 const WORKBENCH_ID = "custom:pdfTextEditor" as const;
 
+// Persists across unmount/remount so the review panel survives the navigation
+// blip that occasionally unmounts the component during handleSaveToWorkbench.
+// Consumed (cleared) once on the next mount.
+let _postSaveReviewPending = false;
+
 const sanitizeBaseName = (name?: string | null): string => {
   if (!name || name.trim().length === 0) {
     return "document";
@@ -263,7 +268,7 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isSavingToWorkbench, setIsSavingToWorkbench] = useState(false);
-  const [showSaveReview, setShowSaveReview] = useState(false);
+  const [showSaveReview, setShowSaveReview] = useState(_postSaveReviewPending);
   const [isConverting, setIsConverting] = useState(false);
   const [conversionProgress, setConversionProgress] =
     useState<ConversionProgress | null>(null);
@@ -291,7 +296,7 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
   const originalGroupsRef = useRef<TextGroup[][]>([]);
   const imagesByPageRef = useRef<PdfJsonImageElement[][]>([]);
   const lastLoadedFileRef = useRef<File | null>(null);
-  const showSaveReviewRef = useRef(false);
+  const showSaveReviewRef = useRef(_postSaveReviewPending);
   const autoLoadKeyRef = useRef<string | null>(null);
   const sourceFileIdRef = useRef<string | null>(null);
   const loadRequestIdRef = useRef(0);
@@ -320,6 +325,13 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
   useEffect(() => {
     showSaveReviewRef.current = showSaveReview;
   }, [showSaveReview]);
+
+  // Consume the cross-mount flag once on mount so it doesn't bleed into future loads.
+  useEffect(() => {
+    if (_postSaveReviewPending) {
+      _postSaveReviewPending = false;
+    }
+  }, []);
 
   useEffect(() => {
     loadedImagePagesRef.current = new Set(loadedImagePages);
@@ -1501,6 +1513,13 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
       const canUseIncremental =
         isLazyMode && cachedJobId && dirtyPageIndices.length > 0;
 
+      // Show the review panel SYNCHRONOUSLY before any awaits — this guarantees
+      // React commits the state in the same flush as the button click, so no
+      // navigation event can race with an async boundary and discard the update.
+      _postSaveReviewPending = true;
+      showSaveReviewRef.current = true;
+      setShowSaveReview(true);
+
       if (canUseIncremental) {
         await ensureImagesForPages(dirtyPageIndices);
 
@@ -1645,12 +1664,6 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
         stubs,
       );
 
-      // Block handleLoadFile synchronously before React processes the consumeFiles
-      // dispatch — this prevents any auto-reload triggered by selectedFiles changing
-      // (including the pinned-file case where selectedFiles[0] is still the old file)
-      // from clearing the review panel.
-      showSaveReviewRef.current = true;
-
       // Update the source file ID to point to the new file
       sourceFileIdRef.current = stubs[0].id;
       autoLoadKeyRef.current = stubs[0].id;
@@ -1661,8 +1674,11 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
       // panel can render. onGoToViewer disarms the guard explicitly when the user
       // chooses to navigate away.
       setErrorMessage(null);
-      setShowSaveReview(true);
     } catch (error: any) {
+      // Roll back the optimistic review panel on failure
+      _postSaveReviewPending = false;
+      showSaveReviewRef.current = false;
+      setShowSaveReview(false);
       console.error("Failed to save to workbench", error);
       const raw =
         error?.response?.data ||
@@ -1836,6 +1852,16 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
     }
   }, [groupingMode, resetToDocument]);
 
+  // "Continue Editing" after save: hide the review panel and reload the file if
+  // the component was remounted (loadedDocument reset to null on remount).
+  const handleContinueEditing = useCallback(() => {
+    showSaveReviewRef.current = false;
+    setShowSaveReview(false);
+    if (!loadedDocumentRef.current && selectedFiles.length > 0 && selectedFiles[0]) {
+      void handleLoadFile(selectedFiles[0]);
+    }
+  }, [selectedFiles, handleLoadFile]);
+
   const viewData = useMemo<PdfTextEditorViewData>(
     () => ({
       document: loadedDocument,
@@ -1878,8 +1904,9 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
       onLoadFile: handleLoadFileFromDropzone,
       showSaveReview,
       onDownloadSaved: () => void handleGeneratePdf(true),
-      onContinueEditing: () => setShowSaveReview(false),
+      onContinueEditing: handleContinueEditing,
       onGoToViewer: () => {
+        _postSaveReviewPending = false;
         navigationActions.setHasUnsavedChanges(false);
         setShowSaveReview(false);
         navigationActions.setToolAndWorkbench(null, getDefaultWorkbench());
@@ -1890,6 +1917,7 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
       handleUngroupGroup,
       handleImageTransform,
       handleSaveToWorkbench,
+      handleContinueEditing,
       showSaveReview,
       imagesByPage,
       isSavingToWorkbench,
@@ -1919,7 +1947,6 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
       requestPagePreview,
       setForceSingleTextElement,
       handleLoadFileFromDropzone,
-      showSaveReview,
       navigationActions,
     ],
   );
@@ -1966,6 +1993,8 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
   useEffect(() => {
     if (navigationState.selectedTool !== "pdfTextEditor") {
       hasAutoOpenedWorkbenchRef.current = false;
+      setShowSaveReview(false);
+      showSaveReviewRef.current = false;
       return;
     }
 

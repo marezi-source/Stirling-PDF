@@ -20,6 +20,12 @@
   width: 100%;
   height: 100%;
   flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.right-rail-inner::-webkit-scrollbar {
+  display: none;
 }
 
 .right-rail-section {

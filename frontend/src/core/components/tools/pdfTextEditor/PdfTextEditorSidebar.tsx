@@ -137,12 +137,23 @@ const PdfTextEditorSidebar = ({ data }: PdfTextEditorSidebarProps) => {
       <Stack style={{ height: "100%", display: "flex" }} gap={0} p="md">
         <Stack gap="md" style={{ flex: 1, justifyContent: "center" }}>
           <Group justify="center">
-            <ThemeIcon size="xl" color="green" variant="light" radius="xl">
-              <CheckCircleOutlineIcon fontSize="medium" />
+            <ThemeIcon
+              size="xl"
+              color={isSavingToWorkbench ? "blue" : "green"}
+              variant="light"
+              radius="xl"
+            >
+              {isSavingToWorkbench ? (
+                <AutorenewIcon fontSize="medium" />
+              ) : (
+                <CheckCircleOutlineIcon fontSize="medium" />
+              )}
             </ThemeIcon>
           </Group>
           <Text ta="center" fw={600} size="md">
-            {t("pdfTextEditor.saveReview.title", "Changes Applied")}
+            {isSavingToWorkbench
+              ? t("pdfTextEditor.saveReview.saving", "Saving Changes…")
+              : t("pdfTextEditor.saveReview.title", "Changes Applied")}
           </Text>
           {fileName && (
             <Text ta="center" size="sm" c="dimmed">
@@ -154,6 +165,7 @@ const PdfTextEditorSidebar = ({ data }: PdfTextEditorSidebarProps) => {
             color="blue"
             leftSection={<FileDownloadIcon fontSize="small" />}
             loading={isGeneratingPdf}
+            disabled={isSavingToWorkbench}
             onClick={() => void onDownloadSaved()}
           >
             {t("pdfTextEditor.saveReview.download", "Download PDF")}
@@ -161,6 +173,7 @@ const PdfTextEditorSidebar = ({ data }: PdfTextEditorSidebarProps) => {
           <Button
             fullWidth
             variant="default"
+            disabled={isSavingToWorkbench}
             onClick={onGoToViewer}
           >
             {t("pdfTextEditor.saveReview.viewPdf", "View PDF")}
@@ -169,6 +182,7 @@ const PdfTextEditorSidebar = ({ data }: PdfTextEditorSidebarProps) => {
             fullWidth
             variant="subtle"
             color="gray"
+            disabled={isSavingToWorkbench}
             onClick={onContinueEditing}
           >
             {t("pdfTextEditor.saveReview.continueEditing", "Continue Editing")}

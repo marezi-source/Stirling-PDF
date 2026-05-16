@@ -454,5 +454,5 @@ The frontend is organized with a clear separation of concerns:
 
 ## Decision Making
 - Ask clarifying questions before making assumptions
-- Confirm approach before making structural changes
+- Don't confirm approach before making structural changes, just do it
 - Verify understanding of requirements before proceeding

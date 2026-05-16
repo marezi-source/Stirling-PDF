@@ -1,6 +1,6 @@
 # OnePDF — Project Checkpoint
 
-**Last updated:** 2026-05-15 (Session 34)
+**Last updated:** 2026-05-16 (Session 38)
 **Branch:** OnePDF-UI-Change  
 **Base:** Stirling-PDF (open-source fork)  
 **Status: RUNNING** — backend on port 8080, frontend on port 5173
@@ -3266,3 +3266,71 @@ setShowSaveReview(true);
 - [ ] Apply changes, then drop a new file onto the editor — review panel clears and the new file loads correctly
 - [ ] Open a PDF where the original file is pinned; apply changes — review panel still appears (pinned-file path)
 - [ ] Apply changes with no edits (button disabled check) — "Apply Changes" button is disabled when `hasChanges = false`
+
+---
+
+## Session 38: Landing Page Upload → PDF Editor + Right Rail Scroll
+
+**Date:** 2026-05-16  
+**Branch:** OnePDF-UI-Change
+
+---
+
+### Changes
+
+#### 1 — Removed pink/red logo icon from workspace landing page
+
+The `<LogoIcon>` rendered a pink OnePDF SVG above the document stack on the workspace landing screen. Removed it from `LandingPage.tsx`.
+
+**File:** `frontend/src/core/components/shared/LandingPage.tsx`
+- Removed `<LogoIcon className="landing-logo" aria-label="OnePDF" />` (line 80)
+- Removed `import { LogoIcon }` import
+
+---
+
+#### 2 — Upload buttons navigate straight to PDF Text Editor
+
+All upload entry points on the workspace landing page now call `handleToolSelect("pdfTextEditor")` immediately after `addFiles()` resolves, so the user lands in the PDF Text Editor rather than staying on the landing screen.
+
+**File:** `frontend/src/core/components/shared/LandingPage.tsx`
+- Added `import { useToolWorkflow }` from `@app/contexts/ToolWorkflowContext`
+- Added `const { handleToolSelect } = useToolWorkflow()` inside `LandingPage`
+- Added `openEditor()` helper: `() => handleToolSelect("pdfTextEditor")`
+- Called `openEditor()` after `addFiles()` in all four handlers: `handleFileDrop`, `handleNativeUploadClick`, `handleFileSelect`, `handleFilesReceivedFromMobile`
+
+> Note: The `MarketingLanding.tsx` page already had this behaviour (it called `handleToolSelect("pdfTextEditor")` + `navigate("/app")` after upload). This change brings the workspace landing page into parity.
+
+---
+
+#### 3 — Right rail tool menu is now scrollable
+
+When enough tool buttons are registered (e.g. in PDF Text Editor view) the right rail overflowed its fixed height with no way to reach buttons below the fold.
+
+**File:** `frontend/src/core/components/shared/rightRail/RightRail.css`
+- Added `overflow-y: auto` to `.right-rail-inner`
+- Added `scrollbar-width: none` (Firefox) and `.right-rail-inner::-webkit-scrollbar { display: none }` (WebKit) — the rail is only 3.5 rem wide so a visible scrollbar track would look cramped; scroll via mouse wheel / touch still works
+
+---
+
+### Files Changed
+
+| File | Change |
+|---|---|
+| `frontend/src/core/components/shared/LandingPage.tsx` | Removed `LogoIcon`; added `useToolWorkflow`; all upload handlers navigate to PDF Text Editor after adding files |
+| `frontend/src/core/components/shared/rightRail/RightRail.css` | `.right-rail-inner` — `overflow-y: auto`, hidden scrollbar |
+
+---
+
+### Test Checklist
+
+#### Upload → PDF Editor navigation
+- [ ] On the workspace landing screen (no files loaded), click "Upload from computer" and pick a PDF — should land directly in PDF Text Editor (not stay on landing screen)
+- [ ] Drag and drop a PDF onto the landing screen — same, goes straight to PDF Text Editor
+- [ ] Use the mobile QR upload (if enabled) — same behaviour
+
+#### Logo icon removed
+- [ ] Landing screen (light mode) — no pink/red icon above the document stack
+- [ ] Landing screen (dark mode) — same
+
+#### Right rail scroll
+- [ ] Open a PDF in the PDF Text Editor — right rail shows all tool icons; if they overflow, scrolling with the mouse wheel reveals the rest without a visible scrollbar track

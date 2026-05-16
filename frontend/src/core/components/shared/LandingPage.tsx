@@ -8,17 +8,22 @@ import MobileUploadModal from "@app/components/shared/MobileUploadModal";
 import { openFilesFromDisk } from "@app/services/openFilesFromDisk";
 import { LandingDocumentStack } from "@app/components/shared/LandingDocumentStack";
 import { LandingActions } from "@app/components/shared/LandingActions";
-import { LogoIcon } from "@app/components/shared/LogoIcon";
+import { useToolWorkflow } from "@app/contexts/ToolWorkflowContext";
 import "@app/components/shared/LandingPage.css";
 
 const LandingPage = () => {
   const { t } = useTranslation();
   const { addFiles } = useFileHandler();
+  const { handleToolSelect } = useToolWorkflow();
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
   const terminology = useFileActionTerminology();
   const [mobileUploadModalOpen, setMobileUploadModalOpen] = useState(false);
+
+  const openEditor = () => handleToolSelect("pdfTextEditor");
+
   const handleFileDrop = async (files: File[]) => {
     await addFiles(files);
+    openEditor();
   };
 
   const handleNativeUploadClick = async () => {
@@ -28,6 +33,7 @@ const LandingPage = () => {
     });
     if (files.length > 0) {
       await addFiles(files);
+      openEditor();
     }
   };
 
@@ -37,6 +43,7 @@ const LandingPage = () => {
     const files = Array.from(event.target.files || []);
     if (files.length > 0) {
       await addFiles(files);
+      openEditor();
     }
     event.target.value = "";
   };
@@ -44,6 +51,7 @@ const LandingPage = () => {
   const handleFilesReceivedFromMobile = async (files: File[]) => {
     if (files.length > 0) {
       await addFiles(files);
+      openEditor();
     }
   };
 
@@ -77,8 +85,6 @@ const LandingPage = () => {
           },
         }}
       >
-        <LogoIcon className="landing-logo" aria-label="OnePDF" />
-
         <LandingDocumentStack />
 
         <h1 className="landing-title">
